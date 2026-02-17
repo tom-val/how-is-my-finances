@@ -1,0 +1,83 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - "shared/**"
+      - ".github/workflows/deploy-frontend.yml"
+
+env:
+  NODE_VERSION: "20"
+  AWS_REGION: eu-central-1
+  TERRAFORM_DIR: infra/environments/dev
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: Prod
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7
+          terraform_wrapper: false
+
+      - name: Read Terraform outputs
+        id: tf
+        working-directory: ${{ env.TERRAFORM_DIR }}
+        run: |
+          terraform init -input=false
+          echo "api_endpoint=$(terraform output -raw api_endpoint)" >> "$GITHUB_OUTPUT"
+          echo "supabase_url=$(terraform output -raw supabase_url)" >> "$GITHUB_OUTPUT"
+          echo "supabase_anon_key=$(terraform output -raw supabase_anon_key)" >> "$GITHUB_OUTPUT"
+          echo "s3_frontend_bucket=$(terraform output -raw s3_frontend_bucket)" >> "$GITHUB_OUTPUT"
+          echo "cloudfront_distribution_id=$(terraform output -raw cloudfront_distribution_id)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Type check
+        working-directory: frontend
+        run: npm run typecheck
+
+      - name: Build
+        working-directory: frontend
+        env:
+          VITE_SUPABASE_URL: ${{ steps.tf.outputs.supabase_url }}
+          VITE_SUPABASE_ANON_KEY: ${{ steps.tf.outputs.supabase_anon_key }}
+          VITE_API_URL: ${{ steps.tf.outputs.api_endpoint }}
+        run: npm run build
+
+      - name: Deploy to S3
+        working-directory: frontend
+        run: aws s3 sync dist/ s3://${{ steps.tf.outputs.s3_frontend_bucket }} --delete
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ steps.tf.outputs.cloudfront_distribution_id }} \
+            --paths "/*"

@@ -1,0 +1,4 @@
+-- Seed data for local development.
+-- This file runs after migrations when using `supabase db reset`.
+-- The seed categories are already included in the migrations.
+-- Add any additional local dev seed data here.

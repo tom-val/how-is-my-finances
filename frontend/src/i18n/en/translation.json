@@ -1,0 +1,71 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "confirm": "Confirm",
+    "back": "Back"
+  },
+  "auth": {
+    "login": "Log in",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "logOut": "Log out",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "registerTitle": "Create an account",
+    "loginTitle": "Welcome back"
+  },
+  "months": {
+    "title": "Monthly Finances",
+    "salary": "Salary",
+    "totalSpent": "Total Spent",
+    "remaining": "Remaining",
+    "noMonths": "No months recorded yet. Add your first month to get started.",
+    "createMonth": "Add Month",
+    "year": "Year",
+    "month": "Month",
+    "notes": "Notes",
+    "perDay": "Per day",
+    "daysRemaining": "Days remaining",
+    "monthNames": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+    }
+  },
+  "expenses": {
+    "title": "Expenses",
+    "itemName": "Item",
+    "amount": "Amount",
+    "vendor": "Vendor",
+    "date": "Date",
+    "category": "Category",
+    "comment": "Comment",
+    "addExpense": "Add Expense",
+    "noExpenses": "No expenses recorded for this month."
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "currency": "Currency"
+  },
+  "nav": {
+    "months": "Months",
+    "recurring": "Recurring",
+    "settings": "Settings"
+  }
+}
