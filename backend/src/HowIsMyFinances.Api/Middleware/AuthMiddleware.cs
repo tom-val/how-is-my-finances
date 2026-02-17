@@ -54,6 +54,7 @@ public sealed class AuthMiddleware
         {
             var config = await _configManager.GetConfigurationAsync(context.RequestAborted);
             var tokenHandler = new JwtSecurityTokenHandler();
+            tokenHandler.InboundClaimTypeMap.Clear();
 
             var validationParameters = new TokenValidationParameters
             {

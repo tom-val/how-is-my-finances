@@ -15,6 +15,22 @@ builder.Services
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
+// CORS — in production API Gateway handles CORS; locally the backend must allow the frontend origin.
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+            ?? [];
+
+        policy
+            .WithOrigins(allowedOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 // Services
 builder.Services.AddScoped<IMonthService, MonthService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
@@ -22,6 +38,7 @@ builder.Services.AddScoped<IProfileService, ProfileService>();
 var app = builder.Build();
 
 // Middleware
+app.UseCors();
 app.UseMiddleware<AuthMiddleware>();
 
 // Health check (public)

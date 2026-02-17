@@ -48,7 +48,7 @@ supabase stop                       # Stop local stack
 - **Feature structure**: `frontend/src/features/{name}/pages/`, `components/`, `hooks/`
 - **i18n**: `frontend/src/i18n/{en,lt}/translation.json` — use `useTranslation()` hook. Category names come from DB (`name_en`/`name_lt` for system, `name` for user-created).
 - **Database**: All tables have RLS enabled. Use `(SELECT auth.uid())` in policies for performance.
-- **Backend auth**: Supabase JWT validated in `AuthMiddleware.cs`. User ID extracted from `sub` claim.
+- **Backend auth**: Supabase JWT validated in `AuthMiddleware.cs` via JWKS endpoint (ES256). User ID extracted from `sub` claim.
 - **Backend DB access**: Npgsql with service role key, always filter by validated `user_id`.
 - **Money**: `NUMERIC(12, 2)` in DB, `decimal` in C#, `number` in TypeScript.
 - **Dependencies**: Pin exact versions (no `^` or `~`).

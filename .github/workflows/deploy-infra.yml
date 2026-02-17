@@ -30,7 +30,6 @@ jobs:
       TF_VAR_supabase_access_token: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       TF_VAR_supabase_organization_id: ${{ secrets.SUPABASE_ORGANIZATION_ID }}
       TF_VAR_supabase_database_password: ${{ secrets.SUPABASE_DATABASE_PASSWORD }}
-      TF_VAR_supabase_jwt_secret: ${{ secrets.SUPABASE_JWT_SECRET }}
     steps:
       - uses: actions/checkout@v4
 

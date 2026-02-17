@@ -77,7 +77,6 @@ module "lambda" {
   deployment_package_path       = "${path.module}/dummy.zip"
   supabase_url                  = module.supabase.project_url
   supabase_service_key          = module.supabase.service_role_key
-  supabase_jwt_secret           = var.supabase_jwt_secret
   supabase_db_connection_string = module.supabase.db_connection_string
   api_gateway_execution_arn     = module.api_gateway.execution_arn
 }

@@ -25,12 +25,6 @@ variable "supabase_service_key" {
   sensitive   = true
 }
 
-variable "supabase_jwt_secret" {
-  description = "Supabase JWT secret for token validation."
-  type        = string
-  sensitive   = true
-}
-
 variable "supabase_db_connection_string" {
   description = "PostgreSQL connection string for Supabase database."
   type        = string

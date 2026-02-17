@@ -75,12 +75,12 @@ The project uses Supabase CLI to run a full local stack via Docker. Configuratio
 
 ```bash
 supabase start              # Start all services (first run downloads Docker images)
-supabase status             # Show connection details (URLs, keys, JWT secret)
+supabase status             # Show connection details (URLs, keys)
 supabase db reset           # Re-apply all migrations + seed data from scratch
 supabase stop               # Stop all services
 ```
 
-`supabase start` prints all the values you need for `.env` files — API URL, anon key, service role key, JWT secret, and database URL.
+`supabase start` prints all the values you need for `.env` files — API URL, anon key, service role key, and database URL.
 
 #### Creating new migrations
 
@@ -150,7 +150,7 @@ supabase db push
 
 ## Bootstrap (One-Time Setup)
 
-Three steps are required before the first deployment. Everything else is managed by Terraform in the CD pipeline.
+Four steps are required before the first deployment. Everything else is managed by Terraform in the CD pipeline.
 
 **1. Create Terraform state backend**
 
@@ -181,19 +181,27 @@ On the next screen, attach the **`AdministratorAccess`** policy. Name the role *
 
 Note the role ARN (e.g. `arn:aws:iam::123456789012:role/how-is-my-finances-github-actions`).
 
-**3. Configure GitHub repository**
+**3. Create a Supabase account**
+
+1. Sign up at [supabase.com](https://supabase.com) (an organisation is created automatically)
+2. Generate a management API token: [Dashboard > Account > Access Tokens](https://supabase.com/dashboard/account/tokens)
+3. Note your organisation ID from the dashboard URL: `https://supabase.com/dashboard/org/<org-id>`
+4. Choose a database password (any strong password — Terraform passes it to Supabase when creating the project)
+
+You do **not** need to create a Supabase project manually — Terraform provisions it automatically on first `terraform apply`.
+
+**4. Configure GitHub repository**
 
 In the repo settings (Settings > Secrets and variables > Actions):
 
 | Type | Name | Value |
 |---|---|---|
 | Secret | `AWS_ROLE_ARN` | Role ARN from step 2 |
-| Secret | `SUPABASE_ACCESS_TOKEN` | Supabase management API token (from [dashboard](https://supabase.com/dashboard/account/tokens)) |
-| Secret | `SUPABASE_ORGANIZATION_ID` | Supabase organisation ID |
-| Secret | `SUPABASE_DATABASE_PASSWORD` | Password for the Supabase database |
-| Secret | `SUPABASE_JWT_SECRET` | JWT secret (from Supabase dashboard after project creation) |
+| Secret | `SUPABASE_ACCESS_TOKEN` | Management API token from step 3 |
+| Secret | `SUPABASE_ORGANIZATION_ID` | Organisation ID from step 3 (UUID from dashboard URL) |
+| Secret | `SUPABASE_DATABASE_PASSWORD` | Password you chose in step 3 |
 
-After this, push the code to `main` and the CD workflows will create all AWS and Supabase resources automatically.
+After this, push the code to `main` and the CD workflows will create all AWS resources, provision the Supabase project + database, and apply migrations automatically.
 
 ## Configuration
 
@@ -213,7 +221,6 @@ After this, push the code to `main` and the CD workflows will create all AWS and
 |------------------|-----------------|-------------|
 | `Supabase__Url` | `Supabase:Url` | Supabase project URL |
 | `Supabase__ServiceKey` | `Supabase:ServiceKey` | Supabase service role key |
-| `Supabase__JwtSecret` | `Supabase:JwtSecret` | Supabase JWT secret |
 | `Supabase__DbConnectionString` | `Supabase:DbConnectionString` | PostgreSQL connection string |
 
 ### GitHub Secrets (for CI/CD)
@@ -226,4 +233,3 @@ Infrastructure values (API URL, S3 bucket, CloudFront ID, Lambda name, Supabase 
 | `SUPABASE_ACCESS_TOKEN` | Supabase management API token (from [dashboard](https://supabase.com/dashboard/account/tokens)) |
 | `SUPABASE_ORGANIZATION_ID` | Supabase organisation ID |
 | `SUPABASE_DATABASE_PASSWORD` | Password for the Supabase database |
-| `SUPABASE_JWT_SECRET` | JWT secret (from Supabase dashboard after project creation) |

@@ -14,9 +14,3 @@ variable "supabase_database_password" {
   type        = string
   sensitive   = true
 }
-
-variable "supabase_jwt_secret" {
-  description = "Supabase JWT secret for token validation (not available via Terraform provider)."
-  type        = string
-  sensitive   = true
-}
