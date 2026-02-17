@@ -19,6 +19,7 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment: Prod
     defaults:
       run:
         working-directory: backend
