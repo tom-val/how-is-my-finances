@@ -1,0 +1,31 @@
+export interface Expense {
+  id: string;
+  monthId: string;
+  categoryId: string;
+  itemName: string;
+  amount: number;
+  vendor: string | null;
+  expenseDate: string;
+  comment: string | null;
+  isRecurringInstance: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateExpenseRequest {
+  itemName: string;
+  amount: number;
+  categoryId: string;
+  vendor?: string;
+  expenseDate: string;
+  comment?: string;
+}
+
+export interface UpdateExpenseRequest {
+  itemName?: string;
+  amount?: number;
+  categoryId?: string;
+  vendor?: string;
+  expenseDate?: string;
+  comment?: string;
+}
