@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link, Navigate } from "react-router";
-import { useAuth } from "@/providers/AuthProvider";
+import { useAuth } from "@/hooks/useAuth";
 import { AuthForm } from "../components/AuthForm";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 
