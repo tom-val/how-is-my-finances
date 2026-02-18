@@ -28,7 +28,7 @@ resource "aws_lambda_function" "api" {
   role             = aws_iam_role.lambda_execution.arn
   runtime          = "dotnet10"
   handler          = "HowIsMyFinances.Api"
-  memory_size      = 512
+  memory_size      = 1024
   timeout          = 30
   filename         = var.deployment_package_path
   source_code_hash = filebase64sha256(var.deployment_package_path)
