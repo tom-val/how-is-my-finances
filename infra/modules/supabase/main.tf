@@ -16,6 +16,15 @@ resource "supabase_project" "this" {
   region            = var.region
 }
 
+resource "supabase_settings" "this" {
+  project_ref = supabase_project.this.id
+
+  auth = jsonencode({
+    site_url                = var.site_url
+    additional_redirect_urls = [var.site_url]
+  })
+}
+
 data "supabase_apikeys" "this" {
   project_ref = supabase_project.this.id
 }

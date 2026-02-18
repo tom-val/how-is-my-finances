@@ -8,7 +8,9 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:supabase.com)",
       "Bash(npx tsc:*)",
-      "Bash(dotnet test:*)"
+      "Bash(dotnet test:*)",
+      "Bash(npm run lint:*)",
+      "Bash(dotnet build:*)"
     ]
   }
 }

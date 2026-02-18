@@ -23,3 +23,8 @@ variable "region" {
   description = "Supabase project region (e.g. eu-central-1)."
   type        = string
 }
+
+variable "site_url" {
+  description = "Frontend URL used as the default redirect after authentication (e.g. sign-up confirmation)."
+  type        = string
+}

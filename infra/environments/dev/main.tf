@@ -13,6 +13,7 @@ module "supabase" {
   organization_id   = var.supabase_organization_id
   database_password = var.supabase_database_password
   region            = "eu-central-1"
+  site_url          = "https://${module.cloudfront.distribution_domain_name}"
 }
 
 # --- S3 Frontend (bucket created first, no CloudFront dependency) ---
