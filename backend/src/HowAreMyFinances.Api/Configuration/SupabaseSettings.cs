@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace HowIsMyFinances.Api.Configuration;
+namespace HowAreMyFinances.Api.Configuration;
 
 public sealed class SupabaseSettings
 {

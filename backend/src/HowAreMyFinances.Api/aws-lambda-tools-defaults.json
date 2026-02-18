@@ -10,5 +10,5 @@
   "function-runtime": "dotnet10",
   "function-memory-size": 512,
   "function-timeout": 30,
-  "function-handler": "HowIsMyFinances.Api"
+  "function-handler": "HowAreMyFinances.Api"
 }

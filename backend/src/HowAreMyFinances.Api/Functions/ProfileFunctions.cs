@@ -1,8 +1,8 @@
-using HowIsMyFinances.Api.Middleware;
-using HowIsMyFinances.Api.Models;
-using HowIsMyFinances.Api.Services;
+using HowAreMyFinances.Api.Middleware;
+using HowAreMyFinances.Api.Models;
+using HowAreMyFinances.Api.Services;
 
-namespace HowIsMyFinances.Api.Functions;
+namespace HowAreMyFinances.Api.Functions;
 
 public static class ProfileFunctions
 {

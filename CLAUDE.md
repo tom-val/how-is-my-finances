@@ -1,12 +1,12 @@
-# How Is My Finances — AI Context
+# How Are My Finances — AI Context
 
 Personal finance tracking app. Monorepo with separate frontend, backend, infra, and database directories.
 
 ## Project Structure
 
 - `frontend/` — Vite + React 19 + TypeScript + shadcn/ui + Tailwind CSS PWA
-- `backend/src/HowIsMyFinances.Api/` — C# .NET 10 AWS Lambda, Minimal API
-- `backend/tests/HowIsMyFinances.Api.Tests/` — xUnit tests
+- `backend/src/HowAreMyFinances.Api/` — C# .NET 10 AWS Lambda, Minimal API
+- `backend/tests/HowAreMyFinances.Api.Tests/` — xUnit tests
 - `supabase/` — Supabase CLI config + migrations (local dev via `supabase start`)
 - `supabase/migrations/` — PostgreSQL migrations (applied in order)
 - `database/migrations/` — Original migration files (reference copy)
@@ -31,7 +31,7 @@ cd frontend && npm run test         # Vitest
 ```bash
 cd backend && dotnet build          # Build all projects
 cd backend && dotnet test           # Run all tests
-cd backend/src/HowIsMyFinances.Api && dotnet run  # Run locally
+cd backend/src/HowAreMyFinances.Api && dotnet run  # Run locally
 ```
 
 ### Local Supabase

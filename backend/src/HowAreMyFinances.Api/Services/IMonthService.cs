@@ -1,6 +1,6 @@
-using HowIsMyFinances.Api.Models;
+using HowAreMyFinances.Api.Models;
 
-namespace HowIsMyFinances.Api.Services;
+namespace HowAreMyFinances.Api.Services;
 
 public interface IMonthService
 {

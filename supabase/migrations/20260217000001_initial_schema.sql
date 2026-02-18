@@ -1,5 +1,5 @@
 -- 00001_initial_schema.sql
--- Core schema for How Is My Finances
+-- Core schema for How Are My Finances
 
 -- =============================================================================
 -- Tables

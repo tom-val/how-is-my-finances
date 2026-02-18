@@ -1,11 +1,11 @@
 using System.IdentityModel.Tokens.Jwt;
-using HowIsMyFinances.Api.Configuration;
+using HowAreMyFinances.Api.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 
-namespace HowIsMyFinances.Api.Middleware;
+namespace HowAreMyFinances.Api.Middleware;
 
 /// <summary>
 /// Validates Supabase JWTs directly using OIDC discovery.

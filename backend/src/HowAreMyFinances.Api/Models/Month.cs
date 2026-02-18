@@ -1,4 +1,4 @@
-namespace HowIsMyFinances.Api.Models;
+namespace HowAreMyFinances.Api.Models;
 
 public sealed record Month(
     Guid Id,

@@ -1,7 +1,7 @@
-using HowIsMyFinances.Api.Configuration;
-using HowIsMyFinances.Api.Functions;
-using HowIsMyFinances.Api.Middleware;
-using HowIsMyFinances.Api.Services;
+using HowAreMyFinances.Api.Configuration;
+using HowAreMyFinances.Api.Functions;
+using HowAreMyFinances.Api.Middleware;
+using HowAreMyFinances.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

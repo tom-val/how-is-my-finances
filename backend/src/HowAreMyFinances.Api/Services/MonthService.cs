@@ -1,9 +1,9 @@
-using HowIsMyFinances.Api.Configuration;
-using HowIsMyFinances.Api.Models;
+using HowAreMyFinances.Api.Configuration;
+using HowAreMyFinances.Api.Models;
 using Microsoft.Extensions.Options;
 using Npgsql;
 
-namespace HowIsMyFinances.Api.Services;
+namespace HowAreMyFinances.Api.Services;
 
 public sealed class MonthService : IMonthService
 {

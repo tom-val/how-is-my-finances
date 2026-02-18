@@ -1,4 +1,4 @@
-# How Is My Finances
+# How Are My Finances
 
 Personal finance tracking app — track monthly salary, expenses by category, recurring payments, and spending summaries.
 
@@ -64,7 +64,7 @@ EOF
 cd frontend && npm run dev
 
 # 5. In a separate terminal — start backend API (uses appsettings.Development.json)
-cd backend/src/HowIsMyFinances.Api && dotnet run
+cd backend/src/HowAreMyFinances.Api && dotnet run
 ```
 
 The frontend runs at http://localhost:5173, the API at http://localhost:5000, and Supabase Studio at http://127.0.0.1:54323.
@@ -114,7 +114,7 @@ dotnet test          # Run all unit tests
 Local Supabase connection settings are in `appsettings.Development.json` — no env vars needed:
 
 ```bash
-cd backend/src/HowIsMyFinances.Api
+cd backend/src/HowAreMyFinances.Api
 dotnet run           # Starts at http://localhost:5000
 ```
 

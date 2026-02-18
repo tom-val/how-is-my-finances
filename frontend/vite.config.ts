@@ -12,7 +12,7 @@ export default defineConfig({
       registerType: "prompt",
       includeAssets: ["icons/icon-192x192.png", "icons/icon-512x512.png"],
       manifest: {
-        name: "How Is My Finances",
+        name: "How Are My Finances",
         short_name: "Finances",
         description: "Personal finance tracking",
         theme_color: "#0f172a",

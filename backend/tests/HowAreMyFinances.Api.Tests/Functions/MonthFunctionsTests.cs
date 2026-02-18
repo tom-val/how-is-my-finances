@@ -1,12 +1,12 @@
-using HowIsMyFinances.Api.Functions;
-using HowIsMyFinances.Api.Models;
-using HowIsMyFinances.Api.Services;
+using HowAreMyFinances.Api.Functions;
+using HowAreMyFinances.Api.Models;
+using HowAreMyFinances.Api.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using NSubstitute;
 using Xunit;
 
-namespace HowIsMyFinances.Api.Tests.Functions;
+namespace HowAreMyFinances.Api.Tests.Functions;
 
 public class MonthFunctionsTests
 {

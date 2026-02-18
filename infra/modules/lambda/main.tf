@@ -27,7 +27,7 @@ resource "aws_lambda_function" "api" {
   function_name    = "${var.project_name}-${var.environment}"
   role             = aws_iam_role.lambda_execution.arn
   runtime          = "dotnet10"
-  handler          = "HowIsMyFinances.Api"
+  handler          = "HowAreMyFinances.Api"
   memory_size      = 1024
   timeout          = 30
   filename         = var.deployment_package_path

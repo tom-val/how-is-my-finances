@@ -1,6 +1,6 @@
 using Amazon.Lambda.APIGatewayEvents;
 
-namespace HowIsMyFinances.Api.Middleware;
+namespace HowAreMyFinances.Api.Middleware;
 
 /// <summary>
 /// Reads the authenticated user ID from the API Gateway Lambda authorizer context.
