@@ -5,7 +5,10 @@ const jwksUrl = new URL(`${supabaseUrl}/auth/v1/.well-known/jwks.json`);
 const JWKS = createRemoteJWKSet(jwksUrl);
 
 export const handler = async (event) => {
-  const authHeader = event.headers?.authorization ?? event.identitySource?.[0] ?? '';
+  console.log('[Authorizer] Event keys:', JSON.stringify(Object.keys(event)));
+  console.log('[Authorizer] Event:', JSON.stringify(event, null, 2));
+
+  const authHeader = event.headers?.authorization ?? '';
   const token = authHeader.replace(/^Bearer\s+/i, '');
 
   if (!token) {
