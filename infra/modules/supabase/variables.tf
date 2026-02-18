@@ -28,8 +28,3 @@ variable "site_url" {
   description = "Frontend URL used as the default redirect after authentication (e.g. sign-up confirmation)."
   type        = string
 }
-
-variable "pooler_host" {
-  description = "Supabase connection pooler hostname (from Dashboard → Database → Connection String)."
-  type        = string
-}

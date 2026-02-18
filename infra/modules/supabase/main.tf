@@ -30,6 +30,8 @@ data "supabase_apikeys" "this" {
 }
 
 locals {
-  project_url          = "https://${supabase_project.this.id}.supabase.co"
-  db_connection_string = "Host=${var.pooler_host};Port=6543;Database=postgres;Username=postgres.${supabase_project.this.id};Password=${var.database_password}"
+  project_url = "https://${supabase_project.this.id}.supabase.co"
+  # Direct connection (not PgBouncer pooler). Lambda containers each hold a single
+  # connection, so pooling adds no benefit and causes stale-connection hangs.
+  db_connection_string = "Host=db.${supabase_project.this.id}.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=${var.database_password};Timeout=15;Command Timeout=30;Keepalive=30"
 }

@@ -14,7 +14,6 @@ module "supabase" {
   database_password = var.supabase_database_password
   region            = "eu-central-1"
   site_url          = "https://${module.cloudfront.distribution_domain_name}"
-  pooler_host       = "aws-1-eu-central-1.pooler.supabase.com"
 }
 
 # --- S3 Frontend (bucket created first, no CloudFront dependency) ---
