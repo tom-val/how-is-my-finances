@@ -37,7 +37,9 @@ builder.Services.AddScoped<IProfileService, ProfileService>();
 
 var app = builder.Build();
 
-// Middleware
+// Middleware — order matters: exception handling outermost, then logging, then auth
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseCors();
 
 // In production, API Gateway's Lambda authorizer validates JWTs and passes the user ID
