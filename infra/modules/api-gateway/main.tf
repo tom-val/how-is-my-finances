@@ -21,9 +21,11 @@ resource "aws_apigatewayv2_integration" "lambda" {
 }
 
 resource "aws_apigatewayv2_route" "default" {
-  api_id    = aws_apigatewayv2_api.api.id
-  route_key = "$default"
-  target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+  api_id             = aws_apigatewayv2_api.api.id
+  route_key          = "$default"
+  target             = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+  authorization_type = var.authorizer_id != null ? "CUSTOM" : "NONE"
+  authorizer_id      = var.authorizer_id
 }
 
 resource "aws_apigatewayv2_stage" "default" {

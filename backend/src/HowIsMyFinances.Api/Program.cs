@@ -39,7 +39,13 @@ var app = builder.Build();
 
 // Middleware
 app.UseCors();
-app.UseMiddleware<AuthMiddleware>();
+
+// In production, API Gateway's Lambda authorizer validates JWTs and passes the user ID
+// via the authorizer context. Locally, the app validates JWTs directly.
+if (app.Environment.IsDevelopment())
+    app.UseMiddleware<AuthMiddleware>();
+else
+    app.UseMiddleware<AuthorizerContextMiddleware>();
 
 // Health check (public)
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));

@@ -67,6 +67,21 @@ module "api_gateway" {
   environment        = local.environment
   lambda_invoke_arn  = module.lambda.invoke_arn
   cors_allow_origins = ["https://${module.cloudfront.distribution_domain_name}"]
+  authorizer_id      = module.lambda_authorizer.authorizer_id
+}
+
+# --- Lambda Authorizer ---
+
+module "lambda_authorizer" {
+  source = "../../modules/lambda-authorizer"
+
+  project_name            = local.project_name
+  environment             = local.environment
+  supabase_url            = module.supabase.project_url
+  api_id                  = module.api_gateway.api_id
+  api_execution_arn       = module.api_gateway.execution_arn
+  lambda_integration_id   = module.api_gateway.lambda_integration_id
+  deployment_package_path = "${path.module}/dummy-authorizer.zip"
 }
 
 # --- Lambda ---

@@ -12,3 +12,8 @@ output "api_id" {
   description = "ID of the HTTP API."
   value       = aws_apigatewayv2_api.api.id
 }
+
+output "lambda_integration_id" {
+  description = "ID of the Lambda integration (used by authorizer module for public routes)."
+  value       = aws_apigatewayv2_integration.lambda.id
+}

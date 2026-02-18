@@ -38,3 +38,8 @@ output "supabase_project_ref" {
   description = "Supabase project reference ID (used for CLI linking)."
   value       = module.supabase.project_ref
 }
+
+output "authorizer_function_name" {
+  description = "Authorizer Lambda function name (used for deployment in CI/CD)."
+  value       = module.lambda_authorizer.function_name
+}

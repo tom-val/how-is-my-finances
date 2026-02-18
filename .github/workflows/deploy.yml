@@ -30,6 +30,7 @@ jobs:
       TF_VAR_supabase_database_password: ${{ secrets.SUPABASE_DATABASE_PASSWORD }}
     outputs:
       lambda_function_name: ${{ steps.tf.outputs.lambda_function_name }}
+      authorizer_function_name: ${{ steps.tf.outputs.authorizer_function_name }}
       s3_frontend_bucket: ${{ steps.tf.outputs.s3_frontend_bucket }}
       cloudfront_distribution_id: ${{ steps.tf.outputs.cloudfront_distribution_id }}
       api_endpoint: ${{ steps.tf.outputs.api_endpoint }}
@@ -50,8 +51,10 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Create dummy Lambda package
-        run: echo "placeholder" | zip dummy.zip -
+      - name: Create dummy Lambda packages
+        run: |
+          echo "placeholder" | zip dummy.zip -
+          echo "placeholder" | zip dummy-authorizer.zip -
 
       - name: Terraform Init
         run: terraform init
@@ -63,6 +66,7 @@ jobs:
         id: tf
         run: |
           echo "lambda_function_name=$(terraform output -raw lambda_function_name)" >> "$GITHUB_OUTPUT"
+          echo "authorizer_function_name=$(terraform output -raw authorizer_function_name)" >> "$GITHUB_OUTPUT"
           echo "s3_frontend_bucket=$(terraform output -raw s3_frontend_bucket)" >> "$GITHUB_OUTPUT"
           echo "cloudfront_distribution_id=$(terraform output -raw cloudfront_distribution_id)" >> "$GITHUB_OUTPUT"
           echo "api_endpoint=$(terraform output -raw api_endpoint)" >> "$GITHUB_OUTPUT"
@@ -177,6 +181,40 @@ jobs:
             --function-name ${{ needs.infra.outputs.lambda_function_name }} \
             --name live \
             --function-version ${{ steps.publish.outputs.version }}
+
+  # --- Authorizer (after infra, parallel with frontend) ---
+  authorizer:
+    needs: infra
+    runs-on: ubuntu-latest
+    environment: Prod
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: backend/src/authorizer/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend/src/authorizer
+        run: npm ci
+
+      - name: Package authorizer
+        working-directory: backend/src/authorizer
+        run: zip -r deployment.zip index.mjs node_modules/
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy authorizer
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.infra.outputs.authorizer_function_name }} \
+            --zip-file fileb://backend/src/authorizer/deployment.zip
 
   # --- Frontend (after infra) ---
   frontend:

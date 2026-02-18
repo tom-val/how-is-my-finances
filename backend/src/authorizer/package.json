@@ -1,0 +1,9 @@
+{
+  "name": "how-is-my-finances-authorizer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "jose": "6.1.3"
+  }
+}

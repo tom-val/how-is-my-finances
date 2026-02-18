@@ -17,3 +17,9 @@ variable "cors_allow_origins" {
   description = "List of allowed CORS origins."
   type        = list(string)
 }
+
+variable "authorizer_id" {
+  description = "ID of the Lambda authorizer. If set, the default route requires authorisation."
+  type        = string
+  default     = null
+}
