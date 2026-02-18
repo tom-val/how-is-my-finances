@@ -31,7 +31,9 @@ data "supabase_apikeys" "this" {
 
 locals {
   project_url = "https://${supabase_project.this.id}.supabase.co"
-  # Direct connection (not PgBouncer pooler). Lambda containers each hold a single
-  # connection, so pooling adds no benefit and causes stale-connection hangs.
-  db_connection_string = "Host=db.${supabase_project.this.id}.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=${var.database_password};Timeout=15;Command Timeout=30;Keepalive=30"
+  # Supavisor transaction-mode pooler (IPv4-compatible, required for Lambda).
+  # Direct connection (db.<ref>.supabase.co) is IPv6-only and unreachable from Lambda.
+  # Pooling=false: Supavisor handles pooling server-side. Disabling Npgsql's client-side
+  # pool avoids stale connections and DNS cache issues after SnapStart restore.
+  db_connection_string = "Host=${var.pooler_host};Port=6543;Database=postgres;Username=postgres.${supabase_project.this.id};Password=${var.database_password};SSL Mode=Require;Timeout=15;Command Timeout=30;Pooling=false;Multiplexing=false"
 }
