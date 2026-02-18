@@ -32,6 +32,11 @@ resource "aws_lambda_function" "api" {
   timeout          = 30
   filename         = var.deployment_package_path
   source_code_hash = filebase64sha256(var.deployment_package_path)
+  publish          = true
+
+  snap_start {
+    apply_on = "PublishedVersions"
+  }
 
   environment {
     variables = {
@@ -55,10 +60,23 @@ resource "aws_lambda_function" "api" {
   }
 }
 
+resource "aws_lambda_alias" "live" {
+  name             = "live"
+  description      = "Alias for the active SnapStart version."
+  function_name    = aws_lambda_function.api.function_name
+  function_version = aws_lambda_function.api.version
+
+  # CI/CD publishes new versions and updates this alias.
+  lifecycle {
+    ignore_changes = [function_version]
+  }
+}
+
 resource "aws_lambda_permission" "api_gateway" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.api.function_name
+  qualifier     = aws_lambda_alias.live.name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${var.api_gateway_execution_arn}/*/*"
 }
