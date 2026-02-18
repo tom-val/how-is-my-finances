@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using HowIsMyFinances.Api.Configuration;
 using Microsoft.Extensions.Options;
@@ -8,23 +7,25 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace HowIsMyFinances.Api.Middleware;
 
+/// <summary>
+/// Validates Supabase JWTs directly using OIDC discovery.
+/// Used in local development only — in production, the Lambda authorizer handles JWT validation.
+/// </summary>
 public sealed class AuthMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly SupabaseSettings _settings;
     private readonly ConfigurationManager<OpenIdConnectConfiguration> _configManager;
-    private readonly ILogger<AuthMiddleware> _logger;
 
     private static readonly HashSet<string> PublicPaths = new(StringComparer.OrdinalIgnoreCase)
     {
         "/health"
     };
 
-    public AuthMiddleware(RequestDelegate next, IOptions<SupabaseSettings> settings, ILogger<AuthMiddleware> logger)
+    public AuthMiddleware(RequestDelegate next, IOptions<SupabaseSettings> settings)
     {
         _next = next;
         _settings = settings.Value;
-        _logger = logger;
 
         // Fetch signing keys from Supabase JWKS endpoint.
         // ConfigurationManager caches and auto-refreshes keys.
@@ -55,13 +56,7 @@ public sealed class AuthMiddleware
 
         try
         {
-            var sw = Stopwatch.StartNew();
-
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted);
-            cts.CancelAfter(TimeSpan.FromSeconds(10));
-
-            var config = await _configManager.GetConfigurationAsync(cts.Token);
-            _logger.LogInformation("[AuthMiddleware] OIDC config fetched in {ElapsedMs}ms", sw.ElapsedMilliseconds);
+            var config = await _configManager.GetConfigurationAsync(context.RequestAborted);
 
             var tokenHandler = new JwtSecurityTokenHandler();
             tokenHandler.InboundClaimTypeMap.Clear();
@@ -79,7 +74,6 @@ public sealed class AuthMiddleware
             };
 
             var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
-            _logger.LogInformation("[AuthMiddleware] Token validated in {ElapsedMs}ms (total)", sw.ElapsedMilliseconds);
 
             var userId = principal.FindFirst("sub")?.Value;
 
@@ -92,12 +86,6 @@ public sealed class AuthMiddleware
 
             context.Items["UserId"] = userGuid;
             await _next(context);
-        }
-        catch (OperationCanceledException) when (!context.RequestAborted.IsCancellationRequested)
-        {
-            _logger.LogError("[AuthMiddleware] OIDC configuration fetch timed out after 10s");
-            context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
-            await context.Response.WriteAsJsonAsync(new { error = "Authentication service temporarily unavailable" });
         }
         catch (SecurityTokenException)
         {

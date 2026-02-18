@@ -40,7 +40,7 @@ resource "aws_lambda_function" "api" {
 
   environment {
     variables = {
-      ASPNETCORE_ENVIRONMENT       = var.environment == "prod" ? "Production" : "Development"
+      ASPNETCORE_ENVIRONMENT       = "Production"
       Supabase__Url                = var.supabase_url
       Supabase__ServiceKey         = var.supabase_service_key
       Supabase__DbConnectionString = var.supabase_db_connection_string
