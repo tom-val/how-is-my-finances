@@ -72,7 +72,7 @@ Progress tracker for feature development. Each phase has a detailed plan in `doc
 
 | # | Phase | Status | Description |
 |---|-------|--------|-------------|
-| 1 | [PWA & Mobile](docs/phases/phase-1-pwa-mobile.md) | Not Started | Mobile-first design, PWA install, bottom nav, touch UX |
+| 1 | [PWA & Mobile](docs/phases/phase-1-pwa-mobile.md) | Done | Mobile-first design, PWA install, bottom nav, touch UX |
 | 2 | [Expenses CRUD](docs/phases/phase-2-expenses-crud.md) | Not Started | Core expense management within months |
 | 3 | [Categories Management](docs/phases/phase-3-categories-management.md) | Not Started | Custom category create/edit/delete |
 | 4 | [Recurring Expenses](docs/phases/phase-4-recurring-expenses.md) | Not Started | Templates that auto-generate monthly |

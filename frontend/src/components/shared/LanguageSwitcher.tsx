@@ -10,7 +10,7 @@ export function LanguageSwitcher() {
   }
 
   return (
-    <Button variant="ghost" size="sm" onClick={toggleLanguage}>
+    <Button variant="ghost" size="sm" className="min-h-11 md:min-h-0" onClick={toggleLanguage}>
       {i18n.language === "lt" ? "EN" : "LT"}
     </Button>
   );

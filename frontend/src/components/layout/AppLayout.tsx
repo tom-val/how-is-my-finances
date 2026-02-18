@@ -1,6 +1,9 @@
 import { Navigate, Outlet } from "react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { Header } from "./Header";
+import { OfflineIndicator } from "./OfflineIndicator";
+import { BottomNav } from "./BottomNav";
+import { ServiceWorkerUpdatePrompt } from "./ServiceWorkerUpdatePrompt";
 
 export function AppLayout() {
   const { user, isLoading } = useAuth();
@@ -20,9 +23,12 @@ export function AppLayout() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="mx-auto max-w-5xl px-4 py-6">
+      <OfflineIndicator />
+      <main className="mx-auto max-w-5xl px-4 py-6 pb-20 md:pb-6">
         <Outlet />
       </main>
+      <BottomNav />
+      <ServiceWorkerUpdatePrompt />
     </div>
   );
 }
