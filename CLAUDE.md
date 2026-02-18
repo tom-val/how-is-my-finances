@@ -10,9 +10,11 @@ Personal finance tracking app. Monorepo with separate frontend, backend, infra, 
 - `supabase/` — Supabase CLI config + migrations (local dev via `supabase start`)
 - `supabase/migrations/` — PostgreSQL migrations (applied in order)
 - `database/migrations/` — Original migration files (reference copy)
-- `infra/modules/` — Terraform modules (api-gateway, lambda, s3-frontend, cloudfront, supabase)
+- `backend/src/authorizer/` — Node.js Lambda authorizer (JWT validation, ES256/jose)
+- `infra/modules/` — Terraform modules (api-gateway, lambda, lambda-authorizer, s3-frontend, cloudfront, supabase)
 - `infra/environments/dev/` — Dev environment Terraform composition
 - `shared/types/` — Shared TypeScript types (imported by frontend via `@shared` alias)
+- `docs/phases/` — Implementation phase plans
 
 ## Key Commands
 
@@ -48,7 +50,8 @@ supabase stop                       # Stop local stack
 - **Feature structure**: `frontend/src/features/{name}/pages/`, `components/`, `hooks/`
 - **i18n**: `frontend/src/i18n/{en,lt}/translation.json` — use `useTranslation()` hook. Category names come from DB (`name_en`/`name_lt` for system, `name` for user-created).
 - **Database**: All tables have RLS enabled. Use `(SELECT auth.uid())` in policies for performance.
-- **Backend auth**: Supabase JWT validated in `AuthMiddleware.cs` via JWKS endpoint (ES256). User ID extracted from `sub` claim.
+- **Backend auth (production)**: Node.js Lambda authorizer validates Supabase JWT (ES256 via `jose`). User ID passed to .NET Lambda via API Gateway authorizer context. Read by `AuthorizerContextMiddleware`.
+- **Backend auth (local dev)**: `AuthMiddleware.cs` validates JWT directly via OIDC discovery. Switched by `ASPNETCORE_ENVIRONMENT` (Production vs Development).
 - **Backend DB access**: Npgsql with service role key, always filter by validated `user_id`.
 - **Money**: `NUMERIC(12, 2)` in DB, `decimal` in C#, `number` in TypeScript.
 - **Dependencies**: Pin exact versions (no `^` or `~`).
@@ -57,6 +60,32 @@ supabase stop                       # Stop local stack
 
 - Frontend authenticates directly with Supabase Auth
 - Frontend sends Supabase JWT to backend API via `Authorization: Bearer` header
-- Backend (Lambda) validates JWT, queries Supabase PostgreSQL via Npgsql
-- API Gateway v2 (HTTP API) routes all requests to a single Lambda
+- API Gateway v2 (HTTP API) with Lambda authorizer (Node.js) validates JWT, passes `userId` in context
+- .NET Lambda reads `userId` from authorizer context, queries Supabase PostgreSQL via Npgsql
+- .NET Lambda uses SnapStart for fast cold starts (~1.5s including restore)
+- DB connection via Supabase Supavisor transaction-mode pooler (IPv4, port 6543) with `Pooling=false` (server-side pooling only)
 - Frontend served from S3 + CloudFront
+
+## Implementation Phases
+
+Progress tracker for feature development. Each phase has a detailed plan in `docs/phases/`.
+
+| # | Phase | Status | Description |
+|---|-------|--------|-------------|
+| 1 | [Expenses CRUD](docs/phases/phase-1-expenses-crud.md) | Not Started | Core expense management within months |
+| 2 | [Categories Management](docs/phases/phase-2-categories-management.md) | Not Started | Custom category create/edit/delete |
+| 3 | [Recurring Expenses](docs/phases/phase-3-recurring-expenses.md) | Not Started | Templates that auto-generate monthly |
+| 4 | [Month Dashboard](docs/phases/phase-4-month-dashboard.md) | Not Started | Category breakdown, per-day budget, progress bars |
+| 5 | [Settings & Profile](docs/phases/phase-5-settings-profile.md) | Not Started | Language, currency, display name preferences |
+| 6 | [Notifications](docs/phases/phase-6-notifications.md) | Not Started | Spending threshold alerts |
+| 7 | [Receipt OCR](docs/phases/phase-7-receipt-ocr.md) | Not Started | Premium: scan receipts, auto-extract expenses |
+| 8 | [Bank Integration](docs/phases/phase-8-bank-integration.md) | Not Started | Premium: OpenBanking auto-import transactions |
+
+### What's Already Done
+- Infrastructure: Terraform (API Gateway, Lambda, S3, CloudFront, Supabase)
+- CI/CD: GitHub Actions pipeline (infra → DB migrations → backend → authorizer → frontend)
+- Auth: Supabase Auth + Lambda authorizer + JWT middleware
+- Database: Full schema with RLS (all tables created, including future ones)
+- Backend: Months CRUD + Profile GET/PUT + health endpoint
+- Frontend: Login/Register, Month list/detail pages, i18n (en/lt), PWA
+- Shared types: Month, Expense, Category TypeScript interfaces
