@@ -1,4 +1,4 @@
-# Phase 4 — Month Dashboard & Analytics
+# Phase 5 — Month Dashboard & Analytics
 
 Replicate the Excel sidebar: category totals, remaining balance, per-day budget, days remaining. This is the "at a glance" view that makes the app useful day-to-day.
 

@@ -72,14 +72,15 @@ Progress tracker for feature development. Each phase has a detailed plan in `doc
 
 | # | Phase | Status | Description |
 |---|-------|--------|-------------|
-| 1 | [Expenses CRUD](docs/phases/phase-1-expenses-crud.md) | Not Started | Core expense management within months |
-| 2 | [Categories Management](docs/phases/phase-2-categories-management.md) | Not Started | Custom category create/edit/delete |
-| 3 | [Recurring Expenses](docs/phases/phase-3-recurring-expenses.md) | Not Started | Templates that auto-generate monthly |
-| 4 | [Month Dashboard](docs/phases/phase-4-month-dashboard.md) | Not Started | Category breakdown, per-day budget, progress bars |
-| 5 | [Settings & Profile](docs/phases/phase-5-settings-profile.md) | Not Started | Language, currency, display name preferences |
-| 6 | [Notifications](docs/phases/phase-6-notifications.md) | Not Started | Spending threshold alerts |
-| 7 | [Receipt OCR](docs/phases/phase-7-receipt-ocr.md) | Not Started | Premium: scan receipts, auto-extract expenses |
-| 8 | [Bank Integration](docs/phases/phase-8-bank-integration.md) | Not Started | Premium: OpenBanking auto-import transactions |
+| 1 | [PWA & Mobile](docs/phases/phase-1-pwa-mobile.md) | Not Started | Mobile-first design, PWA install, bottom nav, touch UX |
+| 2 | [Expenses CRUD](docs/phases/phase-2-expenses-crud.md) | Not Started | Core expense management within months |
+| 3 | [Categories Management](docs/phases/phase-3-categories-management.md) | Not Started | Custom category create/edit/delete |
+| 4 | [Recurring Expenses](docs/phases/phase-4-recurring-expenses.md) | Not Started | Templates that auto-generate monthly |
+| 5 | [Month Dashboard](docs/phases/phase-5-month-dashboard.md) | Not Started | Category breakdown, per-day budget, progress bars |
+| 6 | [Settings & Profile](docs/phases/phase-6-settings-profile.md) | Not Started | Language, currency, display name preferences |
+| 7 | [Notifications](docs/phases/phase-7-notifications.md) | Not Started | Spending threshold alerts |
+| 8 | [Receipt OCR](docs/phases/phase-8-receipt-ocr.md) | Not Started | Premium: scan receipts, auto-extract expenses |
+| 9 | [Bank Integration](docs/phases/phase-9-bank-integration.md) | Not Started | Premium: OpenBanking auto-import transactions |
 
 ### What's Already Done
 - Infrastructure: Terraform (API Gateway, Lambda, S3, CloudFront, Supabase)

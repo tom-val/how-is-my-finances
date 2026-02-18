@@ -1,4 +1,4 @@
-# Phase 7 — Receipt OCR (Premium)
+# Phase 8 — Receipt OCR (Premium)
 
 Upload receipt photos, auto-extract items and amounts, suggest categories.
 

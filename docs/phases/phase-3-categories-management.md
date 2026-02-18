@@ -1,4 +1,4 @@
-# Phase 2 — Categories Management
+# Phase 3 — Categories Management
 
 Allow users to create, edit, and delete custom categories beyond the 25 system-seeded ones.
 
@@ -10,12 +10,12 @@ CRUD for user-created categories. System categories are read-only.
 
 ## Backend
 
-### Service (`Services/ICategoryService.cs` — extend from Phase 1)
+### Service (`Services/ICategoryService.cs` — extend from Phase 2)
 - `CreateAsync(userId, request)` — create user category (is_system = false, user_id = current user)
 - `UpdateAsync(userId, categoryId, request)` — update name/icon, reject if is_system
 - `DeleteAsync(userId, categoryId)` — delete if is_system = false, reject if category has expenses (RESTRICT FK)
 
-### Functions (`Functions/CategoryFunctions.cs` — extend from Phase 1)
+### Functions (`Functions/CategoryFunctions.cs` — extend from Phase 2)
 - `POST /v1/categories` — create custom category
 - `PUT /v1/categories/{id}` — update custom category
 - `DELETE /v1/categories/{id}` — delete custom category (fails if in use)

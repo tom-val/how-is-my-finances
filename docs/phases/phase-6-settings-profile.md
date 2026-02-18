@@ -1,4 +1,4 @@
-# Phase 5 — Settings & Profile Page
+# Phase 6 — Settings & Profile Page
 
 Settings page for user preferences. Backend already has profile GET/PUT endpoints.
 

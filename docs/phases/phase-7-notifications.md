@@ -1,4 +1,4 @@
-# Phase 6 — Spending Notifications
+# Phase 7 — Spending Notifications
 
 Alert users when spending hits a percentage threshold (total or per-category). DB schema already exists.
 

@@ -1,4 +1,4 @@
-# Phase 1 — Expenses CRUD
+# Phase 2 — Expenses CRUD
 
 The core feature. Without expenses, the app is useless.
 

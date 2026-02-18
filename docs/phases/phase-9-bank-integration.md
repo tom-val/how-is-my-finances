@@ -1,4 +1,4 @@
-# Phase 8 — Bank Integration (Premium)
+# Phase 9 — Bank Integration (Premium)
 
 Connect to bank via OpenBanking to automatically import transactions.
 
