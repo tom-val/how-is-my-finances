@@ -47,6 +47,12 @@ resource "aws_lambda_function" "api" {
     aws_iam_role_policy_attachment.lambda_basic_execution,
     aws_cloudwatch_log_group.lambda,
   ]
+
+  # Code is deployed via CI/CD (aws lambda update-function-code), not Terraform.
+  # The dummy.zip is only used for initial creation.
+  lifecycle {
+    ignore_changes = [filename, source_code_hash]
+  }
 }
 
 resource "aws_lambda_permission" "api_gateway" {

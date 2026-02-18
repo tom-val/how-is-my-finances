@@ -1,0 +1,193 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: eu-central-1
+  DOTNET_VERSION: "10.0.x"
+  NODE_VERSION: "20"
+  TERRAFORM_DIR: infra/environments/dev
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  # --- Infrastructure (always runs first) ---
+  infra:
+    runs-on: ubuntu-latest
+    environment: Prod
+    defaults:
+      run:
+        working-directory: infra/environments/dev
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      TF_VAR_supabase_access_token: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      TF_VAR_supabase_organization_id: ${{ secrets.SUPABASE_ORGANIZATION_ID }}
+      TF_VAR_supabase_database_password: ${{ secrets.SUPABASE_DATABASE_PASSWORD }}
+    outputs:
+      lambda_function_name: ${{ steps.tf.outputs.lambda_function_name }}
+      s3_frontend_bucket: ${{ steps.tf.outputs.s3_frontend_bucket }}
+      cloudfront_distribution_id: ${{ steps.tf.outputs.cloudfront_distribution_id }}
+      api_endpoint: ${{ steps.tf.outputs.api_endpoint }}
+      supabase_url: ${{ steps.tf.outputs.supabase_url }}
+      supabase_anon_key: ${{ steps.tf.outputs.supabase_anon_key }}
+      supabase_project_ref: ${{ steps.tf.outputs.supabase_project_ref }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Create dummy Lambda package
+        run: echo "placeholder" | zip dummy.zip -
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+
+      - name: Read Terraform outputs
+        id: tf
+        run: |
+          echo "lambda_function_name=$(terraform output -raw lambda_function_name)" >> "$GITHUB_OUTPUT"
+          echo "s3_frontend_bucket=$(terraform output -raw s3_frontend_bucket)" >> "$GITHUB_OUTPUT"
+          echo "cloudfront_distribution_id=$(terraform output -raw cloudfront_distribution_id)" >> "$GITHUB_OUTPUT"
+          echo "api_endpoint=$(terraform output -raw api_endpoint)" >> "$GITHUB_OUTPUT"
+          echo "supabase_url=$(terraform output -raw supabase_url)" >> "$GITHUB_OUTPUT"
+          echo "supabase_anon_key=$(terraform output -raw supabase_anon_key)" >> "$GITHUB_OUTPUT"
+          echo "supabase_project_ref=$(terraform output -raw supabase_project_ref)" >> "$GITHUB_OUTPUT"
+
+  # --- Database Migrations (after infra) ---
+  migrations:
+    needs: infra
+    runs-on: ubuntu-latest
+    environment: Prod
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link Supabase project
+        run: supabase link --project-ref ${{ needs.infra.outputs.supabase_project_ref }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Push migrations
+        run: supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+  # --- Backend (after infra + migrations) ---
+  backend:
+    needs: [infra, migrations]
+    runs-on: ubuntu-latest
+    environment: Prod
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test --configuration Release --no-build
+
+      - name: Publish
+        working-directory: backend/src/HowIsMyFinances.Api
+        run: dotnet publish -c Release -o ./publish
+
+      - name: Package Lambda
+        working-directory: backend/src/HowIsMyFinances.Api/publish
+        run: zip -r ../deployment.zip .
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy to Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.infra.outputs.lambda_function_name }} \
+            --zip-file fileb://src/HowIsMyFinances.Api/deployment.zip
+
+  # --- Frontend (after infra) ---
+  frontend:
+    needs: infra
+    runs-on: ubuntu-latest
+    environment: Prod
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Type check
+        working-directory: frontend
+        run: npm run typecheck
+
+      - name: Build
+        working-directory: frontend
+        env:
+          VITE_SUPABASE_URL: ${{ needs.infra.outputs.supabase_url }}
+          VITE_SUPABASE_ANON_KEY: ${{ needs.infra.outputs.supabase_anon_key }}
+          VITE_API_URL: ${{ needs.infra.outputs.api_endpoint }}
+        run: npm run build
+
+      - name: Deploy to S3
+        working-directory: frontend
+        run: aws s3 sync dist/ s3://${{ needs.infra.outputs.s3_frontend_bucket }} --delete
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ needs.infra.outputs.cloudfront_distribution_id }} \
+            --paths "/*"
