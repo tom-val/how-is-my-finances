@@ -7,7 +7,10 @@
     "loading": "Kraunama...",
     "error": "Kažkas nutiko",
     "confirm": "Patvirtinti",
-    "back": "Atgal"
+    "back": "Atgal",
+    "offline": "Esate neprisijungę",
+    "updateAvailable": "Yra atnaujinimas",
+    "reload": "Perkrauti"
   },
   "auth": {
     "login": "Prisijungti",

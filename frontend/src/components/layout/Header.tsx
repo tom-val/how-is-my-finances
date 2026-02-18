@@ -20,7 +20,7 @@ export function Header() {
           <Link to="/" className="text-lg font-semibold">
             Finances
           </Link>
-          <nav className="flex items-center gap-4">
+          <nav className="hidden items-center gap-4 md:flex">
             <Link
               to="/"
               className={`text-sm ${isActive("/") && !location.pathname.startsWith("/settings") && !location.pathname.startsWith("/recurring") ? "font-medium text-foreground" : "text-muted-foreground hover:text-foreground"}`}
@@ -43,7 +43,7 @@ export function Header() {
         </div>
         <div className="flex items-center gap-2">
           <LanguageSwitcher />
-          <Button variant="ghost" size="sm" onClick={() => signOut()}>
+          <Button variant="ghost" size="sm" className="min-h-11 md:min-h-0" onClick={() => signOut()}>
             {t("auth.logOut")}
           </Button>
         </div>

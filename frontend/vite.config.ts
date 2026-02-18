@@ -10,7 +10,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "prompt",
-      includeAssets: ["icons/icon-192x192.png", "icons/icon-512x512.png"],
+      includeAssets: ["favicon.svg", "icons/*.png"],
       manifest: {
         name: "How Are My Finances",
         short_name: "Finances",
@@ -29,6 +29,12 @@ export default defineConfig({
             src: "icons/icon-512x512.png",
             sizes: "512x512",
             type: "image/png",
+          },
+          {
+            src: "icons/maskable-icon-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
           },
         ],
       },
