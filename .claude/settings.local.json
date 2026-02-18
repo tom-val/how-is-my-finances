@@ -10,7 +10,8 @@
       "Bash(npx tsc:*)",
       "Bash(dotnet test:*)",
       "Bash(npm run lint:*)",
-      "Bash(dotnet build:*)"
+      "Bash(dotnet build:*)",
+      "Bash(dotnet publish:*)"
     ]
   }
 }

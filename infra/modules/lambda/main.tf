@@ -39,6 +39,7 @@ resource "aws_lambda_function" "api" {
       Supabase__Url                = var.supabase_url
       Supabase__ServiceKey         = var.supabase_service_key
       Supabase__DbConnectionString = var.supabase_db_connection_string
+      Cors__AllowedOrigins__0      = var.cors_allowed_origins
     }
   }
 

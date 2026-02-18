@@ -80,4 +80,5 @@ module "lambda" {
   supabase_service_key          = module.supabase.service_role_key
   supabase_db_connection_string = module.supabase.db_connection_string
   api_gateway_execution_arn     = module.api_gateway.execution_arn
+  cors_allowed_origins          = "https://${module.cloudfront.distribution_domain_name}"
 }

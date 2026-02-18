@@ -31,5 +31,5 @@ data "supabase_apikeys" "this" {
 
 locals {
   project_url          = "https://${supabase_project.this.id}.supabase.co"
-  db_connection_string = "postgresql://postgres.${supabase_project.this.id}:${var.database_password}@aws-0-${var.region}.pooler.supabase.com:5432/postgres"
+  db_connection_string = "Host=aws-0-${var.region}.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.${supabase_project.this.id};Password=${var.database_password}"
 }

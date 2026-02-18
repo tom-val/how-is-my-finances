@@ -35,3 +35,9 @@ variable "api_gateway_execution_arn" {
   description = "Execution ARN of the API Gateway to allow invocation."
   type        = string
 }
+
+variable "cors_allowed_origins" {
+  description = "Comma-separated list of allowed CORS origins for the .NET middleware."
+  type        = string
+  default     = ""
+}
