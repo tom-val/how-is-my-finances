@@ -1,15 +1,16 @@
 using HowAreMyFinances.Api.Configuration;
+using HowAreMyFinances.Api.Domain;
 using HowAreMyFinances.Api.Models;
 using Microsoft.Extensions.Options;
 using Npgsql;
 
-namespace HowAreMyFinances.Api.Services;
+namespace HowAreMyFinances.Api.Infrastructure.Repositories;
 
-public sealed class ProfileService : IProfileService
+public sealed class ProfileRepository : IProfileRepository
 {
     private readonly string _connectionString;
 
-    public ProfileService(IOptions<SupabaseSettings> settings)
+    public ProfileRepository(IOptions<SupabaseSettings> settings)
     {
         _connectionString = settings.Value.DbConnectionString;
     }

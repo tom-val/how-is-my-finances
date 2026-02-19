@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExpenseList } from "@/features/expenses/components/ExpenseList";
+import { IncomeList } from "@/features/incomes/components/IncomeList";
 import { useMonth } from "../hooks/useMonths";
 
 export function MonthDetailPage() {
@@ -18,8 +19,9 @@ export function MonthDetailPage() {
     return <p className="text-destructive">{t("common.error")}</p>;
   }
 
-  const spentPercentage = month.salary > 0
-    ? Math.round(((month.totalSpent + month.plannedSpent) / month.salary) * 100)
+  const totalBudget = month.salary + month.totalIncome;
+  const spentPercentage = totalBudget > 0
+    ? Math.round(((month.totalSpent + month.plannedSpent) / totalBudget) * 100)
     : 0;
 
   return (
@@ -35,7 +37,7 @@ export function MonthDetailPage() {
         </h1>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">
@@ -69,6 +71,18 @@ export function MonthDetailPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">
+              {t("incomes.extraIncome")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+              {month.totalIncome.toFixed(2)} EUR
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground">
               {t("months.remaining")}
             </CardTitle>
           </CardHeader>
@@ -82,6 +96,7 @@ export function MonthDetailPage() {
         </Card>
       </div>
 
+      <IncomeList monthId={monthId!} />
       <ExpenseList monthId={monthId!} />
     </div>
   );

@@ -1,8 +1,8 @@
 using HowAreMyFinances.Api.Models;
 
-namespace HowAreMyFinances.Api.Services;
+namespace HowAreMyFinances.Api.Domain;
 
-public interface IExpenseService
+public interface IExpenseRepository
 {
     Task<IReadOnlyList<ExpenseWithCategory>> GetAllByMonthAsync(Guid userId, Guid monthId);
     Task<ExpenseWithCategory> CreateAsync(Guid userId, Guid monthId, CreateExpenseRequest request);

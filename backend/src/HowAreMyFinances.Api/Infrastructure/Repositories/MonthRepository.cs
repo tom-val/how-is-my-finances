@@ -1,15 +1,16 @@
 using HowAreMyFinances.Api.Configuration;
+using HowAreMyFinances.Api.Domain;
 using HowAreMyFinances.Api.Models;
 using Microsoft.Extensions.Options;
 using Npgsql;
 
-namespace HowAreMyFinances.Api.Services;
+namespace HowAreMyFinances.Api.Infrastructure.Repositories;
 
-public sealed class MonthService : IMonthService
+public sealed class MonthRepository : IMonthRepository
 {
     private readonly string _connectionString;
 
-    public MonthService(IOptions<SupabaseSettings> settings)
+    public MonthRepository(IOptions<SupabaseSettings> settings)
     {
         _connectionString = settings.Value.DbConnectionString;
     }
@@ -51,11 +52,18 @@ public sealed class MonthService : IMonthService
             SELECT
                 m.id, m.user_id, m.year, m.month, m.salary, m.notes, m.created_at, m.updated_at,
                 COALESCE(SUM(CASE WHEN e.expense_date <= CURRENT_DATE THEN e.amount ELSE 0 END), 0) AS total_spent,
-                COALESCE(SUM(CASE WHEN e.expense_date > CURRENT_DATE THEN e.amount ELSE 0 END), 0) AS planned_spent
+                COALESCE(SUM(CASE WHEN e.expense_date > CURRENT_DATE THEN e.amount ELSE 0 END), 0) AS planned_spent,
+                COALESCE(income_totals.total_income, 0) AS total_income
             FROM public.months m
             LEFT JOIN public.expenses e ON e.month_id = m.id
+            LEFT JOIN (
+                SELECT month_id, SUM(amount) AS total_income
+                FROM public.incomes
+                WHERE user_id = @userId
+                GROUP BY month_id
+            ) income_totals ON income_totals.month_id = m.id
             WHERE m.id = @monthId AND m.user_id = @userId
-            GROUP BY m.id
+            GROUP BY m.id, income_totals.total_income
             """,
             connection);
 
@@ -72,6 +80,7 @@ public sealed class MonthService : IMonthService
         var salary = reader.GetDecimal(4);
         var totalSpent = reader.GetDecimal(8);
         var plannedSpent = reader.GetDecimal(9);
+        var totalIncome = reader.GetDecimal(10);
 
         return new MonthDetail(
             Id: reader.GetGuid(0),
@@ -82,7 +91,8 @@ public sealed class MonthService : IMonthService
             Notes: reader.IsDBNull(5) ? null : reader.GetString(5),
             TotalSpent: totalSpent,
             PlannedSpent: plannedSpent,
-            Remaining: salary - totalSpent - plannedSpent,
+            TotalIncome: totalIncome,
+            Remaining: salary + totalIncome - totalSpent - plannedSpent,
             CreatedAt: reader.GetDateTime(6),
             UpdatedAt: reader.GetDateTime(7)
         );

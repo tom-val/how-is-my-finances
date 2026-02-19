@@ -1,15 +1,16 @@
 using HowAreMyFinances.Api.Configuration;
+using HowAreMyFinances.Api.Domain;
 using HowAreMyFinances.Api.Models;
 using Microsoft.Extensions.Options;
 using Npgsql;
 
-namespace HowAreMyFinances.Api.Services;
+namespace HowAreMyFinances.Api.Infrastructure.Repositories;
 
-public sealed class ExpenseService : IExpenseService
+public sealed class ExpenseRepository : IExpenseRepository
 {
     private readonly string _connectionString;
 
-    public ExpenseService(IOptions<SupabaseSettings> settings)
+    public ExpenseRepository(IOptions<SupabaseSettings> settings)
     {
         _connectionString = settings.Value.DbConnectionString;
     }

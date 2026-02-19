@@ -1,8 +1,8 @@
 using HowAreMyFinances.Api.Models;
 
-namespace HowAreMyFinances.Api.Services;
+namespace HowAreMyFinances.Api.Domain;
 
-public interface ICategoryService
+public interface ICategoryRepository
 {
     Task<IReadOnlyList<Category>> GetAllAsync(Guid userId);
 }

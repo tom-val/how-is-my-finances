@@ -12,6 +12,7 @@ export interface Month {
 export interface MonthDetail extends Month {
   totalSpent: number;
   plannedSpent: number;
+  totalIncome: number;
   remaining: number;
 }
 

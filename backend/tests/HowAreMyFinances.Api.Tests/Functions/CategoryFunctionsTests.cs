@@ -1,6 +1,6 @@
+using HowAreMyFinances.Api.Domain;
 using HowAreMyFinances.Api.Functions;
 using HowAreMyFinances.Api.Models;
-using HowAreMyFinances.Api.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using NSubstitute;
@@ -10,7 +10,7 @@ namespace HowAreMyFinances.Api.Tests.Functions;
 
 public class CategoryFunctionsTests
 {
-    private readonly ICategoryService _categoryService = Substitute.For<ICategoryService>();
+    private readonly ICategoryRepository _categoryRepository = Substitute.For<ICategoryRepository>();
     private readonly Guid _userId = Guid.NewGuid();
 
     private HttpContext CreateContext()
@@ -29,10 +29,10 @@ public class CategoryFunctionsTests
             new(Guid.NewGuid(), _userId, "Food", null, 1, DateTime.UtcNow),
             new(Guid.NewGuid(), _userId, "Transport", null, 2, DateTime.UtcNow)
         };
-        _categoryService.GetAllAsync(_userId).Returns(categories);
+        _categoryRepository.GetAllAsync(_userId).Returns(categories);
 
         // Act
-        var result = await CategoryFunctions.GetAll(CreateContext(), _categoryService);
+        var result = await CategoryFunctions.GetAll(CreateContext(), _categoryRepository);
 
         // Assert
         var okResult = Assert.IsType<Ok<IReadOnlyList<Category>>>(result);

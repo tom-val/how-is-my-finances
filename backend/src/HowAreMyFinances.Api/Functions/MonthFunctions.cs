@@ -1,50 +1,41 @@
+using HowAreMyFinances.Api.Domain;
 using HowAreMyFinances.Api.Middleware;
 using HowAreMyFinances.Api.Models;
-using HowAreMyFinances.Api.Services;
 
 namespace HowAreMyFinances.Api.Functions;
 
 public static class MonthFunctions
 {
-    public static async Task<IResult> GetAll(HttpContext context, IMonthService monthService)
+    public static async Task<IResult> GetAll(HttpContext context, IMonthRepository monthRepository)
     {
         var userId = context.GetUserId();
-        var months = await monthService.GetAllAsync(userId);
+        var months = await monthRepository.GetAllAsync(userId);
         return Results.Ok(months);
     }
 
-    public static async Task<IResult> GetById(HttpContext context, Guid id, IMonthService monthService)
+    public static async Task<IResult> GetById(HttpContext context, Guid id, IMonthRepository monthRepository)
     {
         var userId = context.GetUserId();
-        var month = await monthService.GetByIdAsync(userId, id);
+        var month = await monthRepository.GetByIdAsync(userId, id);
 
         return month is null
             ? Results.NotFound(new { error = "Month not found" })
             : Results.Ok(month);
     }
 
-    public static async Task<IResult> Create(HttpContext context, CreateMonthRequest request, IMonthService monthService)
+    public static async Task<IResult> Create(HttpContext context, CreateMonthRequest request, IMonthRepository monthRepository)
     {
-        if (request.Year < 2000 || request.Year > 2100)
+        var validation = MonthEntity.Create(request.Year, request.Month, request.Salary);
+        if (!validation.IsSuccess)
         {
-            return Results.BadRequest(new { error = "Year must be between 2000 and 2100" });
-        }
-
-        if (request.Month < 1 || request.Month > 12)
-        {
-            return Results.BadRequest(new { error = "Month must be between 1 and 12" });
-        }
-
-        if (request.Salary < 0)
-        {
-            return Results.BadRequest(new { error = "Salary must be non-negative" });
+            return Results.BadRequest(new { error = validation.Error });
         }
 
         var userId = context.GetUserId();
 
         try
         {
-            var month = await monthService.CreateAsync(userId, request);
+            var month = await monthRepository.CreateAsync(userId, request);
             return Results.Created($"/v1/months/{month.Id}", month);
         }
         catch (Npgsql.PostgresException ex) when (ex.SqlState == "23505")
@@ -53,25 +44,29 @@ public static class MonthFunctions
         }
     }
 
-    public static async Task<IResult> Update(HttpContext context, Guid id, UpdateMonthRequest request, IMonthService monthService)
+    public static async Task<IResult> Update(HttpContext context, Guid id, UpdateMonthRequest request, IMonthRepository monthRepository)
     {
-        if (request.Salary.HasValue && request.Salary.Value < 0)
+        if (request.Salary.HasValue)
         {
-            return Results.BadRequest(new { error = "Salary must be non-negative" });
+            var validation = MonthEntity.ValidateSalary(request.Salary.Value);
+            if (!validation.IsSuccess)
+            {
+                return Results.BadRequest(new { error = validation.Error });
+            }
         }
 
         var userId = context.GetUserId();
-        var month = await monthService.UpdateAsync(userId, id, request);
+        var month = await monthRepository.UpdateAsync(userId, id, request);
 
         return month is null
             ? Results.NotFound(new { error = "Month not found" })
             : Results.Ok(month);
     }
 
-    public static async Task<IResult> Delete(HttpContext context, Guid id, IMonthService monthService)
+    public static async Task<IResult> Delete(HttpContext context, Guid id, IMonthRepository monthRepository)
     {
         var userId = context.GetUserId();
-        var deleted = await monthService.DeleteAsync(userId, id);
+        var deleted = await monthRepository.DeleteAsync(userId, id);
 
         return deleted
             ? Results.NoContent()

@@ -1,7 +1,8 @@
 using HowAreMyFinances.Api.Configuration;
+using HowAreMyFinances.Api.Domain;
 using HowAreMyFinances.Api.Functions;
+using HowAreMyFinances.Api.Infrastructure.Repositories;
 using HowAreMyFinances.Api.Middleware;
-using HowAreMyFinances.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,11 +32,12 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Services
-builder.Services.AddScoped<IMonthService, MonthService>();
-builder.Services.AddScoped<IProfileService, ProfileService>();
-builder.Services.AddScoped<ICategoryService, CategoryService>();
-builder.Services.AddScoped<IExpenseService, ExpenseService>();
+// Repositories
+builder.Services.AddScoped<IMonthRepository, MonthRepository>();
+builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
+builder.Services.AddScoped<IIncomeRepository, IncomeRepository>();
 
 var app = builder.Build();
 
@@ -67,6 +69,12 @@ app.MapPost("/v1/months/{monthId:guid}/expenses", ExpenseFunctions.Create);
 app.MapGet("/v1/expenses/vendors", ExpenseFunctions.GetVendors);
 app.MapPut("/v1/expenses/{id:guid}", ExpenseFunctions.Update);
 app.MapDelete("/v1/expenses/{id:guid}", ExpenseFunctions.Delete);
+
+// Income endpoints
+app.MapGet("/v1/months/{monthId:guid}/incomes", IncomeFunctions.GetAll);
+app.MapPost("/v1/months/{monthId:guid}/incomes", IncomeFunctions.Create);
+app.MapPut("/v1/incomes/{id:guid}", IncomeFunctions.Update);
+app.MapDelete("/v1/incomes/{id:guid}", IncomeFunctions.Delete);
 
 // Category endpoints
 app.MapGet("/v1/categories", CategoryFunctions.GetAll);

@@ -70,6 +70,19 @@
     "noCategoriesFound": "Kategorijų nerasta.",
     "noVendorsFound": "Tiekėjų nerasta."
   },
+  "incomes": {
+    "title": "Pajamos",
+    "source": "Šaltinis",
+    "amount": "Suma",
+    "date": "Data",
+    "comment": "Komentaras",
+    "addIncome": "Pridėti pajamas",
+    "editIncome": "Redaguoti pajamas",
+    "deleteIncome": "Ištrinti pajamas",
+    "confirmDelete": "Ar tikrai norite ištrinti šį pajamų įrašą?",
+    "noIncomes": "Šį mėnesį papildomų pajamų nėra.",
+    "extraIncome": "Papildomos pajamos"
+  },
   "settings": {
     "title": "Nustatymai",
     "language": "Kalba",

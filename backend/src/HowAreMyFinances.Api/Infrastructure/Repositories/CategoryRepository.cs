@@ -1,15 +1,16 @@
 using HowAreMyFinances.Api.Configuration;
+using HowAreMyFinances.Api.Domain;
 using HowAreMyFinances.Api.Models;
 using Microsoft.Extensions.Options;
 using Npgsql;
 
-namespace HowAreMyFinances.Api.Services;
+namespace HowAreMyFinances.Api.Infrastructure.Repositories;
 
-public sealed class CategoryService : ICategoryService
+public sealed class CategoryRepository : ICategoryRepository
 {
     private readonly string _connectionString;
 
-    public CategoryService(IOptions<SupabaseSettings> settings)
+    public CategoryRepository(IOptions<SupabaseSettings> settings)
     {
         _connectionString = settings.Value.DbConnectionString;
     }

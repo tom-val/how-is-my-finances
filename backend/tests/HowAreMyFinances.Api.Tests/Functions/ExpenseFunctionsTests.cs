@@ -1,6 +1,6 @@
+using HowAreMyFinances.Api.Domain;
 using HowAreMyFinances.Api.Functions;
 using HowAreMyFinances.Api.Models;
-using HowAreMyFinances.Api.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using NSubstitute;
@@ -10,8 +10,8 @@ namespace HowAreMyFinances.Api.Tests.Functions;
 
 public class ExpenseFunctionsTests
 {
-    private readonly IExpenseService _expenseService = Substitute.For<IExpenseService>();
-    private readonly IMonthService _monthService = Substitute.For<IMonthService>();
+    private readonly IExpenseRepository _expenseRepository = Substitute.For<IExpenseRepository>();
+    private readonly IMonthRepository _monthRepository = Substitute.For<IMonthRepository>();
     private readonly Guid _userId = Guid.NewGuid();
 
     private HttpContext CreateContext()
@@ -57,10 +57,10 @@ public class ExpenseFunctionsTests
             CreateTestExpense(_userId, monthId),
             CreateTestExpense(_userId, monthId)
         };
-        _expenseService.GetAllByMonthAsync(_userId, monthId).Returns(expenses);
+        _expenseRepository.GetAllByMonthAsync(_userId, monthId).Returns(expenses);
 
         // Act
-        var result = await ExpenseFunctions.GetAll(CreateContext(), monthId, _expenseService);
+        var result = await ExpenseFunctions.GetAll(CreateContext(), monthId, _expenseRepository);
 
         // Assert
         var okResult = Assert.IsType<Ok<IReadOnlyList<ExpenseWithCategory>>>(result);
@@ -73,14 +73,14 @@ public class ExpenseFunctionsTests
         // Arrange
         var monthId = Guid.NewGuid();
         var request = new CreateExpenseRequest("Coffee", 4.50m, Guid.NewGuid(), "Caffeine", new DateOnly(2026, 2, 19), null);
-        var month = new MonthDetail(monthId, _userId, 2026, 2, 4000m, null, 100m, 0m, 3900m, DateTime.UtcNow, DateTime.UtcNow);
+        var month = new MonthDetail(monthId, _userId, 2026, 2, 4000m, null, 100m, 0m, 0m, 3900m, DateTime.UtcNow, DateTime.UtcNow);
         var created = CreateTestExpense(_userId, monthId);
 
-        _monthService.GetByIdAsync(_userId, monthId).Returns(month);
-        _expenseService.CreateAsync(_userId, monthId, request).Returns(created);
+        _monthRepository.GetByIdAsync(_userId, monthId).Returns(month);
+        _expenseRepository.CreateAsync(_userId, monthId, request).Returns(created);
 
         // Act
-        var result = await ExpenseFunctions.Create(CreateContext(), monthId, request, _expenseService, _monthService);
+        var result = await ExpenseFunctions.Create(CreateContext(), monthId, request, _expenseRepository, _monthRepository);
 
         // Assert
         var createdResult = Assert.IsType<Created<ExpenseWithCategory>>(result);
@@ -95,7 +95,7 @@ public class ExpenseFunctionsTests
         var request = new CreateExpenseRequest("Coffee", 0m, Guid.NewGuid(), null, new DateOnly(2026, 2, 19), null);
 
         // Act
-        var result = await ExpenseFunctions.Create(CreateContext(), monthId, request, _expenseService, _monthService);
+        var result = await ExpenseFunctions.Create(CreateContext(), monthId, request, _expenseRepository, _monthRepository);
 
         // Assert
         Assert.Equal(400, GetStatusCode(result));
@@ -109,7 +109,7 @@ public class ExpenseFunctionsTests
         var request = new CreateExpenseRequest("Coffee", -5m, Guid.NewGuid(), null, new DateOnly(2026, 2, 19), null);
 
         // Act
-        var result = await ExpenseFunctions.Create(CreateContext(), monthId, request, _expenseService, _monthService);
+        var result = await ExpenseFunctions.Create(CreateContext(), monthId, request, _expenseRepository, _monthRepository);
 
         // Assert
         Assert.Equal(400, GetStatusCode(result));
@@ -123,7 +123,7 @@ public class ExpenseFunctionsTests
         var request = new CreateExpenseRequest("  ", 10m, Guid.NewGuid(), null, new DateOnly(2026, 2, 19), null);
 
         // Act
-        var result = await ExpenseFunctions.Create(CreateContext(), monthId, request, _expenseService, _monthService);
+        var result = await ExpenseFunctions.Create(CreateContext(), monthId, request, _expenseRepository, _monthRepository);
 
         // Assert
         Assert.Equal(400, GetStatusCode(result));
@@ -135,10 +135,10 @@ public class ExpenseFunctionsTests
         // Arrange
         var monthId = Guid.NewGuid();
         var request = new CreateExpenseRequest("Coffee", 4.50m, Guid.NewGuid(), null, new DateOnly(2026, 2, 19), null);
-        _monthService.GetByIdAsync(_userId, monthId).Returns((MonthDetail?)null);
+        _monthRepository.GetByIdAsync(_userId, monthId).Returns((MonthDetail?)null);
 
         // Act
-        var result = await ExpenseFunctions.Create(CreateContext(), monthId, request, _expenseService, _monthService);
+        var result = await ExpenseFunctions.Create(CreateContext(), monthId, request, _expenseRepository, _monthRepository);
 
         // Assert
         Assert.Equal(404, GetStatusCode(result));
@@ -151,10 +151,10 @@ public class ExpenseFunctionsTests
         var expenseId = Guid.NewGuid();
         var request = new UpdateExpenseRequest(Amount: 25m, ItemName: null, CategoryId: null, Vendor: null, ExpenseDate: null, Comment: null);
         var updated = CreateTestExpense(_userId, Guid.NewGuid(), expenseId);
-        _expenseService.UpdateAsync(_userId, expenseId, request).Returns(updated);
+        _expenseRepository.UpdateAsync(_userId, expenseId, request).Returns(updated);
 
         // Act
-        var result = await ExpenseFunctions.Update(CreateContext(), expenseId, request, _expenseService);
+        var result = await ExpenseFunctions.Update(CreateContext(), expenseId, request, _expenseRepository);
 
         // Assert
         var okResult = Assert.IsType<Ok<ExpenseWithCategory>>(result);
@@ -167,10 +167,10 @@ public class ExpenseFunctionsTests
         // Arrange
         var expenseId = Guid.NewGuid();
         var request = new UpdateExpenseRequest(Amount: 25m, ItemName: null, CategoryId: null, Vendor: null, ExpenseDate: null, Comment: null);
-        _expenseService.UpdateAsync(_userId, expenseId, request).Returns((ExpenseWithCategory?)null);
+        _expenseRepository.UpdateAsync(_userId, expenseId, request).Returns((ExpenseWithCategory?)null);
 
         // Act
-        var result = await ExpenseFunctions.Update(CreateContext(), expenseId, request, _expenseService);
+        var result = await ExpenseFunctions.Update(CreateContext(), expenseId, request, _expenseRepository);
 
         // Assert
         Assert.Equal(404, GetStatusCode(result));
@@ -184,7 +184,7 @@ public class ExpenseFunctionsTests
         var request = new UpdateExpenseRequest(Amount: -5m, ItemName: null, CategoryId: null, Vendor: null, ExpenseDate: null, Comment: null);
 
         // Act
-        var result = await ExpenseFunctions.Update(CreateContext(), expenseId, request, _expenseService);
+        var result = await ExpenseFunctions.Update(CreateContext(), expenseId, request, _expenseRepository);
 
         // Assert
         Assert.Equal(400, GetStatusCode(result));
@@ -195,10 +195,10 @@ public class ExpenseFunctionsTests
     {
         // Arrange
         var expenseId = Guid.NewGuid();
-        _expenseService.DeleteAsync(_userId, expenseId).Returns(true);
+        _expenseRepository.DeleteAsync(_userId, expenseId).Returns(true);
 
         // Act
-        var result = await ExpenseFunctions.Delete(CreateContext(), expenseId, _expenseService);
+        var result = await ExpenseFunctions.Delete(CreateContext(), expenseId, _expenseRepository);
 
         // Assert
         Assert.IsType<NoContent>(result);
@@ -209,10 +209,10 @@ public class ExpenseFunctionsTests
     {
         // Arrange
         var expenseId = Guid.NewGuid();
-        _expenseService.DeleteAsync(_userId, expenseId).Returns(false);
+        _expenseRepository.DeleteAsync(_userId, expenseId).Returns(false);
 
         // Act
-        var result = await ExpenseFunctions.Delete(CreateContext(), expenseId, _expenseService);
+        var result = await ExpenseFunctions.Delete(CreateContext(), expenseId, _expenseRepository);
 
         // Assert
         Assert.Equal(404, GetStatusCode(result));
@@ -223,10 +223,10 @@ public class ExpenseFunctionsTests
     {
         // Arrange
         var vendors = new List<string> { "Lidl", "Maxima" };
-        _expenseService.GetVendorsAsync(_userId).Returns(vendors);
+        _expenseRepository.GetVendorsAsync(_userId).Returns(vendors);
 
         // Act
-        var result = await ExpenseFunctions.GetVendors(CreateContext(), _expenseService);
+        var result = await ExpenseFunctions.GetVendors(CreateContext(), _expenseRepository);
 
         // Assert
         var okResult = Assert.IsType<Ok<IReadOnlyList<string>>>(result);

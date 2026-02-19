@@ -1,15 +1,15 @@
+using HowAreMyFinances.Api.Domain;
 using HowAreMyFinances.Api.Middleware;
 using HowAreMyFinances.Api.Models;
-using HowAreMyFinances.Api.Services;
 
 namespace HowAreMyFinances.Api.Functions;
 
 public static class ExpenseFunctions
 {
-    public static async Task<IResult> GetAll(HttpContext context, Guid monthId, IExpenseService expenseService)
+    public static async Task<IResult> GetAll(HttpContext context, Guid monthId, IExpenseRepository expenseRepository)
     {
         var userId = context.GetUserId();
-        var expenses = await expenseService.GetAllByMonthAsync(userId, monthId);
+        var expenses = await expenseRepository.GetAllByMonthAsync(userId, monthId);
         return Results.Ok(expenses);
     }
 
@@ -17,23 +17,20 @@ public static class ExpenseFunctions
         HttpContext context,
         Guid monthId,
         CreateExpenseRequest request,
-        IExpenseService expenseService,
-        IMonthService monthService)
+        IExpenseRepository expenseRepository,
+        IMonthRepository monthRepository)
     {
-        if (string.IsNullOrWhiteSpace(request.ItemName))
+        var validation = ExpenseEntity.Create(request.ItemName, request.Amount, request.CategoryId,
+            request.Vendor, request.ExpenseDate, request.Comment);
+        if (!validation.IsSuccess)
         {
-            return Results.BadRequest(new { error = "Item name is required" });
-        }
-
-        if (request.Amount <= 0)
-        {
-            return Results.BadRequest(new { error = "Amount must be greater than zero" });
+            return Results.BadRequest(new { error = validation.Error });
         }
 
         var userId = context.GetUserId();
 
         // Verify month exists and belongs to user
-        var month = await monthService.GetByIdAsync(userId, monthId);
+        var month = await monthRepository.GetByIdAsync(userId, monthId);
         if (month is null)
         {
             return Results.NotFound(new { error = "Month not found" });
@@ -41,7 +38,7 @@ public static class ExpenseFunctions
 
         try
         {
-            var expense = await expenseService.CreateAsync(userId, monthId, request);
+            var expense = await expenseRepository.CreateAsync(userId, monthId, request);
             return Results.Created($"/v1/expenses/{expense.Id}", expense);
         }
         catch (Npgsql.PostgresException ex) when (ex.SqlState == "23503")
@@ -50,23 +47,19 @@ public static class ExpenseFunctions
         }
     }
 
-    public static async Task<IResult> Update(HttpContext context, Guid id, UpdateExpenseRequest request, IExpenseService expenseService)
+    public static async Task<IResult> Update(HttpContext context, Guid id, UpdateExpenseRequest request, IExpenseRepository expenseRepository)
     {
-        if (request.ItemName is not null && string.IsNullOrWhiteSpace(request.ItemName))
+        var validation = ExpenseEntity.ValidateUpdate(request.ItemName, request.Amount);
+        if (!validation.IsSuccess)
         {
-            return Results.BadRequest(new { error = "Item name cannot be empty" });
-        }
-
-        if (request.Amount.HasValue && request.Amount.Value <= 0)
-        {
-            return Results.BadRequest(new { error = "Amount must be greater than zero" });
+            return Results.BadRequest(new { error = validation.Error });
         }
 
         var userId = context.GetUserId();
 
         try
         {
-            var expense = await expenseService.UpdateAsync(userId, id, request);
+            var expense = await expenseRepository.UpdateAsync(userId, id, request);
 
             return expense is null
                 ? Results.NotFound(new { error = "Expense not found" })
@@ -78,17 +71,17 @@ public static class ExpenseFunctions
         }
     }
 
-    public static async Task<IResult> GetVendors(HttpContext context, IExpenseService expenseService)
+    public static async Task<IResult> GetVendors(HttpContext context, IExpenseRepository expenseRepository)
     {
         var userId = context.GetUserId();
-        var vendors = await expenseService.GetVendorsAsync(userId);
+        var vendors = await expenseRepository.GetVendorsAsync(userId);
         return Results.Ok(vendors);
     }
 
-    public static async Task<IResult> Delete(HttpContext context, Guid id, IExpenseService expenseService)
+    public static async Task<IResult> Delete(HttpContext context, Guid id, IExpenseRepository expenseRepository)
     {
         var userId = context.GetUserId();
-        var deleted = await expenseService.DeleteAsync(userId, id);
+        var deleted = await expenseRepository.DeleteAsync(userId, id);
 
         return deleted
             ? Results.NoContent()
