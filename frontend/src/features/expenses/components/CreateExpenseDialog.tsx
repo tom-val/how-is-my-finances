@@ -86,7 +86,11 @@ export function CreateExpenseDialog({ monthId }: CreateExpenseDialogProps) {
       }}
     >
       <ResponsiveDialogTrigger asChild>
-        <Button size="sm" variant="outline">
+        <Button
+          size="sm"
+          variant="outline"
+          className="border-red-300 text-red-700 hover:bg-red-50 hover:text-red-800"
+        >
           <TrendingDown className="h-4 w-4" />
           {t("expenses.expense")}
         </Button>

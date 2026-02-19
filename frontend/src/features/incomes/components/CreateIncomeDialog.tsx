@@ -70,7 +70,11 @@ export function CreateIncomeDialog({ monthId }: CreateIncomeDialogProps) {
       }}
     >
       <ResponsiveDialogTrigger asChild>
-        <Button size="sm" variant="outline">
+        <Button
+          size="sm"
+          variant="outline"
+          className="border-green-300 text-green-700 hover:bg-green-50 hover:text-green-800"
+        >
           <TrendingUp className="h-4 w-4" />
           {t("incomes.income")}
         </Button>
