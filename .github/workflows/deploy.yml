@@ -71,7 +71,7 @@ jobs:
           echo "cloudfront_distribution_id=$(terraform output -raw cloudfront_distribution_id)" >> "$GITHUB_OUTPUT"
           echo "api_endpoint=$(terraform output -raw api_endpoint)" >> "$GITHUB_OUTPUT"
           echo "supabase_url=$(terraform output -raw supabase_url)" >> "$GITHUB_OUTPUT"
-          echo "supabase_anon_key=$(terraform output -raw supabase_anon_key)" >> "$GITHUB_OUTPUT"
+          echo "supabase_anon_key=$(terraform output -raw supabase_anon_key | base64 -w0)" >> "$GITHUB_OUTPUT"
           echo "supabase_project_ref=$(terraform output -raw supabase_project_ref)" >> "$GITHUB_OUTPUT"
 
       - name: Validate critical outputs
@@ -235,9 +235,10 @@ jobs:
         working-directory: frontend
         env:
           VITE_SUPABASE_URL: ${{ needs.infra.outputs.supabase_url }}
-          VITE_SUPABASE_ANON_KEY: ${{ needs.infra.outputs.supabase_anon_key }}
           VITE_API_URL: ${{ needs.infra.outputs.api_endpoint }}
-        run: npm run build
+        run: |
+          export VITE_SUPABASE_ANON_KEY=$(echo "${{ needs.infra.outputs.supabase_anon_key }}" | base64 -d)
+          npm run build
 
       - name: Deploy to S3
         working-directory: frontend
