@@ -19,6 +19,7 @@ public sealed record MonthDetail(
     decimal Salary,
     string? Notes,
     decimal TotalSpent,
+    decimal PlannedSpent,
     decimal Remaining,
     DateTime CreatedAt,
     DateTime UpdatedAt

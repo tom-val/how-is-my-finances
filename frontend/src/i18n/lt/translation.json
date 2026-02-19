@@ -33,6 +33,7 @@
     "year": "Metai",
     "month": "Mėnuo",
     "notes": "Pastabos",
+    "plannedSpent": "suplanuota",
     "perDay": "Per dieną",
     "daysRemaining": "Liko dienų",
     "monthNames": {
@@ -59,7 +60,15 @@
     "category": "Kategorija",
     "comment": "Komentaras",
     "addExpense": "Pridėti išlaidą",
-    "noExpenses": "Šį mėnesį išlaidų nėra."
+    "editExpense": "Redaguoti išlaidą",
+    "deleteExpense": "Ištrinti išlaidą",
+    "confirmDelete": "Ar tikrai norite ištrinti šią išlaidą?",
+    "noExpenses": "Šį mėnesį išlaidų nėra.",
+    "viewNormal": "Įprastas vaizdas",
+    "viewCompact": "Kompaktiškas vaizdas",
+    "searchCategory": "Ieškoti kategorijos...",
+    "noCategoriesFound": "Kategorijų nerasta.",
+    "noVendorsFound": "Tiekėjų nerasta."
   },
   "settings": {
     "title": "Nustatymai",

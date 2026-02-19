@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { useParams, Link } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ExpenseList } from "@/features/expenses/components/ExpenseList";
 import { useMonth } from "../hooks/useMonths";
 
 export function MonthDetailPage() {
@@ -18,7 +19,7 @@ export function MonthDetailPage() {
   }
 
   const spentPercentage = month.salary > 0
-    ? Math.round((month.totalSpent / month.salary) * 100)
+    ? Math.round(((month.totalSpent + month.plannedSpent) / month.salary) * 100)
     : 0;
 
   return (
@@ -58,6 +59,11 @@ export function MonthDetailPage() {
             <p className="text-sm text-muted-foreground">
               {spentPercentage}%
             </p>
+            {month.plannedSpent > 0 && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                + {month.plannedSpent.toFixed(2)} EUR {t("months.plannedSpent")}
+              </p>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -76,10 +82,7 @@ export function MonthDetailPage() {
         </Card>
       </div>
 
-      <div>
-        <h2 className="mb-4 text-lg font-semibold">{t("expenses.title")}</h2>
-        <p className="text-muted-foreground">{t("expenses.noExpenses")}</p>
-      </div>
+      <ExpenseList monthId={monthId!} />
     </div>
   );
 }

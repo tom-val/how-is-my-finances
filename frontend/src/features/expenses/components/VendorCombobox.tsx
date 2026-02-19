@@ -1,0 +1,110 @@
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+
+interface VendorComboboxProps {
+  value: string;
+  onChange: (value: string) => void;
+  vendors: string[];
+}
+
+export function VendorCombobox({ value, onChange, vendors }: VendorComboboxProps) {
+  const { t } = useTranslation();
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  function handleSelect(selectedVendor: string) {
+    onChange(selectedVendor === value ? "" : selectedVendor);
+    setIsOpen(false);
+    setSearch("");
+  }
+
+  // Allow free-text entry: if search doesn't match any vendor, show it as an option
+  const hasExactMatch = vendors.some(
+    (v) => v.toLowerCase() === search.toLowerCase(),
+  );
+
+  return (
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={isOpen}
+          className="w-full justify-between font-normal"
+        >
+          <span className="truncate">
+            {value || t("expenses.vendor")}
+          </span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+        <Command shouldFilter={false}>
+          <CommandInput
+            placeholder={t("expenses.vendor")}
+            value={search}
+            onValueChange={setSearch}
+          />
+          <CommandList>
+            <CommandEmpty>{t("expenses.noVendorsFound")}</CommandEmpty>
+            <CommandGroup>
+              {search && !hasExactMatch && (
+                <CommandItem
+                  value={search}
+                  onSelect={() => {
+                    onChange(search);
+                    setIsOpen(false);
+                    setSearch("");
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === search ? "opacity-100" : "opacity-0",
+                    )}
+                  />
+                  {search}
+                </CommandItem>
+              )}
+              {vendors
+                .filter((v) =>
+                  v.toLowerCase().includes(search.toLowerCase()),
+                )
+                .map((v) => (
+                  <CommandItem
+                    key={v}
+                    value={v}
+                    onSelect={() => handleSelect(v)}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === v ? "opacity-100" : "opacity-0",
+                      )}
+                    />
+                    {v}
+                  </CommandItem>
+                ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}

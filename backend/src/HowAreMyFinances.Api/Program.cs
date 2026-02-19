@@ -34,6 +34,8 @@ builder.Services.AddCors(options =>
 // Services
 builder.Services.AddScoped<IMonthService, MonthService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IExpenseService, ExpenseService>();
 
 var app = builder.Build();
 
@@ -58,6 +60,16 @@ app.MapGet("/v1/months/{id:guid}", MonthFunctions.GetById);
 app.MapPost("/v1/months", MonthFunctions.Create);
 app.MapPut("/v1/months/{id:guid}", MonthFunctions.Update);
 app.MapDelete("/v1/months/{id:guid}", MonthFunctions.Delete);
+
+// Expense endpoints
+app.MapGet("/v1/months/{monthId:guid}/expenses", ExpenseFunctions.GetAll);
+app.MapPost("/v1/months/{monthId:guid}/expenses", ExpenseFunctions.Create);
+app.MapGet("/v1/expenses/vendors", ExpenseFunctions.GetVendors);
+app.MapPut("/v1/expenses/{id:guid}", ExpenseFunctions.Update);
+app.MapDelete("/v1/expenses/{id:guid}", ExpenseFunctions.Delete);
+
+// Category endpoints
+app.MapGet("/v1/categories", CategoryFunctions.GetAll);
 
 // Profile endpoints
 app.MapGet("/v1/profile", ProfileFunctions.Get);

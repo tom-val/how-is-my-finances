@@ -50,7 +50,7 @@ public class MonthFunctionsTests
     {
         // Arrange
         var monthId = Guid.NewGuid();
-        var month = new MonthDetail(monthId, _userId, 2026, 2, 4000m, null, 1500m, 2500m, DateTime.UtcNow, DateTime.UtcNow);
+        var month = new MonthDetail(monthId, _userId, 2026, 2, 4000m, null, 1500m, 0m, 2500m, DateTime.UtcNow, DateTime.UtcNow);
         _monthService.GetByIdAsync(_userId, monthId).Returns(month);
 
         // Act

@@ -50,7 +50,8 @@ public sealed class MonthService : IMonthService
             """
             SELECT
                 m.id, m.user_id, m.year, m.month, m.salary, m.notes, m.created_at, m.updated_at,
-                COALESCE(SUM(e.amount), 0) AS total_spent
+                COALESCE(SUM(CASE WHEN e.expense_date <= CURRENT_DATE THEN e.amount ELSE 0 END), 0) AS total_spent,
+                COALESCE(SUM(CASE WHEN e.expense_date > CURRENT_DATE THEN e.amount ELSE 0 END), 0) AS planned_spent
             FROM public.months m
             LEFT JOIN public.expenses e ON e.month_id = m.id
             WHERE m.id = @monthId AND m.user_id = @userId
@@ -70,6 +71,7 @@ public sealed class MonthService : IMonthService
 
         var salary = reader.GetDecimal(4);
         var totalSpent = reader.GetDecimal(8);
+        var plannedSpent = reader.GetDecimal(9);
 
         return new MonthDetail(
             Id: reader.GetGuid(0),
@@ -79,7 +81,8 @@ public sealed class MonthService : IMonthService
             Salary: salary,
             Notes: reader.IsDBNull(5) ? null : reader.GetString(5),
             TotalSpent: totalSpent,
-            Remaining: salary - totalSpent,
+            PlannedSpent: plannedSpent,
+            Remaining: salary - totalSpent - plannedSpent,
             CreatedAt: reader.GetDateTime(6),
             UpdatedAt: reader.GetDateTime(7)
         );
