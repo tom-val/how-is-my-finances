@@ -78,6 +78,9 @@ app.MapDelete("/v1/incomes/{id:guid}", IncomeFunctions.Delete);
 
 // Category endpoints
 app.MapGet("/v1/categories", CategoryFunctions.GetAll);
+app.MapPost("/v1/categories", CategoryFunctions.Create);
+app.MapPut("/v1/categories/{id:guid}", CategoryFunctions.Update);
+app.MapDelete("/v1/categories/{id:guid}", CategoryFunctions.Delete);
 
 // Profile endpoints
 app.MapGet("/v1/profile", ProfileFunctions.Get);

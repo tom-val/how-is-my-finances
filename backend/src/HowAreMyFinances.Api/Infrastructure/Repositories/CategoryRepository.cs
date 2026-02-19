@@ -42,6 +42,68 @@ public sealed class CategoryRepository : ICategoryRepository
         return categories;
     }
 
+    public async Task<Category> CreateAsync(Guid userId, CreateCategoryRequest request)
+    {
+        await using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        await using var command = new NpgsqlCommand(
+            """
+            INSERT INTO public.categories (user_id, name)
+            VALUES (@userId, @name)
+            RETURNING id, user_id, name, icon, sort_order, created_at
+            """,
+            connection);
+
+        command.Parameters.AddWithValue("userId", userId);
+        command.Parameters.AddWithValue("name", request.Name);
+
+        await using var reader = await command.ExecuteReaderAsync();
+        await reader.ReadAsync();
+        return ReadCategory(reader);
+    }
+
+    public async Task<Category?> UpdateAsync(Guid userId, Guid categoryId, UpdateCategoryRequest request)
+    {
+        await using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        await using var command = new NpgsqlCommand(
+            """
+            UPDATE public.categories
+            SET name = @name
+            WHERE id = @categoryId AND user_id = @userId
+            RETURNING id, user_id, name, icon, sort_order, created_at
+            """,
+            connection);
+
+        command.Parameters.AddWithValue("categoryId", categoryId);
+        command.Parameters.AddWithValue("userId", userId);
+        command.Parameters.AddWithValue("name", request.Name);
+
+        await using var reader = await command.ExecuteReaderAsync();
+        return await reader.ReadAsync() ? ReadCategory(reader) : null;
+    }
+
+    public async Task<bool> DeleteAsync(Guid userId, Guid categoryId)
+    {
+        await using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        await using var command = new NpgsqlCommand(
+            """
+            DELETE FROM public.categories
+            WHERE id = @categoryId AND user_id = @userId
+            """,
+            connection);
+
+        command.Parameters.AddWithValue("categoryId", categoryId);
+        command.Parameters.AddWithValue("userId", userId);
+
+        var rowsAffected = await command.ExecuteNonQueryAsync();
+        return rowsAffected > 0;
+    }
+
     private static Category ReadCategory(NpgsqlDataReader reader)
     {
         return new Category(
