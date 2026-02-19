@@ -8,9 +8,7 @@
     "error": "Something went wrong",
     "confirm": "Confirm",
     "back": "Back",
-    "offline": "You are offline",
-    "updateAvailable": "Update available",
-    "reload": "Reload"
+    "offline": "You are offline"
   },
   "auth": {
     "login": "Log in",

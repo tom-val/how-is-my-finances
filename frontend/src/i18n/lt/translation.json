@@ -8,9 +8,7 @@
     "error": "Kažkas nutiko",
     "confirm": "Patvirtinti",
     "back": "Atgal",
-    "offline": "Esate neprisijungę",
-    "updateAvailable": "Yra atnaujinimas",
-    "reload": "Perkrauti"
+    "offline": "Esate neprisijungę"
   },
   "auth": {
     "login": "Prisijungti",

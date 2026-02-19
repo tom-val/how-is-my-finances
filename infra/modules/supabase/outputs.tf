@@ -6,7 +6,6 @@ output "project_url" {
 output "anon_key" {
   description = "Supabase anonymous API key (safe to expose in frontend)."
   value       = data.supabase_apikeys.this.anon_key
-  sensitive   = true
 }
 
 output "service_role_key" {

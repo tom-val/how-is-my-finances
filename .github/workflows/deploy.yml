@@ -74,6 +74,20 @@ jobs:
           echo "supabase_anon_key=$(terraform output -raw supabase_anon_key)" >> "$GITHUB_OUTPUT"
           echo "supabase_project_ref=$(terraform output -raw supabase_project_ref)" >> "$GITHUB_OUTPUT"
 
+      - name: Validate critical outputs
+        run: |
+          failed=false
+          for output in lambda_function_name s3_frontend_bucket cloudfront_distribution_id api_endpoint supabase_url supabase_anon_key supabase_project_ref; do
+            value=$(terraform output -raw "$output" 2>/dev/null || true)
+            if [ -z "$value" ]; then
+              echo "::error::Terraform output '$output' is empty"
+              failed=true
+            fi
+          done
+          if [ "$failed" = true ]; then
+            exit 1
+          fi
+
   # --- Database Migrations (after infra) ---
   migrations:
     needs: infra

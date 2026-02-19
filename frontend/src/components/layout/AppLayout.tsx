@@ -3,7 +3,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { Header } from "./Header";
 import { OfflineIndicator } from "./OfflineIndicator";
 import { BottomNav } from "./BottomNav";
-import { ServiceWorkerUpdatePrompt } from "./ServiceWorkerUpdatePrompt";
 
 export function AppLayout() {
   const { user, isLoading } = useAuth();
@@ -28,7 +27,6 @@ export function AppLayout() {
         <Outlet />
       </main>
       <BottomNav />
-      <ServiceWorkerUpdatePrompt />
     </div>
   );
 }

@@ -31,7 +31,6 @@ output "supabase_url" {
 output "supabase_anon_key" {
   description = "Supabase anonymous key (used for frontend build)."
   value       = module.supabase.anon_key
-  sensitive   = true
 }
 
 output "supabase_project_ref" {
