@@ -63,11 +63,16 @@ resource "aws_apigatewayv2_authorizer" "jwt" {
   api_id                            = var.api_id
   authorizer_type                   = "REQUEST"
   authorizer_uri                    = aws_lambda_function.authorizer.invoke_arn
-  identity_sources                  = ["$request.header.Authorization"]
   name                              = "${var.project_name}-${var.environment}-jwt-authorizer"
   authorizer_payload_format_version = "2.0"
   authorizer_result_ttl_in_seconds  = 300
   enable_simple_responses           = true
+
+  # identity_sources intentionally omitted: setting it to
+  # ["$request.header.Authorization"] causes API Gateway to reject
+  # requests missing that header with 401 BEFORE the CORS handler runs,
+  # which blocks browser OPTIONS preflight requests.
+  # The authorizer Lambda already handles missing tokens gracefully.
 }
 
 resource "aws_lambda_permission" "api_gateway_authorizer" {
