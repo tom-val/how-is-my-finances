@@ -151,37 +151,6 @@ jobs:
           aws lambda wait function-updated \
             --function-name ${{ needs.infra.outputs.lambda_function_name }}
 
-      - name: Publish new version (SnapStart)
-        id: publish
-        run: |
-          VERSION=$(aws lambda publish-version \
-            --function-name ${{ needs.infra.outputs.lambda_function_name }} \
-            --query 'Version' --output text)
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Published Lambda version: $VERSION"
-
-      - name: Wait for SnapStart initialisation
-        run: |
-          echo "Waiting for SnapStart snapshot on version ${{ steps.publish.outputs.version }}..."
-          while true; do
-            STATE=$(aws lambda get-function \
-              --function-name "${{ needs.infra.outputs.lambda_function_name }}:${{ steps.publish.outputs.version }}" \
-              --query 'Configuration.SnapStart.OptimizationStatus' --output text 2>/dev/null || echo "UNKNOWN")
-            echo "  SnapStart status: $STATE"
-            if [ "$STATE" = "On" ]; then
-              echo "SnapStart snapshot ready."
-              break
-            fi
-            sleep 5
-          done
-
-      - name: Update alias to new version
-        run: |
-          aws lambda update-alias \
-            --function-name ${{ needs.infra.outputs.lambda_function_name }} \
-            --name live \
-            --function-version ${{ steps.publish.outputs.version }}
-
   # --- Authorizer (after infra, parallel with frontend) ---
   authorizer:
     needs: infra
