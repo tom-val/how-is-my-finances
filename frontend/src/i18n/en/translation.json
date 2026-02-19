@@ -87,6 +87,16 @@
     "title": "Transactions",
     "noTransactions": "No transactions recorded for this month."
   },
+  "categories": {
+    "title": "Categories",
+    "name": "Name",
+    "addCategory": "Add Category",
+    "editCategory": "Edit Category",
+    "deleteCategory": "Delete Category",
+    "confirmDelete": "Are you sure you want to delete this category? Categories with expenses cannot be deleted.",
+    "noCategories": "No categories yet. Add your first category to get started.",
+    "nameRequired": "Category name is required"
+  },
   "settings": {
     "title": "Settings",
     "language": "Language",
@@ -94,6 +104,7 @@
   },
   "nav": {
     "months": "Months",
+    "categories": "Categories",
     "recurring": "Recurring",
     "settings": "Settings"
   }

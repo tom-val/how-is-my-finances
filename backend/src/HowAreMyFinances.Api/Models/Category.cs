@@ -8,3 +8,7 @@ public sealed record Category(
     int SortOrder,
     DateTime CreatedAt
 );
+
+public sealed record CreateCategoryRequest(string Name);
+
+public sealed record UpdateCategoryRequest(string Name);

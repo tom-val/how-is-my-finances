@@ -23,9 +23,15 @@ export function Header() {
           <nav className="hidden items-center gap-4 md:flex">
             <Link
               to="/"
-              className={`text-sm ${isActive("/") && !location.pathname.startsWith("/settings") && !location.pathname.startsWith("/recurring") ? "font-medium text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              className={`text-sm ${isActive("/") && !location.pathname.startsWith("/settings") && !location.pathname.startsWith("/recurring") && !location.pathname.startsWith("/categories") ? "font-medium text-foreground" : "text-muted-foreground hover:text-foreground"}`}
             >
               {t("nav.months")}
+            </Link>
+            <Link
+              to="/categories"
+              className={`text-sm ${isActive("/categories") ? "font-medium text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              {t("nav.categories")}
             </Link>
             <Link
               to="/recurring"

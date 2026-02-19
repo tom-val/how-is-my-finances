@@ -87,6 +87,16 @@
     "title": "Operacijos",
     "noTransactions": "Šį mėnesį operacijų nėra."
   },
+  "categories": {
+    "title": "Kategorijos",
+    "name": "Pavadinimas",
+    "addCategory": "Pridėti kategoriją",
+    "editCategory": "Redaguoti kategoriją",
+    "deleteCategory": "Ištrinti kategoriją",
+    "confirmDelete": "Ar tikrai norite ištrinti šią kategoriją? Kategorijų su išlaidomis ištrinti negalima.",
+    "noCategories": "Kategorijų dar nėra. Pridėkite pirmą kategoriją.",
+    "nameRequired": "Kategorijos pavadinimas privalomas"
+  },
   "settings": {
     "title": "Nustatymai",
     "language": "Kalba",
@@ -94,6 +104,7 @@
   },
   "nav": {
     "months": "Mėnesiai",
+    "categories": "Kategorijos",
     "recurring": "Pasikartojantys",
     "settings": "Nustatymai"
   }

@@ -17,7 +17,8 @@
       "Bash(npx shadcn@latest add sheet:*)",
       "Bash(npm run build:*)",
       "Bash(npx shadcn@latest add:*)",
-      "WebFetch(domain:repost.aws)"
+      "WebFetch(domain:repost.aws)",
+      "Bash(npm run test:*)"
     ]
   }
 }
