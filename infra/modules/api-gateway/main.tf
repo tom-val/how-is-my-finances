@@ -28,6 +28,15 @@ resource "aws_apigatewayv2_route" "default" {
   authorizer_id      = var.authorizer_id
 }
 
+# Explicit OPTIONS route without authorizer. The $default route's
+# identity_sources check rejects OPTIONS preflight requests (no
+# Authorization header) with 401 before cors_configuration runs.
+# This route takes precedence, letting the built-in CORS handler respond.
+resource "aws_apigatewayv2_route" "options" {
+  api_id    = aws_apigatewayv2_api.api.id
+  route_key = "OPTIONS /{proxy+}"
+}
+
 resource "aws_apigatewayv2_stage" "default" {
   api_id      = aws_apigatewayv2_api.api.id
   name        = "$default"
