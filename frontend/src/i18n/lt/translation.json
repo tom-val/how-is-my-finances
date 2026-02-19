@@ -60,6 +60,7 @@
     "category": "Kategorija",
     "comment": "Komentaras",
     "addExpense": "Pridėti išlaidą",
+    "expense": "Išlaida",
     "editExpense": "Redaguoti išlaidą",
     "deleteExpense": "Ištrinti išlaidą",
     "confirmDelete": "Ar tikrai norite ištrinti šią išlaidą?",
@@ -77,11 +78,16 @@
     "date": "Data",
     "comment": "Komentaras",
     "addIncome": "Pridėti pajamas",
+    "income": "Pajamos",
     "editIncome": "Redaguoti pajamas",
     "deleteIncome": "Ištrinti pajamas",
     "confirmDelete": "Ar tikrai norite ištrinti šį pajamų įrašą?",
     "noIncomes": "Šį mėnesį papildomų pajamų nėra.",
     "extraIncome": "Papildomos pajamos"
+  },
+  "transactions": {
+    "title": "Operacijos",
+    "noTransactions": "Šį mėnesį operacijų nėra."
   },
   "settings": {
     "title": "Nustatymai",

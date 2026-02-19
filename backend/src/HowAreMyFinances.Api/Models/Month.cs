@@ -26,6 +26,20 @@ public sealed record MonthDetail(
     DateTime UpdatedAt
 );
 
+public sealed record MonthSummary(
+    Guid Id,
+    Guid UserId,
+    int Year,
+    int MonthNumber,
+    decimal Salary,
+    string? Notes,
+    decimal TotalSpent,
+    decimal TotalIncome,
+    decimal Remaining,
+    DateTime CreatedAt,
+    DateTime UpdatedAt
+);
+
 public sealed record CreateMonthRequest(int Year, int Month, decimal Salary);
 
 public sealed record UpdateMonthRequest(decimal? Salary, string? Notes);

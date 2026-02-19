@@ -15,28 +15,55 @@ public sealed class MonthRepository : IMonthRepository
         _connectionString = settings.Value.DbConnectionString;
     }
 
-    public async Task<IReadOnlyList<Month>> GetAllAsync(Guid userId)
+    public async Task<IReadOnlyList<MonthSummary>> GetAllAsync(Guid userId)
     {
         await using var connection = new NpgsqlConnection(_connectionString);
         await connection.OpenAsync();
 
         await using var command = new NpgsqlCommand(
             """
-            SELECT id, user_id, year, month, salary, notes, created_at, updated_at
-            FROM public.months
-            WHERE user_id = @userId
-            ORDER BY year DESC, month DESC
+            SELECT
+                m.id, m.user_id, m.year, m.month, m.salary, m.notes, m.created_at, m.updated_at,
+                COALESCE(SUM(e.amount), 0) AS total_spent,
+                COALESCE(income_totals.total_income, 0) AS total_income
+            FROM public.months m
+            LEFT JOIN public.expenses e ON e.month_id = m.id
+            LEFT JOIN (
+                SELECT month_id, SUM(amount) AS total_income
+                FROM public.incomes
+                WHERE user_id = @userId
+                GROUP BY month_id
+            ) income_totals ON income_totals.month_id = m.id
+            WHERE m.user_id = @userId
+            GROUP BY m.id, income_totals.total_income
+            ORDER BY m.year DESC, m.month DESC
             """,
             connection);
 
         command.Parameters.AddWithValue("userId", userId);
 
         await using var reader = await command.ExecuteReaderAsync();
-        var months = new List<Month>();
+        var months = new List<MonthSummary>();
 
         while (await reader.ReadAsync())
         {
-            months.Add(ReadMonth(reader));
+            var salary = reader.GetDecimal(4);
+            var totalSpent = reader.GetDecimal(8);
+            var totalIncome = reader.GetDecimal(9);
+
+            months.Add(new MonthSummary(
+                Id: reader.GetGuid(0),
+                UserId: reader.GetGuid(1),
+                Year: reader.GetInt32(2),
+                MonthNumber: reader.GetInt32(3),
+                Salary: salary,
+                Notes: reader.IsDBNull(5) ? null : reader.GetString(5),
+                TotalSpent: totalSpent,
+                TotalIncome: totalIncome,
+                Remaining: salary + totalIncome - totalSpent,
+                CreatedAt: reader.GetDateTime(6),
+                UpdatedAt: reader.GetDateTime(7)
+            ));
         }
 
         return months;

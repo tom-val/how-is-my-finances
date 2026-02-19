@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -70,9 +70,9 @@ export function CreateIncomeDialog({ monthId }: CreateIncomeDialogProps) {
       }}
     >
       <ResponsiveDialogTrigger asChild>
-        <Button size="sm">
-          <Plus className="mr-1 h-4 w-4" />
-          {t("incomes.addIncome")}
+        <Button size="sm" variant="outline">
+          <TrendingUp className="h-4 w-4" />
+          {t("incomes.income")}
         </Button>
       </ResponsiveDialogTrigger>
       <ResponsiveDialogContent>

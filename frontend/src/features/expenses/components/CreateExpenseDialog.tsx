@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus } from "lucide-react";
+import { TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -86,9 +86,9 @@ export function CreateExpenseDialog({ monthId }: CreateExpenseDialogProps) {
       }}
     >
       <ResponsiveDialogTrigger asChild>
-        <Button size="sm">
-          <Plus className="mr-1 h-4 w-4" />
-          {t("expenses.addExpense")}
+        <Button size="sm" variant="outline">
+          <TrendingDown className="h-4 w-4" />
+          {t("expenses.expense")}
         </Button>
       </ResponsiveDialogTrigger>
       <ResponsiveDialogContent>

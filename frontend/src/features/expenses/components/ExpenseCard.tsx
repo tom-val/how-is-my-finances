@@ -30,7 +30,7 @@ export function ExpenseCard({ expense, monthId, compact = false }: ExpenseCardPr
       <>
         <div
           className={cn(
-            "flex items-center gap-3 rounded-md border px-3 py-1.5 text-sm",
+            "flex items-center gap-3 rounded-md border px-3 py-1.5 text-sm hover:bg-muted/50",
             isPlanned && "opacity-60",
           )}
         >

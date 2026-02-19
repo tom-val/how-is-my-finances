@@ -30,10 +30,10 @@ public class MonthFunctionsTests
     public async Task GetAll_ReturnsMonthsList()
     {
         // Arrange
-        var months = new List<Month>
+        var months = new List<MonthSummary>
         {
-            new(Guid.NewGuid(), _userId, 2026, 2, 4000m, null, DateTime.UtcNow, DateTime.UtcNow),
-            new(Guid.NewGuid(), _userId, 2026, 1, 3500m, null, DateTime.UtcNow, DateTime.UtcNow)
+            new(Guid.NewGuid(), _userId, 2026, 2, 4000m, null, 500m, 200m, 3700m, DateTime.UtcNow, DateTime.UtcNow),
+            new(Guid.NewGuid(), _userId, 2026, 1, 3500m, null, 1000m, 0m, 2500m, DateTime.UtcNow, DateTime.UtcNow)
         };
         _monthRepository.GetAllAsync(_userId).Returns(months);
 
@@ -41,7 +41,7 @@ public class MonthFunctionsTests
         var result = await MonthFunctions.GetAll(CreateContext(), _monthRepository);
 
         // Assert
-        var okResult = Assert.IsType<Ok<IReadOnlyList<Month>>>(result);
+        var okResult = Assert.IsType<Ok<IReadOnlyList<MonthSummary>>>(result);
         Assert.Equal(2, okResult.Value!.Count);
     }
 
