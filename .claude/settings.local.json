@@ -16,7 +16,8 @@
       "Bash(npm run generate-icons:*)",
       "Bash(npx shadcn@latest add sheet:*)",
       "Bash(npm run build:*)",
-      "Bash(npx shadcn@latest add:*)"
+      "Bash(npx shadcn@latest add:*)",
+      "WebFetch(domain:repost.aws)"
     ]
   }
 }
