@@ -1,10 +1,10 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Month } from "@shared/types/month";
+import { Card, CardContent } from "@/components/ui/card";
+import type { MonthSummary } from "@shared/types/month";
 
 interface MonthCardProps {
-  month: Month;
+  month: MonthSummary;
 }
 
 export function MonthCard({ month }: MonthCardProps) {
@@ -12,19 +12,25 @@ export function MonthCard({ month }: MonthCardProps) {
 
   return (
     <Link to={`/months/${month.id}`}>
-      <Card className="transition-colors hover:bg-muted/50">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">
+      <Card className="p-0 transition-colors hover:bg-muted/50">
+        <CardContent className="px-4 py-3">
+          <p className="mb-1 text-sm font-semibold">
             {t(`months.monthNames.${month.monthNumber}`)} {month.year}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            {t("months.salary")}:{" "}
+          </p>
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>{t("months.salary")}</span>
             <span className="font-medium text-foreground">
               {month.salary.toFixed(2)} EUR
             </span>
-          </p>
+          </div>
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>{t("months.remaining")}</span>
+            <span
+              className={`font-medium ${month.remaining < 0 ? "text-destructive" : "text-foreground"}`}
+            >
+              {month.remaining.toFixed(2)} EUR
+            </span>
+          </div>
         </CardContent>
       </Card>
     </Link>

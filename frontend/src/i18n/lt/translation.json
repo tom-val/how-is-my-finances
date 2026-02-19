@@ -33,6 +33,7 @@
     "year": "Metai",
     "month": "Mėnuo",
     "notes": "Pastabos",
+    "plannedSpent": "suplanuota",
     "perDay": "Per dieną",
     "daysRemaining": "Liko dienų",
     "monthNames": {
@@ -59,7 +60,34 @@
     "category": "Kategorija",
     "comment": "Komentaras",
     "addExpense": "Pridėti išlaidą",
-    "noExpenses": "Šį mėnesį išlaidų nėra."
+    "expense": "Išlaida",
+    "editExpense": "Redaguoti išlaidą",
+    "deleteExpense": "Ištrinti išlaidą",
+    "confirmDelete": "Ar tikrai norite ištrinti šią išlaidą?",
+    "noExpenses": "Šį mėnesį išlaidų nėra.",
+    "viewNormal": "Įprastas vaizdas",
+    "viewCompact": "Kompaktiškas vaizdas",
+    "searchCategory": "Ieškoti kategorijos...",
+    "noCategoriesFound": "Kategorijų nerasta.",
+    "noVendorsFound": "Tiekėjų nerasta."
+  },
+  "incomes": {
+    "title": "Pajamos",
+    "source": "Šaltinis",
+    "amount": "Suma",
+    "date": "Data",
+    "comment": "Komentaras",
+    "addIncome": "Pridėti pajamas",
+    "income": "Pajamos",
+    "editIncome": "Redaguoti pajamas",
+    "deleteIncome": "Ištrinti pajamas",
+    "confirmDelete": "Ar tikrai norite ištrinti šį pajamų įrašą?",
+    "noIncomes": "Šį mėnesį papildomų pajamų nėra.",
+    "extraIncome": "Papildomos pajamos"
+  },
+  "transactions": {
+    "title": "Operacijos",
+    "noTransactions": "Šį mėnesį operacijų nėra."
   },
   "settings": {
     "title": "Nustatymai",

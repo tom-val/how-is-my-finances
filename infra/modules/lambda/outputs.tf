@@ -9,6 +9,6 @@ output "function_arn" {
 }
 
 output "invoke_arn" {
-  description = "Invoke ARN of the Lambda alias (used by API Gateway for SnapStart)."
-  value       = aws_lambda_alias.live.invoke_arn
+  description = "Invoke ARN of the Lambda function (used by API Gateway)."
+  value       = aws_lambda_function.api.invoke_arn
 }

@@ -1,8 +1,8 @@
 using HowAreMyFinances.Api.Models;
 
-namespace HowAreMyFinances.Api.Services;
+namespace HowAreMyFinances.Api.Domain;
 
-public interface IProfileService
+public interface IProfileRepository
 {
     Task<Profile?> GetAsync(Guid userId);
     Task<Profile?> UpdateAsync(Guid userId, UpdateProfileRequest request);

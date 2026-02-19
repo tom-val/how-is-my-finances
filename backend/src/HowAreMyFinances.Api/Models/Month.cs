@@ -19,6 +19,22 @@ public sealed record MonthDetail(
     decimal Salary,
     string? Notes,
     decimal TotalSpent,
+    decimal PlannedSpent,
+    decimal TotalIncome,
+    decimal Remaining,
+    DateTime CreatedAt,
+    DateTime UpdatedAt
+);
+
+public sealed record MonthSummary(
+    Guid Id,
+    Guid UserId,
+    int Year,
+    int MonthNumber,
+    decimal Salary,
+    string? Notes,
+    decimal TotalSpent,
+    decimal TotalIncome,
     decimal Remaining,
     DateTime CreatedAt,
     DateTime UpdatedAt

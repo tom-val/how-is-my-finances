@@ -33,6 +33,7 @@
     "year": "Year",
     "month": "Month",
     "notes": "Notes",
+    "plannedSpent": "planned",
     "perDay": "Per day",
     "daysRemaining": "Days remaining",
     "monthNames": {
@@ -59,7 +60,34 @@
     "category": "Category",
     "comment": "Comment",
     "addExpense": "Add Expense",
-    "noExpenses": "No expenses recorded for this month."
+    "expense": "Expense",
+    "editExpense": "Edit Expense",
+    "deleteExpense": "Delete Expense",
+    "confirmDelete": "Are you sure you want to delete this expense?",
+    "noExpenses": "No expenses recorded for this month.",
+    "viewNormal": "Normal view",
+    "viewCompact": "Compact view",
+    "searchCategory": "Search category...",
+    "noCategoriesFound": "No categories found.",
+    "noVendorsFound": "No matching vendors."
+  },
+  "incomes": {
+    "title": "Income",
+    "source": "Source",
+    "amount": "Amount",
+    "date": "Date",
+    "comment": "Comment",
+    "addIncome": "Add Income",
+    "income": "Income",
+    "editIncome": "Edit Income",
+    "deleteIncome": "Delete Income",
+    "confirmDelete": "Are you sure you want to delete this income entry?",
+    "noIncomes": "No additional income recorded for this month.",
+    "extraIncome": "Extra Income"
+  },
+  "transactions": {
+    "title": "Transactions",
+    "noTransactions": "No transactions recorded for this month."
   },
   "settings": {
     "title": "Settings",

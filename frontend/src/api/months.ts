@@ -1,8 +1,8 @@
-import type { Month, MonthDetail, CreateMonthRequest, UpdateMonthRequest } from "@shared/types/month";
+import type { Month, MonthSummary, MonthDetail, CreateMonthRequest, UpdateMonthRequest } from "@shared/types/month";
 import { apiGet, apiPost, apiPut, apiDelete } from "./client";
 
-export function getMonths(): Promise<Month[]> {
-  return apiGet<Month[]>("/v1/months");
+export function getMonths(): Promise<MonthSummary[]> {
+  return apiGet<MonthSummary[]>("/v1/months");
 }
 
 export function getMonth(id: string): Promise<MonthDetail> {

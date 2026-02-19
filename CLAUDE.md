@@ -62,7 +62,7 @@ supabase stop                       # Stop local stack
 - Frontend sends Supabase JWT to backend API via `Authorization: Bearer` header
 - API Gateway v2 (HTTP API) with Lambda authorizer (Node.js) validates JWT, passes `userId` in context
 - .NET Lambda reads `userId` from authorizer context, queries Supabase PostgreSQL via Npgsql
-- .NET Lambda uses SnapStart for fast cold starts (~1.5s including restore)
+- .NET Lambda runs on ARM64 (Graviton) with 512 MB memory
 - DB connection via Supabase Supavisor transaction-mode pooler (IPv4, port 6543) with `Pooling=false` (server-side pooling only)
 - Frontend served from S3 + CloudFront
 

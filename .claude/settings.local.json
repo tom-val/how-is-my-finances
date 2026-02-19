@@ -15,7 +15,8 @@
       "Bash(npm run typecheck:*)",
       "Bash(npm run generate-icons:*)",
       "Bash(npx shadcn@latest add sheet:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(npx shadcn@latest add:*)"
     ]
   }
 }

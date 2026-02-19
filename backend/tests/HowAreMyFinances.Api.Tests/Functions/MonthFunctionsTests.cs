@@ -1,6 +1,6 @@
+using HowAreMyFinances.Api.Domain;
 using HowAreMyFinances.Api.Functions;
 using HowAreMyFinances.Api.Models;
-using HowAreMyFinances.Api.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using NSubstitute;
@@ -10,7 +10,7 @@ namespace HowAreMyFinances.Api.Tests.Functions;
 
 public class MonthFunctionsTests
 {
-    private readonly IMonthService _monthService = Substitute.For<IMonthService>();
+    private readonly IMonthRepository _monthRepository = Substitute.For<IMonthRepository>();
     private readonly Guid _userId = Guid.NewGuid();
 
     private HttpContext CreateContext()
@@ -30,18 +30,18 @@ public class MonthFunctionsTests
     public async Task GetAll_ReturnsMonthsList()
     {
         // Arrange
-        var months = new List<Month>
+        var months = new List<MonthSummary>
         {
-            new(Guid.NewGuid(), _userId, 2026, 2, 4000m, null, DateTime.UtcNow, DateTime.UtcNow),
-            new(Guid.NewGuid(), _userId, 2026, 1, 3500m, null, DateTime.UtcNow, DateTime.UtcNow)
+            new(Guid.NewGuid(), _userId, 2026, 2, 4000m, null, 500m, 200m, 3700m, DateTime.UtcNow, DateTime.UtcNow),
+            new(Guid.NewGuid(), _userId, 2026, 1, 3500m, null, 1000m, 0m, 2500m, DateTime.UtcNow, DateTime.UtcNow)
         };
-        _monthService.GetAllAsync(_userId).Returns(months);
+        _monthRepository.GetAllAsync(_userId).Returns(months);
 
         // Act
-        var result = await MonthFunctions.GetAll(CreateContext(), _monthService);
+        var result = await MonthFunctions.GetAll(CreateContext(), _monthRepository);
 
         // Assert
-        var okResult = Assert.IsType<Ok<IReadOnlyList<Month>>>(result);
+        var okResult = Assert.IsType<Ok<IReadOnlyList<MonthSummary>>>(result);
         Assert.Equal(2, okResult.Value!.Count);
     }
 
@@ -50,11 +50,11 @@ public class MonthFunctionsTests
     {
         // Arrange
         var monthId = Guid.NewGuid();
-        var month = new MonthDetail(monthId, _userId, 2026, 2, 4000m, null, 1500m, 2500m, DateTime.UtcNow, DateTime.UtcNow);
-        _monthService.GetByIdAsync(_userId, monthId).Returns(month);
+        var month = new MonthDetail(monthId, _userId, 2026, 2, 4000m, null, 1500m, 0m, 0m, 2500m, DateTime.UtcNow, DateTime.UtcNow);
+        _monthRepository.GetByIdAsync(_userId, monthId).Returns(month);
 
         // Act
-        var result = await MonthFunctions.GetById(CreateContext(), monthId, _monthService);
+        var result = await MonthFunctions.GetById(CreateContext(), monthId, _monthRepository);
 
         // Assert
         var okResult = Assert.IsType<Ok<MonthDetail>>(result);
@@ -67,10 +67,10 @@ public class MonthFunctionsTests
     {
         // Arrange
         var monthId = Guid.NewGuid();
-        _monthService.GetByIdAsync(_userId, monthId).Returns((MonthDetail?)null);
+        _monthRepository.GetByIdAsync(_userId, monthId).Returns((MonthDetail?)null);
 
         // Act
-        var result = await MonthFunctions.GetById(CreateContext(), monthId, _monthService);
+        var result = await MonthFunctions.GetById(CreateContext(), monthId, _monthRepository);
 
         // Assert
         Assert.Equal(404, GetStatusCode(result));
@@ -82,10 +82,10 @@ public class MonthFunctionsTests
         // Arrange
         var request = new CreateMonthRequest(2026, 3, 4500m);
         var created = new Month(Guid.NewGuid(), _userId, 2026, 3, 4500m, null, DateTime.UtcNow, DateTime.UtcNow);
-        _monthService.CreateAsync(_userId, request).Returns(created);
+        _monthRepository.CreateAsync(_userId, request).Returns(created);
 
         // Act
-        var result = await MonthFunctions.Create(CreateContext(), request, _monthService);
+        var result = await MonthFunctions.Create(CreateContext(), request, _monthRepository);
 
         // Assert
         var createdResult = Assert.IsType<Created<Month>>(result);
@@ -99,7 +99,7 @@ public class MonthFunctionsTests
         var request = new CreateMonthRequest(2026, 13, 4500m);
 
         // Act
-        var result = await MonthFunctions.Create(CreateContext(), request, _monthService);
+        var result = await MonthFunctions.Create(CreateContext(), request, _monthRepository);
 
         // Assert
         Assert.Equal(400, GetStatusCode(result));
@@ -112,7 +112,7 @@ public class MonthFunctionsTests
         var request = new CreateMonthRequest(2026, 3, -100m);
 
         // Act
-        var result = await MonthFunctions.Create(CreateContext(), request, _monthService);
+        var result = await MonthFunctions.Create(CreateContext(), request, _monthRepository);
 
         // Assert
         Assert.Equal(400, GetStatusCode(result));
@@ -125,10 +125,10 @@ public class MonthFunctionsTests
         var monthId = Guid.NewGuid();
         var request = new UpdateMonthRequest(5000m, null);
         var updated = new Month(monthId, _userId, 2026, 2, 5000m, null, DateTime.UtcNow, DateTime.UtcNow);
-        _monthService.UpdateAsync(_userId, monthId, request).Returns(updated);
+        _monthRepository.UpdateAsync(_userId, monthId, request).Returns(updated);
 
         // Act
-        var result = await MonthFunctions.Update(CreateContext(), monthId, request, _monthService);
+        var result = await MonthFunctions.Update(CreateContext(), monthId, request, _monthRepository);
 
         // Assert
         var okResult = Assert.IsType<Ok<Month>>(result);
@@ -141,10 +141,10 @@ public class MonthFunctionsTests
         // Arrange
         var monthId = Guid.NewGuid();
         var request = new UpdateMonthRequest(5000m, null);
-        _monthService.UpdateAsync(_userId, monthId, request).Returns((Month?)null);
+        _monthRepository.UpdateAsync(_userId, monthId, request).Returns((Month?)null);
 
         // Act
-        var result = await MonthFunctions.Update(CreateContext(), monthId, request, _monthService);
+        var result = await MonthFunctions.Update(CreateContext(), monthId, request, _monthRepository);
 
         // Assert
         Assert.Equal(404, GetStatusCode(result));
@@ -155,10 +155,10 @@ public class MonthFunctionsTests
     {
         // Arrange
         var monthId = Guid.NewGuid();
-        _monthService.DeleteAsync(_userId, monthId).Returns(true);
+        _monthRepository.DeleteAsync(_userId, monthId).Returns(true);
 
         // Act
-        var result = await MonthFunctions.Delete(CreateContext(), monthId, _monthService);
+        var result = await MonthFunctions.Delete(CreateContext(), monthId, _monthRepository);
 
         // Assert
         Assert.IsType<NoContent>(result);
@@ -169,10 +169,10 @@ public class MonthFunctionsTests
     {
         // Arrange
         var monthId = Guid.NewGuid();
-        _monthService.DeleteAsync(_userId, monthId).Returns(false);
+        _monthRepository.DeleteAsync(_userId, monthId).Returns(false);
 
         // Act
-        var result = await MonthFunctions.Delete(CreateContext(), monthId, _monthService);
+        var result = await MonthFunctions.Delete(CreateContext(), monthId, _monthRepository);
 
         // Assert
         Assert.Equal(404, GetStatusCode(result));

@@ -12,6 +12,11 @@ export interface Expense {
   updatedAt: string;
 }
 
+export interface ExpenseWithCategory extends Expense {
+  categoryName: string;
+  categoryIcon: string | null;
+}
+
 export interface CreateExpenseRequest {
   itemName: string;
   amount: number;

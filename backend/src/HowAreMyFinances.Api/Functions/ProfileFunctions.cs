@@ -1,22 +1,22 @@
+using HowAreMyFinances.Api.Domain;
 using HowAreMyFinances.Api.Middleware;
 using HowAreMyFinances.Api.Models;
-using HowAreMyFinances.Api.Services;
 
 namespace HowAreMyFinances.Api.Functions;
 
 public static class ProfileFunctions
 {
-    public static async Task<IResult> Get(HttpContext context, IProfileService profileService)
+    public static async Task<IResult> Get(HttpContext context, IProfileRepository profileRepository)
     {
         var userId = context.GetUserId();
-        var profile = await profileService.GetAsync(userId);
+        var profile = await profileRepository.GetAsync(userId);
 
         return profile is null
             ? Results.NotFound(new { error = "Profile not found" })
             : Results.Ok(profile);
     }
 
-    public static async Task<IResult> Update(HttpContext context, UpdateProfileRequest request, IProfileService profileService)
+    public static async Task<IResult> Update(HttpContext context, UpdateProfileRequest request, IProfileRepository profileRepository)
     {
         if (request.PreferredLanguage is not null && request.PreferredLanguage is not ("en" or "lt"))
         {
@@ -24,7 +24,7 @@ public static class ProfileFunctions
         }
 
         var userId = context.GetUserId();
-        var profile = await profileService.UpdateAsync(userId, request);
+        var profile = await profileRepository.UpdateAsync(userId, request);
 
         return profile is null
             ? Results.NotFound(new { error = "Profile not found" })
