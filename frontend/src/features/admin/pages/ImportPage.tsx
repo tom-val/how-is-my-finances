@@ -155,7 +155,7 @@ export function ImportPage() {
                 <h4 className="mb-1 text-xs font-medium text-muted-foreground">
                   {t("categories.title")}
                 </h4>
-                <div className="flex flex-wrap gap-1">
+                <div className="flex max-h-64 flex-wrap gap-1 overflow-y-auto">
                   {parsedData.categories.map((cat) => (
                     <span
                       key={cat}

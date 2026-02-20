@@ -135,7 +135,16 @@
     "themeDark": "Dark",
     "themeSystem": "System",
     "accentColour": "Accent Colour",
-    "accentColourDescription": "Primary colour used across the interface"
+    "accentColourDescription": "Primary colour used across the interface",
+    "vendors": {
+      "title": "Vendors",
+      "description": "Hide vendors you no longer use. Hidden vendors won't appear in the dropdown when adding expenses.",
+      "search": "Search vendors...",
+      "activeCount": "{{count}} active",
+      "hiddenCount": "{{count}} hidden",
+      "noVendors": "No vendors found. Vendors are created automatically when you add expenses.",
+      "saved": "Vendor visibility updated"
+    }
   },
   "insights": {
     "title": "Insights",

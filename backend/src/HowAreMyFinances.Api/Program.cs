@@ -73,6 +73,10 @@ app.MapGet("/v1/expenses/vendors", ExpenseFunctions.GetVendors);
 app.MapPut("/v1/expenses/{id:guid}", ExpenseFunctions.Update);
 app.MapDelete("/v1/expenses/{id:guid}", ExpenseFunctions.Delete);
 
+// Vendor management endpoints
+app.MapGet("/v1/vendors/hidden", ExpenseFunctions.GetHiddenVendors);
+app.MapPut("/v1/vendors/hidden", ExpenseFunctions.SetHiddenVendors);
+
 // Income endpoints
 app.MapGet("/v1/months/{monthId:guid}/incomes", IncomeFunctions.GetAll);
 app.MapPost("/v1/months/{monthId:guid}/incomes", IncomeFunctions.Create);
