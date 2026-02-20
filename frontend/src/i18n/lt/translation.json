@@ -34,6 +34,8 @@
     "plannedSpent": "suplanuota",
     "perDay": "Per dieną",
     "daysRemaining": "Liko dienų",
+    "categoryBreakdown": "Kategorijų suvestinė",
+    "noCategoryData": "Šį mėnesį išlaidų duomenų nėra.",
     "monthNames": {
       "1": "Sausis",
       "2": "Vasaris",

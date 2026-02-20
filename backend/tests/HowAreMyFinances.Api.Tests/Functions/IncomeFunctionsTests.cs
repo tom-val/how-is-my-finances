@@ -68,7 +68,7 @@ public class IncomeFunctionsTests
         // Arrange
         var monthId = Guid.NewGuid();
         var request = new CreateIncomeRequest("Bonus", 1000m, new DateOnly(2026, 2, 15), null);
-        var month = new MonthDetail(monthId, _userId, 2026, 2, 4000m, null, 100m, 0m, 0m, 3900m, DateTime.UtcNow, DateTime.UtcNow);
+        var month = new MonthDetail(monthId, _userId, 2026, 2, 4000m, null, 100m, 0m, 0m, 3900m, [], 0, DateTime.UtcNow, DateTime.UtcNow);
         var created = CreateTestIncome(_userId, monthId);
 
         _monthRepository.GetByIdAsync(_userId, monthId).Returns(month);

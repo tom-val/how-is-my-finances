@@ -34,6 +34,8 @@
     "plannedSpent": "planned",
     "perDay": "Per day",
     "daysRemaining": "Days remaining",
+    "categoryBreakdown": "Category Breakdown",
+    "noCategoryData": "No spending data for this month.",
     "monthNames": {
       "1": "January",
       "2": "February",

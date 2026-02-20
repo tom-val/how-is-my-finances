@@ -20,7 +20,8 @@
       "WebFetch(domain:repost.aws)",
       "Bash(npm run test:*)",
       "Bash(lsof:*)",
-      "Bash(xargs kill:*)"
+      "Bash(xargs kill:*)",
+      "Bash(node -e:*)"
     ]
   }
 }

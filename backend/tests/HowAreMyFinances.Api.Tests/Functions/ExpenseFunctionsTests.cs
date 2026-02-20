@@ -73,7 +73,7 @@ public class ExpenseFunctionsTests
         // Arrange
         var monthId = Guid.NewGuid();
         var request = new CreateExpenseRequest("Coffee", 4.50m, Guid.NewGuid(), "Caffeine", new DateOnly(2026, 2, 19), null);
-        var month = new MonthDetail(monthId, _userId, 2026, 2, 4000m, null, 100m, 0m, 0m, 3900m, DateTime.UtcNow, DateTime.UtcNow);
+        var month = new MonthDetail(monthId, _userId, 2026, 2, 4000m, null, 100m, 0m, 0m, 3900m, [], 0, DateTime.UtcNow, DateTime.UtcNow);
         var created = CreateTestExpense(_userId, monthId);
 
         _monthRepository.GetByIdAsync(_userId, monthId).Returns(month);

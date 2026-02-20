@@ -11,6 +11,12 @@ public sealed record Month(
     DateTime UpdatedAt
 );
 
+public sealed record CategoryBreakdownItem(
+    Guid CategoryId,
+    string CategoryName,
+    decimal Total
+);
+
 public sealed record MonthDetail(
     Guid Id,
     Guid UserId,
@@ -22,6 +28,8 @@ public sealed record MonthDetail(
     decimal PlannedSpent,
     decimal TotalIncome,
     decimal Remaining,
+    IReadOnlyList<CategoryBreakdownItem> CategoryBreakdown,
+    int DaysRemaining,
     DateTime CreatedAt,
     DateTime UpdatedAt
 );

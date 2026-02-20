@@ -15,11 +15,19 @@ export interface MonthSummary extends Month {
   remaining: number;
 }
 
+export interface CategoryBreakdownItem {
+  categoryId: string;
+  categoryName: string;
+  total: number;
+}
+
 export interface MonthDetail extends Month {
   totalSpent: number;
   plannedSpent: number;
   totalIncome: number;
   remaining: number;
+  categoryBreakdown: CategoryBreakdownItem[];
+  daysRemaining: number;
 }
 
 export interface CreateMonthRequest {
