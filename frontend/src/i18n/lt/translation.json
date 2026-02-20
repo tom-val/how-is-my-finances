@@ -121,8 +121,21 @@
   },
   "settings": {
     "title": "Nustatymai",
+    "appearance": "Išvaizda",
+    "profile": "Profilis",
     "language": "Kalba",
-    "currency": "Valiuta"
+    "languageDescription": "Iš karto pakeičia sąsajos kalbą",
+    "currency": "Valiuta",
+    "currencyDescription": "Numatytoji išlaidų valiuta",
+    "displayName": "Rodomas vardas",
+    "saved": "Nustatymai išsaugoti",
+    "theme": "Tema",
+    "themeDescription": "Sąsajos išvaizdos režimas",
+    "themeLight": "Šviesi",
+    "themeDark": "Tamsi",
+    "themeSystem": "Sistemos",
+    "accentColour": "Pagrindinė spalva",
+    "accentColourDescription": "Pagrindinė spalva naudojama visoje sąsajoje"
   },
   "nav": {
     "months": "Mėnesiai",
