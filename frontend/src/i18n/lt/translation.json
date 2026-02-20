@@ -135,7 +135,16 @@
     "themeDark": "Tamsi",
     "themeSystem": "Sistemos",
     "accentColour": "Pagrindinė spalva",
-    "accentColourDescription": "Pagrindinė spalva naudojama visoje sąsajoje"
+    "accentColourDescription": "Pagrindinė spalva naudojama visoje sąsajoje",
+    "vendors": {
+      "title": "Pardavėjai",
+      "description": "Paslėpkite pardavėjus, kurių nebenaudojate. Paslėpti pardavėjai nebus rodomi išlaidų pridėjimo sąraše.",
+      "search": "Ieškoti pardavėjų...",
+      "activeCount": "{{count}} aktyvūs",
+      "hiddenCount": "{{count}} paslėpti",
+      "noVendors": "Pardavėjų nerasta. Pardavėjai sukuriami automatiškai pridedant išlaidas.",
+      "saved": "Pardavėjo matomumas atnaujintas"
+    }
   },
   "insights": {
     "title": "Apžvalga",

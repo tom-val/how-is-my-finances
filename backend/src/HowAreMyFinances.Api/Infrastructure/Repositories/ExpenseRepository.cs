@@ -198,7 +198,11 @@ public sealed class ExpenseRepository : IExpenseRepository
             """
             SELECT DISTINCT vendor
             FROM public.expenses
-            WHERE user_id = @userId AND vendor IS NOT NULL
+            WHERE user_id = @userId
+              AND vendor IS NOT NULL
+              AND vendor NOT IN (
+                  SELECT vendor_name FROM public.hidden_vendors WHERE user_id = @userId
+              )
             ORDER BY vendor
             """,
             connection);
@@ -214,6 +218,76 @@ public sealed class ExpenseRepository : IExpenseRepository
         }
 
         return vendors;
+    }
+
+    public async Task<IReadOnlyList<string>> GetHiddenVendorsAsync(Guid userId)
+    {
+        await using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        await using var command = new NpgsqlCommand(
+            """
+            SELECT vendor_name
+            FROM public.hidden_vendors
+            WHERE user_id = @userId
+            ORDER BY vendor_name
+            """,
+            connection);
+
+        command.Parameters.AddWithValue("userId", userId);
+
+        await using var reader = await command.ExecuteReaderAsync();
+        var vendors = new List<string>();
+
+        while (await reader.ReadAsync())
+        {
+            vendors.Add(reader.GetString(0));
+        }
+
+        return vendors;
+    }
+
+    public async Task SetHiddenVendorsAsync(Guid userId, IReadOnlyList<string> vendors)
+    {
+        await using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        await using var transaction = await connection.BeginTransactionAsync();
+
+        try
+        {
+            // Delete all existing hidden vendors for this user
+            await using (var deleteCommand = new NpgsqlCommand(
+                "DELETE FROM public.hidden_vendors WHERE user_id = @userId",
+                connection, transaction))
+            {
+                deleteCommand.Parameters.AddWithValue("userId", userId);
+                await deleteCommand.ExecuteNonQueryAsync();
+            }
+
+            // Insert new hidden vendors
+            foreach (var vendor in vendors)
+            {
+                await using var insertCommand = new NpgsqlCommand(
+                    """
+                    INSERT INTO public.hidden_vendors (user_id, vendor_name)
+                    VALUES (@userId, @vendorName)
+                    ON CONFLICT (user_id, vendor_name) DO NOTHING
+                    """,
+                    connection, transaction);
+
+                insertCommand.Parameters.AddWithValue("userId", userId);
+                insertCommand.Parameters.AddWithValue("vendorName", vendor);
+                await insertCommand.ExecuteNonQueryAsync();
+            }
+
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
     public async Task CreateFromRecurringAsync(Guid userId, Guid monthId, Models.RecurringExpense template, DateOnly expenseDate)

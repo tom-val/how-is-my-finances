@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 import { useTheme } from "next-themes";
-import { Check } from "lucide-react";
+import { Check, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -104,6 +105,23 @@ export function SettingsPage() {
 
       {/* Profile Section — keyed by profile ID so form resets when profile data changes */}
       <ProfileForm key={profile.id} profile={profile} />
+
+      {/* Vendor Management Link */}
+      <Link to="/settings/vendors">
+        <Card className="p-0 transition-colors hover:bg-accent/50">
+          <CardContent className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-5">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm font-semibold">
+                {t("settings.vendors.title")}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {t("settings.vendors.description")}
+              </span>
+            </div>
+            <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+          </CardContent>
+        </Card>
+      </Link>
     </div>
   );
 }

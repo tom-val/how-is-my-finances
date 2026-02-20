@@ -40,7 +40,7 @@ export function CategoryCombobox({
   );
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <Popover open={isOpen} onOpenChange={setIsOpen} modal>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -54,14 +54,19 @@ export function CategoryCombobox({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+      <PopoverContent
+        className="w-[--radix-popover-trigger-width] p-0"
+        align="start"
+        sideOffset={4}
+        avoidCollisions
+      >
         <Command shouldFilter={false}>
           <CommandInput
             placeholder={t("expenses.searchCategory")}
             value={search}
             onValueChange={setSearch}
           />
-          <CommandList>
+          <CommandList className="max-h-[min(300px,var(--radix-popover-content-available-height,300px)_-_40px)]">
             <CommandEmpty>{t("expenses.noCategoriesFound")}</CommandEmpty>
             <CommandGroup>
               {filtered.map((cat) => (

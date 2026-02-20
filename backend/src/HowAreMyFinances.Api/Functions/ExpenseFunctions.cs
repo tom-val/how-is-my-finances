@@ -87,4 +87,23 @@ public static class ExpenseFunctions
             ? Results.NoContent()
             : Results.NotFound(new { error = "Expense not found" });
     }
+
+    public static async Task<IResult> GetHiddenVendors(HttpContext context, IExpenseRepository expenseRepository)
+    {
+        var userId = context.GetUserId();
+        var vendors = await expenseRepository.GetHiddenVendorsAsync(userId);
+        return Results.Ok(vendors);
+    }
+
+    public static async Task<IResult> SetHiddenVendors(HttpContext context, HiddenVendorsRequest request, IExpenseRepository expenseRepository)
+    {
+        if (request.Vendors is null)
+        {
+            return Results.BadRequest(new { error = "Vendors list is required" });
+        }
+
+        var userId = context.GetUserId();
+        await expenseRepository.SetHiddenVendorsAsync(userId, request.Vendors);
+        return Results.Ok(request.Vendors);
+    }
 }

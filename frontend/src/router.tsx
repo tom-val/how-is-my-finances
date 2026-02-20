@@ -9,6 +9,7 @@ import { CategoriesPage } from "@/features/categories/pages/CategoriesPage";
 import { RecurringExpensesPage } from "@/features/recurring/pages/RecurringExpensesPage";
 import { InsightsPage } from "@/features/insights/pages/InsightsPage";
 import { SettingsPage } from "@/features/settings/pages/SettingsPage";
+import { VendorSettingsPage } from "@/features/settings/pages/VendorSettingsPage";
 import { ImportPage } from "@/features/admin/pages/ImportPage";
 
 export const router = createBrowserRouter([
@@ -23,6 +24,7 @@ export const router = createBrowserRouter([
       { path: "insights", element: <InsightsPage /> },
       { path: "recurring", element: <RecurringExpensesPage /> },
       { path: "settings", element: <SettingsPage /> },
+      { path: "settings/vendors", element: <VendorSettingsPage /> },
       { path: "admin/import", element: <ImportPage /> },
     ],
   },

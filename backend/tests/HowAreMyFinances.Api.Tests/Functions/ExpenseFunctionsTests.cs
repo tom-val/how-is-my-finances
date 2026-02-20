@@ -232,4 +232,51 @@ public class ExpenseFunctionsTests
         var okResult = Assert.IsType<Ok<IReadOnlyList<string>>>(result);
         Assert.Equal(2, okResult.Value!.Count);
     }
+
+    [Fact]
+    public async Task GetHiddenVendors_ReturnsHiddenVendorList()
+    {
+        // Arrange
+        var hiddenVendors = new List<string> { "OldShop", "ClosedStore" };
+        _expenseRepository.GetHiddenVendorsAsync(_userId).Returns(hiddenVendors);
+
+        // Act
+        var result = await ExpenseFunctions.GetHiddenVendors(CreateContext(), _expenseRepository);
+
+        // Assert
+        var okResult = Assert.IsType<Ok<IReadOnlyList<string>>>(result);
+        Assert.Equal(2, okResult.Value!.Count);
+        Assert.Contains("OldShop", okResult.Value!);
+        Assert.Contains("ClosedStore", okResult.Value!);
+    }
+
+    [Fact]
+    public async Task SetHiddenVendors_WithValidRequest_ReturnsOk()
+    {
+        // Arrange
+        var request = new HiddenVendorsRequest(["OldShop", "ClosedStore"]);
+
+        // Act
+        var result = await ExpenseFunctions.SetHiddenVendors(CreateContext(), request, _expenseRepository);
+
+        // Assert
+        var okResult = Assert.IsType<Ok<List<string>>>(result);
+        Assert.Equal(2, okResult.Value!.Count);
+        await _expenseRepository.Received(1).SetHiddenVendorsAsync(_userId, request.Vendors);
+    }
+
+    [Fact]
+    public async Task SetHiddenVendors_WithEmptyList_ReturnsOk()
+    {
+        // Arrange
+        var request = new HiddenVendorsRequest([]);
+
+        // Act
+        var result = await ExpenseFunctions.SetHiddenVendors(CreateContext(), request, _expenseRepository);
+
+        // Assert
+        var okResult = Assert.IsType<Ok<List<string>>>(result);
+        Assert.Empty(okResult.Value!);
+        await _expenseRepository.Received(1).SetHiddenVendorsAsync(_userId, request.Vendors);
+    }
 }
