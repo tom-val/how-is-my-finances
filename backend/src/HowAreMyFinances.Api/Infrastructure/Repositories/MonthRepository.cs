@@ -74,55 +74,120 @@ public sealed class MonthRepository : IMonthRepository
         await using var connection = new NpgsqlConnection(_connectionString);
         await connection.OpenAsync();
 
-        await using var command = new NpgsqlCommand(
-            """
-            SELECT
-                m.id, m.user_id, m.year, m.month, m.salary, m.notes, m.created_at, m.updated_at,
-                COALESCE(SUM(CASE WHEN e.expense_date <= CURRENT_DATE THEN e.amount ELSE 0 END), 0) AS total_spent,
-                COALESCE(SUM(CASE WHEN e.expense_date > CURRENT_DATE THEN e.amount ELSE 0 END), 0) AS planned_spent,
-                COALESCE(income_totals.total_income, 0) AS total_income
-            FROM public.months m
-            LEFT JOIN public.expenses e ON e.month_id = m.id
-            LEFT JOIN (
-                SELECT month_id, SUM(amount) AS total_income
-                FROM public.incomes
-                WHERE user_id = @userId
-                GROUP BY month_id
-            ) income_totals ON income_totals.month_id = m.id
-            WHERE m.id = @monthId AND m.user_id = @userId
-            GROUP BY m.id, income_totals.total_income
-            """,
-            connection);
+        // Query 1: Month aggregate totals
+        int year, monthNumber;
+        decimal salary, totalSpent, plannedSpent, totalIncome;
+        Guid id, readUserId;
+        string? notes;
+        DateTime createdAt, updatedAt;
 
-        command.Parameters.AddWithValue("monthId", monthId);
-        command.Parameters.AddWithValue("userId", userId);
-
-        await using var reader = await command.ExecuteReaderAsync();
-
-        if (!await reader.ReadAsync())
         {
-            return null;
+            await using var command = new NpgsqlCommand(
+                """
+                SELECT
+                    m.id, m.user_id, m.year, m.month, m.salary, m.notes, m.created_at, m.updated_at,
+                    COALESCE(SUM(CASE WHEN e.expense_date <= CURRENT_DATE THEN e.amount ELSE 0 END), 0) AS total_spent,
+                    COALESCE(SUM(CASE WHEN e.expense_date > CURRENT_DATE THEN e.amount ELSE 0 END), 0) AS planned_spent,
+                    COALESCE(income_totals.total_income, 0) AS total_income
+                FROM public.months m
+                LEFT JOIN public.expenses e ON e.month_id = m.id
+                LEFT JOIN (
+                    SELECT month_id, SUM(amount) AS total_income
+                    FROM public.incomes
+                    WHERE user_id = @userId
+                    GROUP BY month_id
+                ) income_totals ON income_totals.month_id = m.id
+                WHERE m.id = @monthId AND m.user_id = @userId
+                GROUP BY m.id, income_totals.total_income
+                """,
+                connection);
+
+            command.Parameters.AddWithValue("monthId", monthId);
+            command.Parameters.AddWithValue("userId", userId);
+
+            await using var reader = await command.ExecuteReaderAsync();
+
+            if (!await reader.ReadAsync())
+            {
+                return null;
+            }
+
+            id = reader.GetGuid(0);
+            readUserId = reader.GetGuid(1);
+            year = reader.GetInt32(2);
+            monthNumber = reader.GetInt32(3);
+            salary = reader.GetDecimal(4);
+            notes = reader.IsDBNull(5) ? null : reader.GetString(5);
+            createdAt = reader.GetDateTime(6);
+            updatedAt = reader.GetDateTime(7);
+            totalSpent = reader.GetDecimal(8);
+            plannedSpent = reader.GetDecimal(9);
+            totalIncome = reader.GetDecimal(10);
         }
 
-        var salary = reader.GetDecimal(4);
-        var totalSpent = reader.GetDecimal(8);
-        var plannedSpent = reader.GetDecimal(9);
-        var totalIncome = reader.GetDecimal(10);
+        // Query 2: Category breakdown
+        var categoryBreakdown = new List<CategoryBreakdownItem>();
+
+        {
+            await using var breakdownCommand = new NpgsqlCommand(
+                """
+                SELECT c.id, c.name, COALESCE(SUM(e.amount), 0) AS total
+                FROM public.expenses e
+                INNER JOIN public.categories c ON c.id = e.category_id
+                WHERE e.month_id = @monthId AND e.user_id = @userId
+                GROUP BY c.id, c.name
+                ORDER BY total DESC
+                """,
+                connection);
+
+            breakdownCommand.Parameters.AddWithValue("monthId", monthId);
+            breakdownCommand.Parameters.AddWithValue("userId", userId);
+
+            await using var breakdownReader = await breakdownCommand.ExecuteReaderAsync();
+
+            while (await breakdownReader.ReadAsync())
+            {
+                categoryBreakdown.Add(new CategoryBreakdownItem(
+                    CategoryId: breakdownReader.GetGuid(0),
+                    CategoryName: breakdownReader.GetString(1),
+                    Total: breakdownReader.GetDecimal(2)
+                ));
+            }
+        }
+
+        var daysRemaining = CalculateDaysRemaining(year, monthNumber);
 
         return new MonthDetail(
-            Id: reader.GetGuid(0),
-            UserId: reader.GetGuid(1),
-            Year: reader.GetInt32(2),
-            MonthNumber: reader.GetInt32(3),
+            Id: id,
+            UserId: readUserId,
+            Year: year,
+            MonthNumber: monthNumber,
             Salary: salary,
-            Notes: reader.IsDBNull(5) ? null : reader.GetString(5),
+            Notes: notes,
             TotalSpent: totalSpent,
             PlannedSpent: plannedSpent,
             TotalIncome: totalIncome,
             Remaining: salary + totalIncome - totalSpent - plannedSpent,
-            CreatedAt: reader.GetDateTime(6),
-            UpdatedAt: reader.GetDateTime(7)
+            CategoryBreakdown: categoryBreakdown,
+            DaysRemaining: daysRemaining,
+            CreatedAt: createdAt,
+            UpdatedAt: updatedAt
         );
+    }
+
+    private static int CalculateDaysRemaining(int year, int monthNumber)
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var monthStart = new DateOnly(year, monthNumber, 1);
+        var monthEnd = monthStart.AddMonths(1).AddDays(-1);
+
+        if (today > monthEnd)
+            return 0;
+
+        if (today < monthStart)
+            return monthEnd.Day;
+
+        return monthEnd.DayNumber - today.DayNumber;
     }
 
     public async Task<Month> CreateAsync(Guid userId, CreateMonthRequest request)

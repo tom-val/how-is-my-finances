@@ -4,6 +4,7 @@ import { LoginPage } from "@/features/auth/pages/LoginPage";
 import { RegisterPage } from "@/features/auth/pages/RegisterPage";
 import { MonthListPage } from "@/features/months/pages/MonthListPage";
 import { MonthDetailPage } from "@/features/months/pages/MonthDetailPage";
+import { CategoryBreakdownPage } from "@/features/months/pages/CategoryBreakdownPage";
 import { CategoriesPage } from "@/features/categories/pages/CategoriesPage";
 import { RecurringExpensesPage } from "@/features/recurring/pages/RecurringExpensesPage";
 
@@ -14,6 +15,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <MonthListPage /> },
       { path: "months/:monthId", element: <MonthDetailPage /> },
+      { path: "months/:monthId/breakdown", element: <CategoryBreakdownPage /> },
       { path: "categories", element: <CategoriesPage /> },
       { path: "recurring", element: <RecurringExpensesPage /> },
     ],

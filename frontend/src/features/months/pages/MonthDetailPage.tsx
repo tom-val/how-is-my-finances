@@ -1,9 +1,11 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, Link } from "react-router";
+import { ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TransactionList } from "../components/TransactionList";
+import { SpendingProgressBar } from "../components/SpendingProgressBar";
 import { useMonth } from "../hooks/useMonths";
 import { useExpenses } from "@/features/expenses/hooks/useExpenses";
 
@@ -30,7 +32,10 @@ export function MonthDetailPage() {
 
   const totalBudget = month.salary + month.totalIncome;
   const spentPercentage = totalBudget > 0
-    ? Math.round(((month.totalSpent + month.plannedSpent) / totalBudget) * 100)
+    ? Math.round((month.totalSpent / totalBudget) * 100)
+    : 0;
+  const plannedPercentage = totalBudget > 0
+    ? Math.round((month.plannedSpent / totalBudget) * 100)
     : 0;
 
   return (
@@ -41,12 +46,17 @@ export function MonthDetailPage() {
             {t("common.back")}
           </Button>
         </Link>
-        <h1 className="text-2xl font-bold">
-          {t(`months.monthNames.${month.monthNumber}`)} {month.year}
-        </h1>
+        <div>
+          <h1 className="text-2xl font-bold">
+            {t(`months.monthNames.${month.monthNumber}`)} {month.year}
+          </h1>
+          <p className="text-xs text-muted-foreground">
+            {month.daysRemaining} {t("months.daysRemaining").toLowerCase()}
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         <Card className="p-0">
           <CardContent className="px-3 py-2 sm:px-4 sm:py-3">
             <p className="text-[10px] sm:text-xs text-muted-foreground">
@@ -55,21 +65,6 @@ export function MonthDetailPage() {
             <p className="text-sm sm:text-lg font-bold">
               {month.salary.toFixed(2)} EUR
             </p>
-          </CardContent>
-        </Card>
-        <Card className="p-0">
-          <CardContent className="px-3 py-2 sm:px-4 sm:py-3">
-            <p className="text-[10px] sm:text-xs text-muted-foreground">
-              {t("months.totalSpent")} · {spentPercentage}%
-            </p>
-            <p className="text-sm sm:text-lg font-bold">
-              {month.totalSpent.toFixed(2)} EUR
-            </p>
-            {month.plannedSpent > 0 && (
-              <p className="text-[10px] sm:text-xs text-muted-foreground">
-                + {month.plannedSpent.toFixed(2)} {t("months.plannedSpent")}
-              </p>
-            )}
           </CardContent>
         </Card>
         <Card className="p-0">
@@ -105,6 +100,25 @@ export function MonthDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      <SpendingProgressBar
+        spentAmount={month.totalSpent}
+        plannedAmount={month.plannedSpent}
+        spentPercentage={spentPercentage}
+        plannedPercentage={plannedPercentage}
+      />
+
+      {month.categoryBreakdown.length > 0 && (
+        <Link
+          to={`/months/${monthId}/breakdown`}
+          className="flex items-center justify-between rounded-lg border px-4 py-3 hover:bg-muted/50 transition-colors"
+        >
+          <span className="text-sm font-semibold">
+            {t("months.categoryBreakdown")}
+          </span>
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        </Link>
+      )}
 
       <TransactionList monthId={monthId!} />
     </div>
