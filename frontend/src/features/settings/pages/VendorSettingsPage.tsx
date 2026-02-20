@@ -3,61 +3,51 @@ import { useTranslation } from "react-i18next";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router";
 import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useVendors } from "@/features/expenses/hooks/useExpenses";
-import {
-  useHiddenVendors,
-  useSetHiddenVendors,
-} from "../hooks/useHiddenVendors";
+import { getVendors, toggleVendorHidden } from "@/api/vendors";
+import type { UserVendor } from "@shared/types/vendor";
 
 export function VendorSettingsPage() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
 
-  const { data: activeVendors, isLoading: isLoadingActive } = useVendors();
-  const { data: hiddenVendors, isLoading: isLoadingHidden } =
-    useHiddenVendors();
-  const setHiddenVendors = useSetHiddenVendors();
+  const { data: vendors, isLoading } = useQuery({
+    queryKey: ["vendors"],
+    queryFn: getVendors,
+  });
 
-  // Combine active + hidden into a single sorted list
-  const allVendors = useMemo(() => {
-    if (!activeVendors || !hiddenVendors) return [];
+  const toggleMutation = useMutation({
+    mutationFn: (vendor: UserVendor) =>
+      toggleVendorHidden(vendor.id, { isHidden: !vendor.isHidden }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["vendors"] });
+      queryClient.invalidateQueries({ queryKey: ["visibleVendors"] });
+      toast.success(t("settings.vendors.saved"));
+    },
+    onError: () => toast.error(t("common.error")),
+  });
 
-    const combined = new Set([...activeVendors, ...hiddenVendors]);
-    return Array.from(combined).sort((a, b) =>
-      a.localeCompare(b, undefined, { sensitivity: "base" }),
+  const sortedVendors = useMemo(() => {
+    if (!vendors) return [];
+    return [...vendors].sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
     );
-  }, [activeVendors, hiddenVendors]);
-
-  const hiddenSet = useMemo(
-    () => new Set(hiddenVendors ?? []),
-    [hiddenVendors],
-  );
+  }, [vendors]);
 
   const filteredVendors = useMemo(() => {
-    if (!search.trim()) return allVendors;
+    if (!search.trim()) return sortedVendors;
 
     const query = search.toLowerCase();
-    return allVendors.filter((v) => v.toLowerCase().includes(query));
-  }, [allVendors, search]);
+    return sortedVendors.filter((v) => v.name.toLowerCase().includes(query));
+  }, [sortedVendors, search]);
 
-  const activeCount = allVendors.filter((v) => !hiddenSet.has(v)).length;
-  const hiddenCount = hiddenSet.size;
+  const activeCount = sortedVendors.filter((v) => !v.isHidden).length;
+  const hiddenCount = sortedVendors.filter((v) => v.isHidden).length;
 
-  function handleToggle(vendor: string) {
-    const isCurrentlyHidden = hiddenSet.has(vendor);
-    const newHidden = isCurrentlyHidden
-      ? (hiddenVendors ?? []).filter((v) => v !== vendor)
-      : [...(hiddenVendors ?? []), vendor];
-
-    setHiddenVendors.mutate(newHidden, {
-      onSuccess: () => toast.success(t("settings.vendors.saved")),
-      onError: () => toast.error(t("common.error")),
-    });
-  }
-
-  if (isLoadingActive || isLoadingHidden) {
+  if (isLoading) {
     return <p className="text-muted-foreground">{t("common.loading")}</p>;
   }
 
@@ -85,7 +75,7 @@ export function VendorSettingsPage() {
             placeholder={t("settings.vendors.search")}
           />
 
-          {allVendors.length > 0 && (
+          {sortedVendors.length > 0 && (
             <p className="text-xs text-muted-foreground">
               {t("settings.vendors.activeCount", { count: activeCount })}
               {" · "}
@@ -93,30 +83,27 @@ export function VendorSettingsPage() {
             </p>
           )}
 
-          {allVendors.length === 0 ? (
+          {sortedVendors.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               {t("settings.vendors.noVendors")}
             </p>
           ) : (
             <div className="flex max-h-96 flex-wrap gap-2 overflow-y-auto">
-              {filteredVendors.map((vendor) => {
-                const isHidden = hiddenSet.has(vendor);
-                return (
-                  <button
-                    key={vendor}
-                    type="button"
-                    onClick={() => handleToggle(vendor)}
-                    disabled={setHiddenVendors.isPending}
-                    className={`rounded-full px-3 py-1 text-xs transition-colors ${
-                      isHidden
-                        ? "bg-muted text-muted-foreground line-through opacity-60"
-                        : "bg-primary/10 text-primary"
-                    }`}
-                  >
-                    {vendor}
-                  </button>
-                );
-              })}
+              {filteredVendors.map((vendor) => (
+                <button
+                  key={vendor.id}
+                  type="button"
+                  onClick={() => toggleMutation.mutate(vendor)}
+                  disabled={toggleMutation.isPending}
+                  className={`rounded-full px-3 py-1 text-xs transition-colors ${
+                    vendor.isHidden
+                      ? "bg-muted text-muted-foreground line-through opacity-60"
+                      : "bg-primary/10 text-primary"
+                  }`}
+                >
+                  {vendor.name}
+                </button>
+              ))}
             </div>
           )}
         </CardContent>

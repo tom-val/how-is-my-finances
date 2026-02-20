@@ -13,6 +13,7 @@ namespace HowAreMyFinances.Api.Tests.Functions;
 public class RecurringExpenseFunctionsTests
 {
     private readonly IRecurringExpenseRepository _recurringExpenseRepository = Substitute.For<IRecurringExpenseRepository>();
+    private readonly IVendorRepository _vendorRepository = Substitute.For<IVendorRepository>();
     private readonly Guid _userId = Guid.NewGuid();
 
     private HttpContext CreateContext()
@@ -75,7 +76,7 @@ public class RecurringExpenseFunctionsTests
         _recurringExpenseRepository.CreateAsync(_userId, Arg.Any<CreateRecurringExpenseRequest>()).Returns(created);
 
         // Act
-        var result = await RecurringExpenseFunctions.Create(CreateContext(), request, _recurringExpenseRepository);
+        var result = await RecurringExpenseFunctions.Create(CreateContext(), request, _recurringExpenseRepository, _vendorRepository);
 
         // Assert
         var createdResult = Assert.IsType<Created<RecurringExpenseWithCategory>>(result);
@@ -89,7 +90,7 @@ public class RecurringExpenseFunctionsTests
         var request = new CreateRecurringExpenseRequest("", 500m, Guid.NewGuid(), null, null, 1);
 
         // Act
-        var result = await RecurringExpenseFunctions.Create(CreateContext(), request, _recurringExpenseRepository);
+        var result = await RecurringExpenseFunctions.Create(CreateContext(), request, _recurringExpenseRepository, _vendorRepository);
 
         // Assert
         Assert.Equal(400, GetStatusCode(result));
@@ -103,7 +104,7 @@ public class RecurringExpenseFunctionsTests
         var request = new CreateRecurringExpenseRequest("Rent", 500m, Guid.NewGuid(), null, null, 31);
 
         // Act
-        var result = await RecurringExpenseFunctions.Create(CreateContext(), request, _recurringExpenseRepository);
+        var result = await RecurringExpenseFunctions.Create(CreateContext(), request, _recurringExpenseRepository, _vendorRepository);
 
         // Assert
         Assert.Equal(400, GetStatusCode(result));
@@ -122,7 +123,7 @@ public class RecurringExpenseFunctionsTests
         _recurringExpenseRepository.CreateAsync(_userId, Arg.Any<CreateRecurringExpenseRequest>()).Throws(pgException);
 
         // Act
-        var result = await RecurringExpenseFunctions.Create(CreateContext(), request, _recurringExpenseRepository);
+        var result = await RecurringExpenseFunctions.Create(CreateContext(), request, _recurringExpenseRepository, _vendorRepository);
 
         // Assert
         Assert.Equal(400, GetStatusCode(result));
@@ -138,7 +139,7 @@ public class RecurringExpenseFunctionsTests
         _recurringExpenseRepository.UpdateAsync(_userId, id, Arg.Any<UpdateRecurringExpenseRequest>()).Returns(updated);
 
         // Act
-        var result = await RecurringExpenseFunctions.Update(CreateContext(), id, request, _recurringExpenseRepository);
+        var result = await RecurringExpenseFunctions.Update(CreateContext(), id, request, _recurringExpenseRepository, _vendorRepository);
 
         // Assert
         var okResult = Assert.IsType<Ok<RecurringExpenseWithCategory>>(result);
@@ -154,7 +155,7 @@ public class RecurringExpenseFunctionsTests
         _recurringExpenseRepository.UpdateAsync(_userId, id, Arg.Any<UpdateRecurringExpenseRequest>()).Returns((RecurringExpenseWithCategory?)null);
 
         // Act
-        var result = await RecurringExpenseFunctions.Update(CreateContext(), id, request, _recurringExpenseRepository);
+        var result = await RecurringExpenseFunctions.Update(CreateContext(), id, request, _recurringExpenseRepository, _vendorRepository);
 
         // Assert
         Assert.Equal(404, GetStatusCode(result));
@@ -168,7 +169,7 @@ public class RecurringExpenseFunctionsTests
         var request = new UpdateRecurringExpenseRequest(null, -5m, null, null, null, null, null);
 
         // Act
-        var result = await RecurringExpenseFunctions.Update(CreateContext(), id, request, _recurringExpenseRepository);
+        var result = await RecurringExpenseFunctions.Update(CreateContext(), id, request, _recurringExpenseRepository, _vendorRepository);
 
         // Assert
         Assert.Equal(400, GetStatusCode(result));

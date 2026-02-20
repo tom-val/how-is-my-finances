@@ -56,6 +56,8 @@ public sealed class ImportRepository : IImportRepository
                 }
             }
 
+            await InsertVendorsFromExpensesAsync(connection, userId, request.Months);
+
             await transaction.CommitAsync();
 
             return new ImportResult(
@@ -73,8 +75,8 @@ public sealed class ImportRepository : IImportRepository
 
     private static async Task DeleteAllUserDataAsync(NpgsqlConnection connection, Guid userId)
     {
-        // Delete in FK-safe order: expenses/incomes first, then months, then recurring, then categories
-        var tables = new[] { "expenses", "incomes", "months", "recurring_expenses", "categories" };
+        // Delete in FK-safe order: user_vendors + expenses/incomes first, then months, then recurring, then categories
+        var tables = new[] { "user_vendors", "expenses", "incomes", "months", "recurring_expenses", "categories" };
 
         foreach (var table in tables)
         {
@@ -179,5 +181,33 @@ public sealed class ImportRepository : IImportRepository
         command.Parameters.AddWithValue("comment", (object?)income.Comment ?? DBNull.Value);
 
         await command.ExecuteNonQueryAsync();
+    }
+
+    private static async Task InsertVendorsFromExpensesAsync(
+        NpgsqlConnection connection, Guid userId, IReadOnlyList<ImportMonthEntry> months)
+    {
+        var vendors = months
+            .SelectMany(m => m.Expenses)
+            .Select(e => e.Vendor)
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Select(v => v!.Trim())
+            .Distinct()
+            .ToList();
+
+        foreach (var vendor in vendors)
+        {
+            await using var command = new NpgsqlCommand(
+                """
+                INSERT INTO public.user_vendors (user_id, name)
+                VALUES (@userId, @name)
+                ON CONFLICT (user_id, name) DO NOTHING
+                """,
+                connection);
+
+            command.Parameters.AddWithValue("userId", userId);
+            command.Parameters.AddWithValue("name", vendor);
+
+            await command.ExecuteNonQueryAsync();
+        }
     }
 }

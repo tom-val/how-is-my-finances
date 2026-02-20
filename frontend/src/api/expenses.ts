@@ -29,7 +29,3 @@ export function updateExpense(
 export function deleteExpense(id: string): Promise<void> {
   return apiDelete(`/v1/expenses/${id}`);
 }
-
-export function getVendors(): Promise<string[]> {
-  return apiGet<string[]>("/v1/expenses/vendors");
-}

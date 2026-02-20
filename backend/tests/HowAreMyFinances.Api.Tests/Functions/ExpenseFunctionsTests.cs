@@ -12,6 +12,7 @@ public class ExpenseFunctionsTests
 {
     private readonly IExpenseRepository _expenseRepository = Substitute.For<IExpenseRepository>();
     private readonly IMonthRepository _monthRepository = Substitute.For<IMonthRepository>();
+    private readonly IVendorRepository _vendorRepository = Substitute.For<IVendorRepository>();
     private readonly Guid _userId = Guid.NewGuid();
 
     private HttpContext CreateContext()
@@ -80,7 +81,7 @@ public class ExpenseFunctionsTests
         _expenseRepository.CreateAsync(_userId, monthId, request).Returns(created);
 
         // Act
-        var result = await ExpenseFunctions.Create(CreateContext(), monthId, request, _expenseRepository, _monthRepository);
+        var result = await ExpenseFunctions.Create(CreateContext(), monthId, request, _expenseRepository, _monthRepository, _vendorRepository);
 
         // Assert
         var createdResult = Assert.IsType<Created<ExpenseWithCategory>>(result);
@@ -95,7 +96,7 @@ public class ExpenseFunctionsTests
         var request = new CreateExpenseRequest("Coffee", 0m, Guid.NewGuid(), null, new DateOnly(2026, 2, 19), null);
 
         // Act
-        var result = await ExpenseFunctions.Create(CreateContext(), monthId, request, _expenseRepository, _monthRepository);
+        var result = await ExpenseFunctions.Create(CreateContext(), monthId, request, _expenseRepository, _monthRepository, _vendorRepository);
 
         // Assert
         Assert.Equal(400, GetStatusCode(result));
@@ -109,7 +110,7 @@ public class ExpenseFunctionsTests
         var request = new CreateExpenseRequest("Coffee", -5m, Guid.NewGuid(), null, new DateOnly(2026, 2, 19), null);
 
         // Act
-        var result = await ExpenseFunctions.Create(CreateContext(), monthId, request, _expenseRepository, _monthRepository);
+        var result = await ExpenseFunctions.Create(CreateContext(), monthId, request, _expenseRepository, _monthRepository, _vendorRepository);
 
         // Assert
         Assert.Equal(400, GetStatusCode(result));
@@ -123,7 +124,7 @@ public class ExpenseFunctionsTests
         var request = new CreateExpenseRequest("  ", 10m, Guid.NewGuid(), null, new DateOnly(2026, 2, 19), null);
 
         // Act
-        var result = await ExpenseFunctions.Create(CreateContext(), monthId, request, _expenseRepository, _monthRepository);
+        var result = await ExpenseFunctions.Create(CreateContext(), monthId, request, _expenseRepository, _monthRepository, _vendorRepository);
 
         // Assert
         Assert.Equal(400, GetStatusCode(result));
@@ -138,7 +139,7 @@ public class ExpenseFunctionsTests
         _monthRepository.GetByIdAsync(_userId, monthId).Returns((MonthDetail?)null);
 
         // Act
-        var result = await ExpenseFunctions.Create(CreateContext(), monthId, request, _expenseRepository, _monthRepository);
+        var result = await ExpenseFunctions.Create(CreateContext(), monthId, request, _expenseRepository, _monthRepository, _vendorRepository);
 
         // Assert
         Assert.Equal(404, GetStatusCode(result));
@@ -154,7 +155,7 @@ public class ExpenseFunctionsTests
         _expenseRepository.UpdateAsync(_userId, expenseId, request).Returns(updated);
 
         // Act
-        var result = await ExpenseFunctions.Update(CreateContext(), expenseId, request, _expenseRepository);
+        var result = await ExpenseFunctions.Update(CreateContext(), expenseId, request, _expenseRepository, _vendorRepository);
 
         // Assert
         var okResult = Assert.IsType<Ok<ExpenseWithCategory>>(result);
@@ -170,7 +171,7 @@ public class ExpenseFunctionsTests
         _expenseRepository.UpdateAsync(_userId, expenseId, request).Returns((ExpenseWithCategory?)null);
 
         // Act
-        var result = await ExpenseFunctions.Update(CreateContext(), expenseId, request, _expenseRepository);
+        var result = await ExpenseFunctions.Update(CreateContext(), expenseId, request, _expenseRepository, _vendorRepository);
 
         // Assert
         Assert.Equal(404, GetStatusCode(result));
@@ -184,7 +185,7 @@ public class ExpenseFunctionsTests
         var request = new UpdateExpenseRequest(Amount: -5m, ItemName: null, CategoryId: null, Vendor: null, ExpenseDate: null, Comment: null);
 
         // Act
-        var result = await ExpenseFunctions.Update(CreateContext(), expenseId, request, _expenseRepository);
+        var result = await ExpenseFunctions.Update(CreateContext(), expenseId, request, _expenseRepository, _vendorRepository);
 
         // Assert
         Assert.Equal(400, GetStatusCode(result));
@@ -216,67 +217,5 @@ public class ExpenseFunctionsTests
 
         // Assert
         Assert.Equal(404, GetStatusCode(result));
-    }
-
-    [Fact]
-    public async Task GetVendors_ReturnsVendorList()
-    {
-        // Arrange
-        var vendors = new List<string> { "Lidl", "Maxima" };
-        _expenseRepository.GetVendorsAsync(_userId).Returns(vendors);
-
-        // Act
-        var result = await ExpenseFunctions.GetVendors(CreateContext(), _expenseRepository);
-
-        // Assert
-        var okResult = Assert.IsType<Ok<IReadOnlyList<string>>>(result);
-        Assert.Equal(2, okResult.Value!.Count);
-    }
-
-    [Fact]
-    public async Task GetHiddenVendors_ReturnsHiddenVendorList()
-    {
-        // Arrange
-        var hiddenVendors = new List<string> { "OldShop", "ClosedStore" };
-        _expenseRepository.GetHiddenVendorsAsync(_userId).Returns(hiddenVendors);
-
-        // Act
-        var result = await ExpenseFunctions.GetHiddenVendors(CreateContext(), _expenseRepository);
-
-        // Assert
-        var okResult = Assert.IsType<Ok<IReadOnlyList<string>>>(result);
-        Assert.Equal(2, okResult.Value!.Count);
-        Assert.Contains("OldShop", okResult.Value!);
-        Assert.Contains("ClosedStore", okResult.Value!);
-    }
-
-    [Fact]
-    public async Task SetHiddenVendors_WithValidRequest_ReturnsOk()
-    {
-        // Arrange
-        var request = new HiddenVendorsRequest(["OldShop", "ClosedStore"]);
-
-        // Act
-        var result = await ExpenseFunctions.SetHiddenVendors(CreateContext(), request, _expenseRepository);
-
-        // Assert
-        var okResult = Assert.IsType<Ok<List<string>>>(result);
-        Assert.Equal(2, okResult.Value!.Count);
-        await _expenseRepository.Received(1).SetHiddenVendorsAsync(_userId, request.Vendors);
-    }
-
-    [Fact]
-    public async Task SetHiddenVendors_WithEmptyList_ReturnsOk()
-    {
-        // Arrange
-        var request = new HiddenVendorsRequest([]);
-
-        // Act
-        var result = await ExpenseFunctions.SetHiddenVendors(CreateContext(), request, _expenseRepository);
-
-        // Assert
-        var okResult = Assert.IsType<Ok<List<string>>>(result);
-        Assert.Empty(okResult.Value!);
-        await _expenseRepository.Received(1).SetHiddenVendorsAsync(_userId, request.Vendors);
     }
 }

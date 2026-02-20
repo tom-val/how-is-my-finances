@@ -1,9 +1,17 @@
-import { apiGet, apiPut } from "./client";
+import type { UserVendor, ToggleVendorRequest } from "@shared/types/vendor";
+import { apiGet, apiPatch } from "./client";
 
-export function getHiddenVendors(): Promise<string[]> {
-  return apiGet<string[]>("/v1/vendors/hidden");
+export function getVendors(): Promise<UserVendor[]> {
+  return apiGet<UserVendor[]>("/v1/vendors");
 }
 
-export function setHiddenVendors(vendors: string[]): Promise<string[]> {
-  return apiPut<string[]>("/v1/vendors/hidden", { vendors });
+export function getVisibleVendors(): Promise<UserVendor[]> {
+  return apiGet<UserVendor[]>("/v1/vendors/visible");
+}
+
+export function toggleVendorHidden(
+  id: string,
+  request: ToggleVendorRequest,
+): Promise<UserVendor> {
+  return apiPatch<UserVendor>(`/v1/vendors/${id}`, request);
 }

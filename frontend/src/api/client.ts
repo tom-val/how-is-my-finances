@@ -77,6 +77,16 @@ export async function apiPut<T>(path: string, body: unknown): Promise<T> {
   return handleResponse<T>(response);
 }
 
+export async function apiPatch<T>(path: string, body: unknown): Promise<T> {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${API_URL}${path}`, {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify(body),
+  });
+  return handleResponse<T>(response);
+}
+
 export async function apiDelete(path: string): Promise<void> {
   const headers = await getAuthHeaders();
   const response = await fetch(`${API_URL}${path}`, {

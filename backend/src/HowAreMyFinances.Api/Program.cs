@@ -41,6 +41,7 @@ builder.Services.AddScoped<IIncomeRepository, IncomeRepository>();
 builder.Services.AddScoped<IRecurringExpenseRepository, RecurringExpenseRepository>();
 builder.Services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
 builder.Services.AddScoped<IImportRepository, ImportRepository>();
+builder.Services.AddScoped<IVendorRepository, VendorRepository>();
 
 var app = builder.Build();
 
@@ -69,13 +70,13 @@ app.MapDelete("/v1/months/{id:guid}", MonthFunctions.Delete);
 // Expense endpoints
 app.MapGet("/v1/months/{monthId:guid}/expenses", ExpenseFunctions.GetAll);
 app.MapPost("/v1/months/{monthId:guid}/expenses", ExpenseFunctions.Create);
-app.MapGet("/v1/expenses/vendors", ExpenseFunctions.GetVendors);
 app.MapPut("/v1/expenses/{id:guid}", ExpenseFunctions.Update);
 app.MapDelete("/v1/expenses/{id:guid}", ExpenseFunctions.Delete);
 
-// Vendor management endpoints
-app.MapGet("/v1/vendors/hidden", ExpenseFunctions.GetHiddenVendors);
-app.MapPut("/v1/vendors/hidden", ExpenseFunctions.SetHiddenVendors);
+// Vendor endpoints
+app.MapGet("/v1/vendors", VendorFunctions.GetAll);
+app.MapGet("/v1/vendors/visible", VendorFunctions.GetVisible);
+app.MapPatch("/v1/vendors/{id:guid}", VendorFunctions.ToggleHidden);
 
 // Income endpoints
 app.MapGet("/v1/months/{monthId:guid}/incomes", IncomeFunctions.GetAll);

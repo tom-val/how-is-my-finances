@@ -4,8 +4,8 @@ import {
   createExpense,
   updateExpense,
   deleteExpense,
-  getVendors,
 } from "@/api/expenses";
+import { getVisibleVendors } from "@/api/vendors";
 import type {
   CreateExpenseRequest,
   UpdateExpenseRequest,
@@ -21,8 +21,11 @@ export function useExpenses(monthId: string) {
 
 export function useVendors() {
   return useQuery({
-    queryKey: ["vendors"],
-    queryFn: getVendors,
+    queryKey: ["visibleVendors"],
+    queryFn: async () => {
+      const vendors = await getVisibleVendors();
+      return vendors.map((v) => v.name);
+    },
     staleTime: 5 * 60 * 1000,
   });
 }
@@ -35,6 +38,7 @@ export function useCreateExpense(monthId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses", monthId] });
       queryClient.invalidateQueries({ queryKey: ["months", monthId] });
+      queryClient.invalidateQueries({ queryKey: ["visibleVendors"] });
       queryClient.invalidateQueries({ queryKey: ["vendors"] });
     },
   });
@@ -48,6 +52,7 @@ export function useUpdateExpense(monthId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses", monthId] });
       queryClient.invalidateQueries({ queryKey: ["months", monthId] });
+      queryClient.invalidateQueries({ queryKey: ["visibleVendors"] });
       queryClient.invalidateQueries({ queryKey: ["vendors"] });
     },
   });

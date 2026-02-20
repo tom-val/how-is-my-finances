@@ -25,6 +25,8 @@ export function useCreateRecurringExpense() {
       createRecurringExpense(request),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["recurringExpenses"] });
+      queryClient.invalidateQueries({ queryKey: ["visibleVendors"] });
+      queryClient.invalidateQueries({ queryKey: ["vendors"] });
     },
   });
 }
@@ -41,6 +43,8 @@ export function useUpdateRecurringExpense() {
     }) => updateRecurringExpense(id, request),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["recurringExpenses"] });
+      queryClient.invalidateQueries({ queryKey: ["visibleVendors"] });
+      queryClient.invalidateQueries({ queryKey: ["vendors"] });
     },
   });
 }

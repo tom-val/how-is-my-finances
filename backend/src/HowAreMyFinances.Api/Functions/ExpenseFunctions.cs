@@ -18,7 +18,8 @@ public static class ExpenseFunctions
         Guid monthId,
         CreateExpenseRequest request,
         IExpenseRepository expenseRepository,
-        IMonthRepository monthRepository)
+        IMonthRepository monthRepository,
+        IVendorRepository vendorRepository)
     {
         var validation = ExpenseEntity.Create(request.ItemName, request.Amount, request.CategoryId,
             request.Vendor, request.ExpenseDate, request.Comment);
@@ -39,6 +40,7 @@ public static class ExpenseFunctions
         try
         {
             var expense = await expenseRepository.CreateAsync(userId, monthId, request);
+            await vendorRepository.EnsureExistsAsync(userId, request.Vendor);
             return Results.Created($"/v1/expenses/{expense.Id}", expense);
         }
         catch (Npgsql.PostgresException ex) when (ex.SqlState == "23503")
@@ -47,7 +49,12 @@ public static class ExpenseFunctions
         }
     }
 
-    public static async Task<IResult> Update(HttpContext context, Guid id, UpdateExpenseRequest request, IExpenseRepository expenseRepository)
+    public static async Task<IResult> Update(
+        HttpContext context,
+        Guid id,
+        UpdateExpenseRequest request,
+        IExpenseRepository expenseRepository,
+        IVendorRepository vendorRepository)
     {
         var validation = ExpenseEntity.ValidateUpdate(request.ItemName, request.Amount);
         if (!validation.IsSuccess)
@@ -61,21 +68,16 @@ public static class ExpenseFunctions
         {
             var expense = await expenseRepository.UpdateAsync(userId, id, request);
 
-            return expense is null
-                ? Results.NotFound(new { error = "Expense not found" })
-                : Results.Ok(expense);
+            if (expense is null)
+                return Results.NotFound(new { error = "Expense not found" });
+
+            await vendorRepository.EnsureExistsAsync(userId, request.Vendor);
+            return Results.Ok(expense);
         }
         catch (Npgsql.PostgresException ex) when (ex.SqlState == "23503")
         {
             return Results.BadRequest(new { error = "Category not found" });
         }
-    }
-
-    public static async Task<IResult> GetVendors(HttpContext context, IExpenseRepository expenseRepository)
-    {
-        var userId = context.GetUserId();
-        var vendors = await expenseRepository.GetVendorsAsync(userId);
-        return Results.Ok(vendors);
     }
 
     public static async Task<IResult> Delete(HttpContext context, Guid id, IExpenseRepository expenseRepository)
@@ -86,24 +88,5 @@ public static class ExpenseFunctions
         return deleted
             ? Results.NoContent()
             : Results.NotFound(new { error = "Expense not found" });
-    }
-
-    public static async Task<IResult> GetHiddenVendors(HttpContext context, IExpenseRepository expenseRepository)
-    {
-        var userId = context.GetUserId();
-        var vendors = await expenseRepository.GetHiddenVendorsAsync(userId);
-        return Results.Ok(vendors);
-    }
-
-    public static async Task<IResult> SetHiddenVendors(HttpContext context, HiddenVendorsRequest request, IExpenseRepository expenseRepository)
-    {
-        if (request.Vendors is null)
-        {
-            return Results.BadRequest(new { error = "Vendors list is required" });
-        }
-
-        var userId = context.GetUserId();
-        await expenseRepository.SetHiddenVendorsAsync(userId, request.Vendors);
-        return Results.Ok(request.Vendors);
     }
 }

@@ -17,7 +17,8 @@ public static class RecurringExpenseFunctions
     public static async Task<IResult> Create(
         HttpContext context,
         CreateRecurringExpenseRequest request,
-        IRecurringExpenseRepository recurringExpenseRepository)
+        IRecurringExpenseRepository recurringExpenseRepository,
+        IVendorRepository vendorRepository)
     {
         var validation = RecurringExpenseEntity.Create(
             request.ItemName, request.Amount, request.CategoryId,
@@ -35,6 +36,7 @@ public static class RecurringExpenseFunctions
                 new CreateRecurringExpenseRequest(
                     entity.ItemName, request.Amount, request.CategoryId,
                     request.Vendor, request.Comment, request.DayOfMonth));
+            await vendorRepository.EnsureExistsAsync(userId, request.Vendor);
             return Results.Created($"/v1/recurring-expenses/{created.Id}", created);
         }
         catch (PostgresException ex) when (ex.SqlState == "23503")
@@ -47,7 +49,8 @@ public static class RecurringExpenseFunctions
         HttpContext context,
         Guid id,
         UpdateRecurringExpenseRequest request,
-        IRecurringExpenseRepository recurringExpenseRepository)
+        IRecurringExpenseRepository recurringExpenseRepository,
+        IVendorRepository vendorRepository)
     {
         var validation = RecurringExpenseEntity.ValidateUpdate(
             request.ItemName, request.Amount, request.DayOfMonth);
@@ -65,9 +68,11 @@ public static class RecurringExpenseFunctions
 
             var updated = await recurringExpenseRepository.UpdateAsync(userId, id, trimmedRequest);
 
-            return updated is null
-                ? Results.NotFound(new { error = "Recurring expense not found" })
-                : Results.Ok(updated);
+            if (updated is null)
+                return Results.NotFound(new { error = "Recurring expense not found" });
+
+            await vendorRepository.EnsureExistsAsync(userId, request.Vendor);
+            return Results.Ok(updated);
         }
         catch (PostgresException ex) when (ex.SqlState == "23503")
         {
