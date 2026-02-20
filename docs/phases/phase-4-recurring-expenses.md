@@ -2,7 +2,7 @@
 
 Templates that auto-generate expenses when a new month is created. Matches the Excel pattern where fixed costs (rent, phone, internet, insurance) appear at the top of every month.
 
-## Status: Not Started
+## Status: Done
 
 ## Scope
 

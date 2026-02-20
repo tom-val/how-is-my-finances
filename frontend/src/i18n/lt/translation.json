@@ -87,6 +87,22 @@
     "title": "Operacijos",
     "noTransactions": "Šį mėnesį operacijų nėra."
   },
+  "recurring": {
+    "title": "Pasikartojančios išlaidos",
+    "addRecurring": "Pridėti pasikartojančią",
+    "editRecurring": "Redaguoti pasikartojančią",
+    "deleteRecurring": "Ištrinti pasikartojančią",
+    "confirmDelete": "Ar tikrai norite ištrinti šią pasikartojančią išlaidą?",
+    "noRecurring": "Pasikartojančių išlaidų dar nėra. Pridėkite pirmą pasikartojančią išlaidą.",
+    "dayOfMonth": "Diena",
+    "active": "Aktyvi",
+    "inactive": "Neaktyvi",
+    "dayOfMonthHint": "Mėnesio diena turi būti nuo 1 iki 28",
+    "monthlyTotal": "Mėnesio suma",
+    "amountRequired": "Suma turi būti didesnė nei nulis",
+    "categoryRequired": "Kategorija privaloma",
+    "recurringTotal": "Pasikartojančios"
+  },
   "categories": {
     "title": "Kategorijos",
     "name": "Pavadinimas",

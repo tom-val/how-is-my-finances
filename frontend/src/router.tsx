@@ -5,6 +5,7 @@ import { RegisterPage } from "@/features/auth/pages/RegisterPage";
 import { MonthListPage } from "@/features/months/pages/MonthListPage";
 import { MonthDetailPage } from "@/features/months/pages/MonthDetailPage";
 import { CategoriesPage } from "@/features/categories/pages/CategoriesPage";
+import { RecurringExpensesPage } from "@/features/recurring/pages/RecurringExpensesPage";
 
 export const router = createBrowserRouter([
   {
@@ -14,6 +15,7 @@ export const router = createBrowserRouter([
       { index: true, element: <MonthListPage /> },
       { path: "months/:monthId", element: <MonthDetailPage /> },
       { path: "categories", element: <CategoriesPage /> },
+      { path: "recurring", element: <RecurringExpensesPage /> },
     ],
   },
   { path: "/login", element: <LoginPage /> },

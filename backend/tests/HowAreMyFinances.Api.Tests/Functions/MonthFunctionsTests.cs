@@ -11,7 +11,16 @@ namespace HowAreMyFinances.Api.Tests.Functions;
 public class MonthFunctionsTests
 {
     private readonly IMonthRepository _monthRepository = Substitute.For<IMonthRepository>();
+    private readonly IRecurringExpenseRepository _recurringExpenseRepository = Substitute.For<IRecurringExpenseRepository>();
+    private readonly IExpenseRepository _expenseRepository = Substitute.For<IExpenseRepository>();
     private readonly Guid _userId = Guid.NewGuid();
+
+    public MonthFunctionsTests()
+    {
+        // Default: no active recurring templates
+        _recurringExpenseRepository.GetActiveAsync(Arg.Any<Guid>())
+            .Returns(new List<RecurringExpense>());
+    }
 
     private HttpContext CreateContext()
     {
@@ -85,7 +94,7 @@ public class MonthFunctionsTests
         _monthRepository.CreateAsync(_userId, request).Returns(created);
 
         // Act
-        var result = await MonthFunctions.Create(CreateContext(), request, _monthRepository);
+        var result = await MonthFunctions.Create(CreateContext(), request, _monthRepository, _recurringExpenseRepository, _expenseRepository);
 
         // Assert
         var createdResult = Assert.IsType<Created<Month>>(result);
@@ -99,7 +108,7 @@ public class MonthFunctionsTests
         var request = new CreateMonthRequest(2026, 13, 4500m);
 
         // Act
-        var result = await MonthFunctions.Create(CreateContext(), request, _monthRepository);
+        var result = await MonthFunctions.Create(CreateContext(), request, _monthRepository, _recurringExpenseRepository, _expenseRepository);
 
         // Assert
         Assert.Equal(400, GetStatusCode(result));
@@ -112,10 +121,53 @@ public class MonthFunctionsTests
         var request = new CreateMonthRequest(2026, 3, -100m);
 
         // Act
-        var result = await MonthFunctions.Create(CreateContext(), request, _monthRepository);
+        var result = await MonthFunctions.Create(CreateContext(), request, _monthRepository, _recurringExpenseRepository, _expenseRepository);
 
         // Assert
         Assert.Equal(400, GetStatusCode(result));
+    }
+
+    [Fact]
+    public async Task Create_WithActiveTemplates_GeneratesExpenses()
+    {
+        // Arrange
+        var request = new CreateMonthRequest(2026, 3, 4500m);
+        var created = new Month(Guid.NewGuid(), _userId, 2026, 3, 4500m, null, DateTime.UtcNow, DateTime.UtcNow);
+        _monthRepository.CreateAsync(_userId, request).Returns(created);
+
+        var templates = new List<RecurringExpense>
+        {
+            new(Guid.NewGuid(), _userId, Guid.NewGuid(), "Rent", 500m, null, null, 1, true, DateTime.UtcNow, DateTime.UtcNow),
+            new(Guid.NewGuid(), _userId, Guid.NewGuid(), "Internet", 30m, "ISP", null, 15, true, DateTime.UtcNow, DateTime.UtcNow)
+        };
+        _recurringExpenseRepository.GetActiveAsync(_userId).Returns(templates);
+
+        // Act
+        var result = await MonthFunctions.Create(CreateContext(), request, _monthRepository, _recurringExpenseRepository, _expenseRepository);
+
+        // Assert
+        Assert.IsType<Created<Month>>(result);
+        await _expenseRepository.Received(1).CreateFromRecurringAsync(
+            _userId, created.Id, templates[0], new DateOnly(2026, 3, 1));
+        await _expenseRepository.Received(1).CreateFromRecurringAsync(
+            _userId, created.Id, templates[1], new DateOnly(2026, 3, 15));
+    }
+
+    [Fact]
+    public async Task Create_WithNoActiveTemplates_DoesNotGenerateExpenses()
+    {
+        // Arrange
+        var request = new CreateMonthRequest(2026, 3, 4500m);
+        var created = new Month(Guid.NewGuid(), _userId, 2026, 3, 4500m, null, DateTime.UtcNow, DateTime.UtcNow);
+        _monthRepository.CreateAsync(_userId, request).Returns(created);
+
+        // Act
+        var result = await MonthFunctions.Create(CreateContext(), request, _monthRepository, _recurringExpenseRepository, _expenseRepository);
+
+        // Assert
+        Assert.IsType<Created<Month>>(result);
+        await _expenseRepository.DidNotReceive().CreateFromRecurringAsync(
+            Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<RecurringExpense>(), Arg.Any<DateOnly>());
     }
 
     [Fact]
