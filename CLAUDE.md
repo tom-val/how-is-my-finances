@@ -78,17 +78,19 @@ Progress tracker for feature development. Each phase has a detailed plan in `doc
 | 4 | [Recurring Expenses](docs/phases/phase-4-recurring-expenses.md) | Done | Templates that auto-generate monthly |
 | 5 | [Month Dashboard](docs/phases/phase-5-month-dashboard.md) | Done | Category breakdown, days remaining, progress bars |
 | 6 | [Settings & Profile](docs/phases/phase-6-settings-profile.md) | Done | Language, currency, display name, theme toggle, accent colour |
-| 7 | [Notifications](docs/phases/phase-7-notifications.md) | Not Started | Spending threshold alerts |
-| 8 | [Receipt OCR](docs/phases/phase-8-receipt-ocr.md) | Not Started | Premium: scan receipts, auto-extract expenses |
-| 9 | [Bank Integration](docs/phases/phase-9-bank-integration.md) | Not Started | Premium: OpenBanking auto-import transactions |
+| 7 | Insights & Analytics | Done | Time period selector, category/vendor aggregation, monthly trend, income vs expenses charts |
+| 8 | [Notifications](docs/phases/phase-7-notifications.md) | Not Started | Spending threshold alerts |
+| 9 | [Receipt OCR](docs/phases/phase-8-receipt-ocr.md) | Not Started | Premium: scan receipts, auto-extract expenses |
+| 10 | [Bank Integration](docs/phases/phase-9-bank-integration.md) | Not Started | Premium: OpenBanking auto-import transactions |
 
 ### What's Already Done
 - Infrastructure: Terraform (API Gateway, Lambda, S3, CloudFront, Supabase)
 - CI/CD: GitHub Actions pipeline (infra → DB migrations → backend → authorizer → frontend)
 - Auth: Supabase Auth + Lambda authorizer + JWT middleware
 - Database: Full schema with RLS (all tables created, including future ones)
-- Backend: Months CRUD + Expenses CRUD + Categories CRUD + Recurring Expenses CRUD + Profile GET/PUT + health endpoint
-- Frontend: Login/Register, Month list/detail pages, Expenses, Categories, Recurring Expenses, i18n (en/lt), PWA
+- Backend: Months CRUD + Expenses CRUD + Categories CRUD + Recurring Expenses CRUD + Profile GET/PUT + Analytics GET + health endpoint
+- Frontend: Login/Register, Month list/detail pages, Expenses, Categories, Recurring Expenses, Insights/Analytics, i18n (en/lt), PWA
 - Month Dashboard: Category breakdown, days remaining, spending progress bar with colour coding
 - Settings & Profile: Settings page with theme toggle (light/dark/system), accent colour picker (6 OKLCH presets), language/currency/display name with backend persistence
-- Shared types: Month, Expense, Category, RecurringExpense, Profile TypeScript interfaces
+- Insights & Analytics: Time period selector (presets + custom range), top spending categories, monthly trend, income vs expenses, top vendors charts (recharts)
+- Shared types: Month, Expense, Category, RecurringExpense, Profile, Analytics TypeScript interfaces

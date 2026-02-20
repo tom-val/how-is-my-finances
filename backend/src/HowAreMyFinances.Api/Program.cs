@@ -39,6 +39,7 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
 builder.Services.AddScoped<IIncomeRepository, IncomeRepository>();
 builder.Services.AddScoped<IRecurringExpenseRepository, RecurringExpenseRepository>();
+builder.Services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
 
 var app = builder.Build();
 
@@ -92,5 +93,8 @@ app.MapDelete("/v1/recurring-expenses/{id:guid}", RecurringExpenseFunctions.Dele
 // Profile endpoints
 app.MapGet("/v1/profile", ProfileFunctions.Get);
 app.MapPut("/v1/profile", ProfileFunctions.Update);
+
+// Analytics endpoints
+app.MapGet("/v1/analytics", AnalyticsFunctions.Get);
 
 app.Run();

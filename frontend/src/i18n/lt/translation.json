@@ -137,9 +137,30 @@
     "accentColour": "Pagrindinė spalva",
     "accentColourDescription": "Pagrindinė spalva naudojama visoje sąsajoje"
   },
+  "insights": {
+    "title": "Apžvalga",
+    "timePeriod": "Laikotarpis",
+    "last3Months": "Paskutiniai 3 mėn.",
+    "last6Months": "Paskutiniai 6 mėn.",
+    "thisYear": "Šie metai",
+    "allTime": "Visas laikotarpis",
+    "customRange": "Pasirinktas",
+    "from": "Nuo",
+    "to": "Iki",
+    "topCategories": "Didžiausios išlaidų kategorijos",
+    "monthlyTrend": "Mėnesinė išlaidų tendencija",
+    "incomeVsExpenses": "Pajamos ir išlaidos",
+    "topVendors": "Dažniausios vietos",
+    "noData": "Pasirinktu laikotarpiu duomenų nėra.",
+    "totalSpent": "Iš viso išleista",
+    "transactions": "operacijos",
+    "spent": "Išleista",
+    "income": "Pajamos"
+  },
   "nav": {
     "months": "Mėnesiai",
     "categories": "Kategorijos",
+    "insights": "Apžvalga",
     "recurring": "Pasikartojantys",
     "settings": "Nustatymai"
   }

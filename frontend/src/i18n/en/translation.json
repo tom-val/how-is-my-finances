@@ -137,9 +137,30 @@
     "accentColour": "Accent Colour",
     "accentColourDescription": "Primary colour used across the interface"
   },
+  "insights": {
+    "title": "Insights",
+    "timePeriod": "Time Period",
+    "last3Months": "Last 3 months",
+    "last6Months": "Last 6 months",
+    "thisYear": "This year",
+    "allTime": "All time",
+    "customRange": "Custom",
+    "from": "From",
+    "to": "To",
+    "topCategories": "Top Spending Categories",
+    "monthlyTrend": "Monthly Spending Trend",
+    "incomeVsExpenses": "Income vs Expenses",
+    "topVendors": "Top Vendors",
+    "noData": "No data for the selected period.",
+    "totalSpent": "Total spent",
+    "transactions": "transactions",
+    "spent": "Spent",
+    "income": "Income"
+  },
   "nav": {
     "months": "Months",
     "categories": "Categories",
+    "insights": "Insights",
     "recurring": "Recurring",
     "settings": "Settings"
   }
