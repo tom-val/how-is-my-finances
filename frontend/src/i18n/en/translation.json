@@ -121,8 +121,21 @@
   },
   "settings": {
     "title": "Settings",
+    "appearance": "Appearance",
+    "profile": "Profile",
     "language": "Language",
-    "currency": "Currency"
+    "languageDescription": "Changes the interface language immediately",
+    "currency": "Currency",
+    "currencyDescription": "Default currency for expenses",
+    "displayName": "Display Name",
+    "saved": "Settings saved",
+    "theme": "Theme",
+    "themeDescription": "Appearance mode for the interface",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "accentColour": "Accent Colour",
+    "accentColourDescription": "Primary colour used across the interface"
   },
   "nav": {
     "months": "Months",

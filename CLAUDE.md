@@ -77,7 +77,7 @@ Progress tracker for feature development. Each phase has a detailed plan in `doc
 | 3 | [Categories Management](docs/phases/phase-3-categories-management.md) | Done | Custom category create/edit/delete |
 | 4 | [Recurring Expenses](docs/phases/phase-4-recurring-expenses.md) | Done | Templates that auto-generate monthly |
 | 5 | [Month Dashboard](docs/phases/phase-5-month-dashboard.md) | Done | Category breakdown, days remaining, progress bars |
-| 6 | [Settings & Profile](docs/phases/phase-6-settings-profile.md) | Not Started | Language, currency, display name preferences |
+| 6 | [Settings & Profile](docs/phases/phase-6-settings-profile.md) | Done | Language, currency, display name, theme toggle, accent colour |
 | 7 | [Notifications](docs/phases/phase-7-notifications.md) | Not Started | Spending threshold alerts |
 | 8 | [Receipt OCR](docs/phases/phase-8-receipt-ocr.md) | Not Started | Premium: scan receipts, auto-extract expenses |
 | 9 | [Bank Integration](docs/phases/phase-9-bank-integration.md) | Not Started | Premium: OpenBanking auto-import transactions |
@@ -90,4 +90,5 @@ Progress tracker for feature development. Each phase has a detailed plan in `doc
 - Backend: Months CRUD + Expenses CRUD + Categories CRUD + Recurring Expenses CRUD + Profile GET/PUT + health endpoint
 - Frontend: Login/Register, Month list/detail pages, Expenses, Categories, Recurring Expenses, i18n (en/lt), PWA
 - Month Dashboard: Category breakdown, days remaining, spending progress bar with colour coding
-- Shared types: Month, Expense, Category, RecurringExpense TypeScript interfaces
+- Settings & Profile: Settings page with theme toggle (light/dark/system), accent colour picker (6 OKLCH presets), language/currency/display name with backend persistence
+- Shared types: Month, Expense, Category, RecurringExpense, Profile TypeScript interfaces
