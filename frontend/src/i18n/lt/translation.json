@@ -157,6 +157,22 @@
     "spent": "Išleista",
     "income": "Pajamos"
   },
+  "admin": {
+    "title": "Duomenų importas",
+    "warning": "Šis įrankis pakeičia VISUS jūsų finansinius duomenis duomenimis iš Excel failo. Šio veiksmo negalima atšaukti.",
+    "importTitle": "Importuoti iš Excel",
+    "selectFile": "Pasirinkite Excel failą",
+    "preview": "Peržiūra",
+    "monthsFound": "{{count}} mėnesių",
+    "expensesFound": "{{count}} išlaidų",
+    "incomesFound": "{{count}} pajamų",
+    "categoriesFound": "{{count}} kategorijų",
+    "confirmLabel": "Įveskite DELETE patvirtinimui",
+    "importButton": "Importuoti ir pakeisti visus duomenis",
+    "importing": "Importuojama...",
+    "importSuccess": "Importas baigtas: sukurta {{categories}} kategorijų, {{months}} mėnesių, {{expenses}} išlaidų, {{incomes}} pajamų.",
+    "parsingFile": "Analizuojamas failas..."
+  },
   "nav": {
     "months": "Mėnesiai",
     "categories": "Kategorijos",

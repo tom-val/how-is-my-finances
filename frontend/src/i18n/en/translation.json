@@ -157,6 +157,22 @@
     "spent": "Spent",
     "income": "Income"
   },
+  "admin": {
+    "title": "Data Import",
+    "warning": "This tool replaces ALL your financial data with data from an Excel file. This action cannot be undone.",
+    "importTitle": "Import from Excel",
+    "selectFile": "Select Excel file",
+    "preview": "Preview",
+    "monthsFound": "{{count}} months",
+    "expensesFound": "{{count}} expenses",
+    "incomesFound": "{{count}} incomes",
+    "categoriesFound": "{{count}} categories",
+    "confirmLabel": "Type DELETE to confirm",
+    "importButton": "Import & Replace All Data",
+    "importing": "Importing...",
+    "importSuccess": "Import complete: {{categories}} categories, {{months}} months, {{expenses}} expenses, {{incomes}} incomes created.",
+    "parsingFile": "Parsing file..."
+  },
   "nav": {
     "months": "Months",
     "categories": "Categories",
