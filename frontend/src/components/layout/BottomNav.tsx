@@ -1,10 +1,11 @@
 import { Link, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Calendar, Grid2x2, Repeat, Settings } from "lucide-react";
+import { Calendar, Grid2x2, BarChart3, Repeat, Settings } from "lucide-react";
 
 const navItems = [
   { to: "/", icon: Calendar, labelKey: "nav.months" },
   { to: "/categories", icon: Grid2x2, labelKey: "nav.categories" },
+  { to: "/insights", icon: BarChart3, labelKey: "nav.insights" },
   { to: "/recurring", icon: Repeat, labelKey: "nav.recurring" },
   { to: "/settings", icon: Settings, labelKey: "nav.settings" },
 ] as const;
