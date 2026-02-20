@@ -216,6 +216,31 @@ public sealed class ExpenseRepository : IExpenseRepository
         return vendors;
     }
 
+    public async Task CreateFromRecurringAsync(Guid userId, Guid monthId, Models.RecurringExpense template, DateOnly expenseDate)
+    {
+        await using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        await using var command = new NpgsqlCommand(
+            """
+            INSERT INTO public.expenses (user_id, month_id, category_id, item_name, amount, vendor, expense_date, comment, is_recurring_instance, recurring_expense_id)
+            VALUES (@userId, @monthId, @categoryId, @itemName, @amount, @vendor, @expenseDate, @comment, true, @recurringExpenseId)
+            """,
+            connection);
+
+        command.Parameters.AddWithValue("userId", userId);
+        command.Parameters.AddWithValue("monthId", monthId);
+        command.Parameters.AddWithValue("categoryId", template.CategoryId);
+        command.Parameters.AddWithValue("itemName", template.ItemName);
+        command.Parameters.AddWithValue("amount", template.Amount);
+        command.Parameters.AddWithValue("vendor", (object?)template.Vendor ?? DBNull.Value);
+        command.Parameters.AddWithValue("expenseDate", expenseDate);
+        command.Parameters.AddWithValue("comment", (object?)template.Comment ?? DBNull.Value);
+        command.Parameters.AddWithValue("recurringExpenseId", template.Id);
+
+        await command.ExecuteNonQueryAsync();
+    }
+
     private static async Task<ExpenseWithCategory?> GetByIdAsync(NpgsqlConnection connection, Guid userId, Guid expenseId)
     {
         await using var command = new NpgsqlCommand(

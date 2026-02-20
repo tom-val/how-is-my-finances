@@ -18,7 +18,9 @@
       "Bash(npm run build:*)",
       "Bash(npx shadcn@latest add:*)",
       "WebFetch(domain:repost.aws)",
-      "Bash(npm run test:*)"
+      "Bash(npm run test:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)"
     ]
   }
 }

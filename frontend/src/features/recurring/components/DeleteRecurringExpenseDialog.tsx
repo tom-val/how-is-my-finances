@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   ResponsiveDialog,
@@ -8,40 +7,31 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@/components/shared/ResponsiveDialog";
-import { ApiError } from "@/api/client";
-import { updateCategory } from "@/api/categories";
-import { useDeleteCategory } from "../hooks/useCategories";
+import { useDeleteRecurringExpense } from "../hooks/useRecurringExpenses";
 
-interface DeleteCategoryDialogProps {
-  categoryId: string;
-  categoryName: string;
+interface DeleteRecurringExpenseDialogProps {
+  recurringExpenseId: string;
+  recurringExpenseName: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function DeleteCategoryDialog({
-  categoryId,
-  categoryName,
+export function DeleteRecurringExpenseDialog({
+  recurringExpenseId,
+  recurringExpenseName,
   open,
   onOpenChange,
-}: DeleteCategoryDialogProps) {
+}: DeleteRecurringExpenseDialogProps) {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
-  const deleteCategory = useDeleteCategory();
+  const deleteRecurring = useDeleteRecurringExpense();
   const [error, setError] = useState<string | null>(null);
 
   async function handleDelete() {
     setError(null);
     try {
-      await deleteCategory.mutateAsync(categoryId);
+      await deleteRecurring.mutateAsync(recurringExpenseId);
       onOpenChange(false);
     } catch (err) {
-      if (err instanceof ApiError && err.status === 409) {
-        await updateCategory(categoryId, { isArchived: true });
-        await queryClient.invalidateQueries({ queryKey: ["categories"] });
-        onOpenChange(false);
-        return;
-      }
       setError(err instanceof Error ? err.message : t("common.error"));
     }
   }
@@ -51,29 +41,29 @@ export function DeleteCategoryDialog({
       <ResponsiveDialogContent>
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>
-            {t("categories.deleteCategory")}
+            {t("recurring.deleteRecurring")}
           </ResponsiveDialogTitle>
         </ResponsiveDialogHeader>
         <div className="flex flex-col gap-4">
           <p className="text-sm text-muted-foreground">
-            {t("categories.confirmDelete")}
+            {t("recurring.confirmDelete")}
           </p>
-          <p className="text-sm font-medium">{categoryName}</p>
+          <p className="text-sm font-medium">{recurringExpenseName}</p>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <div className="flex gap-2 justify-end">
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={deleteCategory.isPending}
+              disabled={deleteRecurring.isPending}
             >
               {t("common.cancel")}
             </Button>
             <Button
               variant="destructive"
               onClick={handleDelete}
-              disabled={deleteCategory.isPending}
+              disabled={deleteRecurring.isPending}
             >
-              {deleteCategory.isPending
+              {deleteRecurring.isPending
                 ? t("common.loading")
                 : t("common.delete")}
             </Button>

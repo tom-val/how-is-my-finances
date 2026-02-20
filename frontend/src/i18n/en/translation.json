@@ -87,6 +87,22 @@
     "title": "Transactions",
     "noTransactions": "No transactions recorded for this month."
   },
+  "recurring": {
+    "title": "Recurring Expenses",
+    "addRecurring": "Add Recurring",
+    "editRecurring": "Edit Recurring",
+    "deleteRecurring": "Delete Recurring",
+    "confirmDelete": "Are you sure you want to delete this recurring expense?",
+    "noRecurring": "No recurring expenses yet. Add your first recurring expense to get started.",
+    "dayOfMonth": "Day",
+    "active": "Active",
+    "inactive": "Inactive",
+    "dayOfMonthHint": "Day of month must be between 1 and 28",
+    "monthlyTotal": "Monthly total",
+    "amountRequired": "Amount must be greater than zero",
+    "categoryRequired": "Category is required",
+    "recurringTotal": "Recurring"
+  },
   "categories": {
     "title": "Categories",
     "name": "Name",
@@ -95,7 +111,11 @@
     "deleteCategory": "Delete Category",
     "confirmDelete": "Are you sure you want to delete this category? Categories with expenses cannot be deleted.",
     "noCategories": "No categories yet. Add your first category to get started.",
-    "nameRequired": "Category name is required"
+    "nameRequired": "Category name is required",
+    "archived": "Archived",
+    "active": "Active",
+    "showArchived": "Show archived ({{count}})",
+    "hideArchived": "Hide archived"
   },
   "settings": {
     "title": "Settings",

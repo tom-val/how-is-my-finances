@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { TrendingDown } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,27 +11,22 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from "@/components/shared/ResponsiveDialog";
-import { useCreateExpense, useVendors } from "../hooks/useExpenses";
+import { useCreateRecurringExpense } from "../hooks/useRecurringExpenses";
 import { useCategories } from "@/features/categories/hooks/useCategories";
-import { VendorCombobox } from "./VendorCombobox";
-import { CategoryCombobox } from "./CategoryCombobox";
+import { CategoryCombobox } from "@/features/expenses/components/CategoryCombobox";
+import { VendorCombobox } from "@/features/expenses/components/VendorCombobox";
+import { useVendors } from "@/features/expenses/hooks/useExpenses";
 
-interface CreateExpenseDialogProps {
-  monthId: string;
-}
-
-export function CreateExpenseDialog({ monthId }: CreateExpenseDialogProps) {
+export function CreateRecurringExpenseDialog() {
   const { t } = useTranslation();
-  const createExpense = useCreateExpense(monthId);
+  const createRecurring = useCreateRecurringExpense();
   const { data: categories } = useCategories();
   const { data: vendors } = useVendors();
   const [isOpen, setIsOpen] = useState(false);
   const [itemName, setItemName] = useState("");
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState("");
-  const [expenseDate, setExpenseDate] = useState(
-    new Date().toISOString().split("T")[0],
-  );
+  const [dayOfMonth, setDayOfMonth] = useState("1");
   const [vendor, setVendor] = useState("");
   const [comment, setComment] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +35,7 @@ export function CreateExpenseDialog({ monthId }: CreateExpenseDialogProps) {
     setItemName("");
     setAmount("");
     setCategoryId("");
-    setExpenseDate(new Date().toISOString().split("T")[0]);
+    setDayOfMonth("1");
     setVendor("");
     setComment("");
     setError(null);
@@ -52,21 +47,27 @@ export function CreateExpenseDialog({ monthId }: CreateExpenseDialogProps) {
 
     const amountNum = parseFloat(amount);
     if (isNaN(amountNum) || amountNum <= 0) {
-      setError("Amount must be greater than zero");
+      setError(t("recurring.amountRequired"));
       return;
     }
 
     if (!categoryId) {
-      setError("Category is required");
+      setError(t("recurring.categoryRequired"));
+      return;
+    }
+
+    const dayNum = parseInt(dayOfMonth, 10);
+    if (isNaN(dayNum) || dayNum < 1 || dayNum > 28) {
+      setError(t("recurring.dayOfMonthHint"));
       return;
     }
 
     try {
-      await createExpense.mutateAsync({
+      await createRecurring.mutateAsync({
         itemName: itemName.trim(),
         amount: amountNum,
         categoryId,
-        expenseDate,
+        dayOfMonth: dayNum,
         vendor: vendor.trim() || undefined,
         comment: comment.trim() || undefined,
       });
@@ -86,26 +87,22 @@ export function CreateExpenseDialog({ monthId }: CreateExpenseDialogProps) {
       }}
     >
       <ResponsiveDialogTrigger asChild>
-        <Button
-          size="sm"
-          variant="outline"
-          className="border-red-300 text-red-700 hover:bg-red-50 hover:text-red-800"
-        >
-          <TrendingDown className="h-4 w-4" />
-          {t("expenses.expense")}
+        <Button size="sm">
+          <Plus className="h-4 w-4" />
+          {t("recurring.addRecurring")}
         </Button>
       </ResponsiveDialogTrigger>
       <ResponsiveDialogContent>
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>
-            {t("expenses.addExpense")}
+            {t("recurring.addRecurring")}
           </ResponsiveDialogTitle>
         </ResponsiveDialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="itemName">{t("expenses.itemName")}</Label>
+            <Label htmlFor="recurringItemName">{t("expenses.itemName")}</Label>
             <Input
-              id="itemName"
+              id="recurringItemName"
               value={itemName}
               onChange={(e) => setItemName(e.target.value)}
               required
@@ -113,9 +110,9 @@ export function CreateExpenseDialog({ monthId }: CreateExpenseDialogProps) {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="amount">{t("expenses.amount")}</Label>
+              <Label htmlFor="recurringAmount">{t("expenses.amount")}</Label>
               <Input
-                id="amount"
+                id="recurringAmount"
                 type="number"
                 inputMode="decimal"
                 step="0.01"
@@ -127,12 +124,17 @@ export function CreateExpenseDialog({ monthId }: CreateExpenseDialogProps) {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="expenseDate">{t("expenses.date")}</Label>
+              <Label htmlFor="recurringDayOfMonth">
+                {t("recurring.dayOfMonth")}
+              </Label>
               <Input
-                id="expenseDate"
-                type="date"
-                value={expenseDate}
-                onChange={(e) => setExpenseDate(e.target.value)}
+                id="recurringDayOfMonth"
+                type="number"
+                inputMode="numeric"
+                min="1"
+                max="28"
+                value={dayOfMonth}
+                onChange={(e) => setDayOfMonth(e.target.value)}
                 required
               />
             </div>
@@ -154,16 +156,18 @@ export function CreateExpenseDialog({ monthId }: CreateExpenseDialogProps) {
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="comment">{t("expenses.comment")}</Label>
+            <Label htmlFor="recurringComment">{t("expenses.comment")}</Label>
             <Input
-              id="comment"
+              id="recurringComment"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
             />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
-          <Button type="submit" disabled={createExpense.isPending}>
-            {createExpense.isPending ? t("common.loading") : t("common.save")}
+          <Button type="submit" disabled={createRecurring.isPending}>
+            {createRecurring.isPending
+              ? t("common.loading")
+              : t("common.save")}
           </Button>
         </form>
       </ResponsiveDialogContent>

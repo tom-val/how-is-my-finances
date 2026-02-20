@@ -23,7 +23,12 @@ public static class MonthFunctions
             : Results.Ok(month);
     }
 
-    public static async Task<IResult> Create(HttpContext context, CreateMonthRequest request, IMonthRepository monthRepository)
+    public static async Task<IResult> Create(
+        HttpContext context,
+        CreateMonthRequest request,
+        IMonthRepository monthRepository,
+        IRecurringExpenseRepository recurringExpenseRepository,
+        IExpenseRepository expenseRepository)
     {
         var validation = MonthEntity.Create(request.Year, request.Month, request.Salary);
         if (!validation.IsSuccess)
@@ -36,6 +41,15 @@ public static class MonthFunctions
         try
         {
             var month = await monthRepository.CreateAsync(userId, request);
+
+            // Auto-generate expenses from active recurring templates
+            var templates = await recurringExpenseRepository.GetActiveAsync(userId);
+            foreach (var template in templates)
+            {
+                var expenseDate = new DateOnly(request.Year, request.Month, template.DayOfMonth);
+                await expenseRepository.CreateFromRecurringAsync(userId, month.Id, template, expenseDate);
+            }
+
             return Results.Created($"/v1/months/{month.Id}", month);
         }
         catch (Npgsql.PostgresException ex) when (ex.SqlState == "23505")

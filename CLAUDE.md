@@ -75,7 +75,7 @@ Progress tracker for feature development. Each phase has a detailed plan in `doc
 | 1 | [PWA & Mobile](docs/phases/phase-1-pwa-mobile.md) | Done | Mobile-first design, PWA install, bottom nav, touch UX |
 | 2 | [Expenses CRUD](docs/phases/phase-2-expenses-crud.md) | Done | Core expense management within months |
 | 3 | [Categories Management](docs/phases/phase-3-categories-management.md) | Done | Custom category create/edit/delete |
-| 4 | [Recurring Expenses](docs/phases/phase-4-recurring-expenses.md) | Not Started | Templates that auto-generate monthly |
+| 4 | [Recurring Expenses](docs/phases/phase-4-recurring-expenses.md) | Done | Templates that auto-generate monthly |
 | 5 | [Month Dashboard](docs/phases/phase-5-month-dashboard.md) | Not Started | Category breakdown, per-day budget, progress bars |
 | 6 | [Settings & Profile](docs/phases/phase-6-settings-profile.md) | Not Started | Language, currency, display name preferences |
 | 7 | [Notifications](docs/phases/phase-7-notifications.md) | Not Started | Spending threshold alerts |
@@ -87,6 +87,6 @@ Progress tracker for feature development. Each phase has a detailed plan in `doc
 - CI/CD: GitHub Actions pipeline (infra → DB migrations → backend → authorizer → frontend)
 - Auth: Supabase Auth + Lambda authorizer + JWT middleware
 - Database: Full schema with RLS (all tables created, including future ones)
-- Backend: Months CRUD + Profile GET/PUT + health endpoint
-- Frontend: Login/Register, Month list/detail pages, i18n (en/lt), PWA
-- Shared types: Month, Expense, Category TypeScript interfaces
+- Backend: Months CRUD + Expenses CRUD + Categories CRUD + Recurring Expenses CRUD + Profile GET/PUT + health endpoint
+- Frontend: Login/Register, Month list/detail pages, Expenses, Categories, Recurring Expenses, i18n (en/lt), PWA
+- Shared types: Month, Expense, Category, RecurringExpense TypeScript interfaces

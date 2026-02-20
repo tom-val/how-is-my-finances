@@ -1,14 +1,24 @@
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, Link } from "react-router";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TransactionList } from "../components/TransactionList";
 import { useMonth } from "../hooks/useMonths";
+import { useExpenses } from "@/features/expenses/hooks/useExpenses";
 
 export function MonthDetailPage() {
   const { t } = useTranslation();
   const { monthId } = useParams<{ monthId: string }>();
   const { data: month, isLoading, error } = useMonth(monthId!);
+  const { data: expenses } = useExpenses(monthId!);
+
+  const recurringTotal = useMemo(() => {
+    if (!expenses) return 0;
+    return expenses
+      .filter((e) => e.isRecurringInstance)
+      .reduce((sum, e) => sum + e.amount, 0);
+  }, [expenses]);
 
   if (isLoading) {
     return <p className="text-muted-foreground">{t("common.loading")}</p>;
@@ -36,7 +46,7 @@ export function MonthDetailPage() {
         </h1>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-5">
         <Card className="p-0">
           <CardContent className="px-3 py-2 sm:px-4 sm:py-3">
             <p className="text-[10px] sm:text-xs text-muted-foreground">
@@ -60,6 +70,16 @@ export function MonthDetailPage() {
                 + {month.plannedSpent.toFixed(2)} {t("months.plannedSpent")}
               </p>
             )}
+          </CardContent>
+        </Card>
+        <Card className="p-0">
+          <CardContent className="px-3 py-2 sm:px-4 sm:py-3">
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
+              {t("recurring.recurringTotal")}
+            </p>
+            <p className="text-sm sm:text-lg font-bold">
+              {recurringTotal.toFixed(2)} EUR
+            </p>
           </CardContent>
         </Card>
         <Card className="p-0">

@@ -9,35 +9,36 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@/components/shared/ResponsiveDialog";
-import { useUpdateExpense, useVendors } from "../hooks/useExpenses";
+import { useUpdateRecurringExpense } from "../hooks/useRecurringExpenses";
 import { useCategories } from "@/features/categories/hooks/useCategories";
-import { VendorCombobox } from "./VendorCombobox";
-import { CategoryCombobox } from "./CategoryCombobox";
-import type { ExpenseWithCategory } from "@shared/types/expense";
+import { CategoryCombobox } from "@/features/expenses/components/CategoryCombobox";
+import { VendorCombobox } from "@/features/expenses/components/VendorCombobox";
+import { useVendors } from "@/features/expenses/hooks/useExpenses";
+import type { RecurringExpenseWithCategory } from "@shared/types/recurringExpense";
 
-interface EditExpenseDialogProps {
-  expense: ExpenseWithCategory;
-  monthId: string;
+interface EditRecurringExpenseDialogProps {
+  recurringExpense: RecurringExpenseWithCategory;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function EditExpenseDialog({
-  expense,
-  monthId,
+export function EditRecurringExpenseDialog({
+  recurringExpense,
   open,
   onOpenChange,
-}: EditExpenseDialogProps) {
+}: EditRecurringExpenseDialogProps) {
   const { t } = useTranslation();
-  const updateExpense = useUpdateExpense(monthId);
+  const updateRecurring = useUpdateRecurringExpense();
   const { data: categories } = useCategories();
   const { data: vendors } = useVendors();
-  const [itemName, setItemName] = useState(expense.itemName);
-  const [amount, setAmount] = useState(expense.amount.toString());
-  const [categoryId, setCategoryId] = useState(expense.categoryId);
-  const [expenseDate, setExpenseDate] = useState(expense.expenseDate);
-  const [vendor, setVendor] = useState(expense.vendor ?? "");
-  const [comment, setComment] = useState(expense.comment ?? "");
+  const [itemName, setItemName] = useState(recurringExpense.itemName);
+  const [amount, setAmount] = useState(recurringExpense.amount.toString());
+  const [categoryId, setCategoryId] = useState(recurringExpense.categoryId);
+  const [dayOfMonth, setDayOfMonth] = useState(
+    recurringExpense.dayOfMonth.toString(),
+  );
+  const [vendor, setVendor] = useState(recurringExpense.vendor ?? "");
+  const [comment, setComment] = useState(recurringExpense.comment ?? "");
   const [error, setError] = useState<string | null>(null);
 
   const activeCategories = useMemo(
@@ -54,18 +55,29 @@ export function EditExpenseDialog({
 
     const amountNum = parseFloat(amount);
     if (isNaN(amountNum) || amountNum <= 0) {
-      setError("Amount must be greater than zero");
+      setError(t("recurring.amountRequired"));
+      return;
+    }
+
+    if (!categoryId) {
+      setError(t("recurring.categoryRequired"));
+      return;
+    }
+
+    const dayNum = parseInt(dayOfMonth, 10);
+    if (isNaN(dayNum) || dayNum < 1 || dayNum > 28) {
+      setError(t("recurring.dayOfMonthHint"));
       return;
     }
 
     try {
-      await updateExpense.mutateAsync({
-        id: expense.id,
+      await updateRecurring.mutateAsync({
+        id: recurringExpense.id,
         request: {
           itemName: itemName.trim(),
           amount: amountNum,
           categoryId,
-          expenseDate,
+          dayOfMonth: dayNum,
           vendor: vendor.trim() || undefined,
           comment: comment.trim() || undefined,
         },
@@ -81,14 +93,16 @@ export function EditExpenseDialog({
       <ResponsiveDialogContent>
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>
-            {t("expenses.editExpense")}
+            {t("recurring.editRecurring")}
           </ResponsiveDialogTitle>
         </ResponsiveDialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="edit-itemName">{t("expenses.itemName")}</Label>
+            <Label htmlFor="edit-recurringItemName">
+              {t("expenses.itemName")}
+            </Label>
             <Input
-              id="edit-itemName"
+              id="edit-recurringItemName"
               value={itemName}
               onChange={(e) => setItemName(e.target.value)}
               required
@@ -96,9 +110,11 @@ export function EditExpenseDialog({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="edit-amount">{t("expenses.amount")}</Label>
+              <Label htmlFor="edit-recurringAmount">
+                {t("expenses.amount")}
+              </Label>
               <Input
-                id="edit-amount"
+                id="edit-recurringAmount"
                 type="number"
                 inputMode="decimal"
                 step="0.01"
@@ -110,12 +126,17 @@ export function EditExpenseDialog({
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="edit-expenseDate">{t("expenses.date")}</Label>
+              <Label htmlFor="edit-recurringDayOfMonth">
+                {t("recurring.dayOfMonth")}
+              </Label>
               <Input
-                id="edit-expenseDate"
-                type="date"
-                value={expenseDate}
-                onChange={(e) => setExpenseDate(e.target.value)}
+                id="edit-recurringDayOfMonth"
+                type="number"
+                inputMode="numeric"
+                min="1"
+                max="28"
+                value={dayOfMonth}
+                onChange={(e) => setDayOfMonth(e.target.value)}
                 required
               />
             </div>
@@ -137,16 +158,20 @@ export function EditExpenseDialog({
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="edit-comment">{t("expenses.comment")}</Label>
+            <Label htmlFor="edit-recurringComment">
+              {t("expenses.comment")}
+            </Label>
             <Input
-              id="edit-comment"
+              id="edit-recurringComment"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
             />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
-          <Button type="submit" disabled={updateExpense.isPending}>
-            {updateExpense.isPending ? t("common.loading") : t("common.save")}
+          <Button type="submit" disabled={updateRecurring.isPending}>
+            {updateRecurring.isPending
+              ? t("common.loading")
+              : t("common.save")}
           </Button>
         </form>
       </ResponsiveDialogContent>
