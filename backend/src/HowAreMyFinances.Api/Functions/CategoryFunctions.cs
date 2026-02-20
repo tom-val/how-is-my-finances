@@ -35,13 +35,16 @@ public static class CategoryFunctions
         UpdateCategoryRequest request,
         ICategoryRepository categoryRepository)
     {
-        var validation = CategoryEntity.ValidateName(request.Name);
+        var validation = CategoryEntity.ValidateUpdate(request.Name);
         if (!validation.IsSuccess)
             return Results.BadRequest(new { error = validation.Error });
 
         var userId = context.GetUserId();
-        var category = await categoryRepository.UpdateAsync(userId, id,
-            new UpdateCategoryRequest(validation.Value!.Name));
+        var trimmedRequest = request.Name is not null
+            ? request with { Name = request.Name.Trim() }
+            : request;
+
+        var category = await categoryRepository.UpdateAsync(userId, id, trimmedRequest);
 
         return category is null
             ? Results.NotFound(new { error = "Category not found" })

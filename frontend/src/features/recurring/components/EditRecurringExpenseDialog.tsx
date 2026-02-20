@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +40,14 @@ export function EditRecurringExpenseDialog({
   const [vendor, setVendor] = useState(recurringExpense.vendor ?? "");
   const [comment, setComment] = useState(recurringExpense.comment ?? "");
   const [error, setError] = useState<string | null>(null);
+
+  const activeCategories = useMemo(
+    () =>
+      (categories ?? []).filter(
+        (c) => !c.isArchived || c.id === categoryId,
+      ),
+    [categories, categoryId],
+  );
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -138,7 +146,7 @@ export function EditRecurringExpenseDialog({
             <CategoryCombobox
               value={categoryId}
               onChange={setCategoryId}
-              categories={categories ?? []}
+              categories={activeCategories}
             />
           </div>
           <div className="flex flex-col gap-2">

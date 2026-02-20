@@ -22,10 +22,10 @@ public sealed class CategoryRepository : ICategoryRepository
 
         await using var command = new NpgsqlCommand(
             """
-            SELECT id, user_id, name, icon, sort_order, created_at
+            SELECT id, user_id, name, icon, sort_order, is_archived, created_at
             FROM public.categories
             WHERE user_id = @userId
-            ORDER BY sort_order, name
+            ORDER BY is_archived, sort_order, name
             """,
             connection);
 
@@ -51,7 +51,7 @@ public sealed class CategoryRepository : ICategoryRepository
             """
             INSERT INTO public.categories (user_id, name)
             VALUES (@userId, @name)
-            RETURNING id, user_id, name, icon, sort_order, created_at
+            RETURNING id, user_id, name, icon, sort_order, is_archived, created_at
             """,
             connection);
 
@@ -68,18 +68,39 @@ public sealed class CategoryRepository : ICategoryRepository
         await using var connection = new NpgsqlConnection(_connectionString);
         await connection.OpenAsync();
 
-        await using var command = new NpgsqlCommand(
-            """
-            UPDATE public.categories
-            SET name = @name
-            WHERE id = @categoryId AND user_id = @userId
-            RETURNING id, user_id, name, icon, sort_order, created_at
-            """,
-            connection);
+        var setClauses = new List<string>();
+        var parameters = new List<NpgsqlParameter>
+        {
+            new("categoryId", categoryId),
+            new("userId", userId)
+        };
 
-        command.Parameters.AddWithValue("categoryId", categoryId);
-        command.Parameters.AddWithValue("userId", userId);
-        command.Parameters.AddWithValue("name", request.Name);
+        if (request.Name is not null)
+        {
+            setClauses.Add("name = @name");
+            parameters.Add(new NpgsqlParameter("name", request.Name));
+        }
+
+        if (request.IsArchived.HasValue)
+        {
+            setClauses.Add("is_archived = @isArchived");
+            parameters.Add(new NpgsqlParameter("isArchived", request.IsArchived.Value));
+        }
+
+        if (setClauses.Count == 0)
+        {
+            return await GetByIdAsync(connection, userId, categoryId);
+        }
+
+        var sql = $"""
+            UPDATE public.categories
+            SET {string.Join(", ", setClauses)}
+            WHERE id = @categoryId AND user_id = @userId
+            RETURNING id, user_id, name, icon, sort_order, is_archived, created_at
+            """;
+
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.AddRange(parameters.ToArray());
 
         await using var reader = await command.ExecuteReaderAsync();
         return await reader.ReadAsync() ? ReadCategory(reader) : null;
@@ -104,6 +125,23 @@ public sealed class CategoryRepository : ICategoryRepository
         return rowsAffected > 0;
     }
 
+    private static async Task<Category?> GetByIdAsync(NpgsqlConnection connection, Guid userId, Guid categoryId)
+    {
+        await using var command = new NpgsqlCommand(
+            """
+            SELECT id, user_id, name, icon, sort_order, is_archived, created_at
+            FROM public.categories
+            WHERE id = @categoryId AND user_id = @userId
+            """,
+            connection);
+
+        command.Parameters.AddWithValue("categoryId", categoryId);
+        command.Parameters.AddWithValue("userId", userId);
+
+        await using var reader = await command.ExecuteReaderAsync();
+        return await reader.ReadAsync() ? ReadCategory(reader) : null;
+    }
+
     private static Category ReadCategory(NpgsqlDataReader reader)
     {
         return new Category(
@@ -112,7 +150,8 @@ public sealed class CategoryRepository : ICategoryRepository
             Name: reader.GetString(2),
             Icon: reader.IsDBNull(3) ? null : reader.GetString(3),
             SortOrder: reader.GetInt32(4),
-            CreatedAt: reader.GetDateTime(5)
+            IsArchived: reader.GetBoolean(5),
+            CreatedAt: reader.GetDateTime(6)
         );
     }
 }

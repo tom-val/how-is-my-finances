@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +39,14 @@ export function EditExpenseDialog({
   const [vendor, setVendor] = useState(expense.vendor ?? "");
   const [comment, setComment] = useState(expense.comment ?? "");
   const [error, setError] = useState<string | null>(null);
+
+  const activeCategories = useMemo(
+    () =>
+      (categories ?? []).filter(
+        (c) => !c.isArchived || c.id === categoryId,
+      ),
+    [categories, categoryId],
+  );
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -117,7 +125,7 @@ export function EditExpenseDialog({
             <CategoryCombobox
               value={categoryId}
               onChange={setCategoryId}
-              categories={categories ?? []}
+              categories={activeCategories}
             />
           </div>
           <div className="flex flex-col gap-2">

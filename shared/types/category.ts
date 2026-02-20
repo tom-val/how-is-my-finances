@@ -3,6 +3,7 @@ export interface Category {
   name: string;
   icon: string | null;
   sortOrder: number;
+  isArchived: boolean;
 }
 
 export interface CreateCategoryRequest {
@@ -10,5 +11,6 @@ export interface CreateCategoryRequest {
 }
 
 export interface UpdateCategoryRequest {
-  name: string;
+  name?: string;
+  isArchived?: boolean;
 }

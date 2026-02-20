@@ -6,6 +6,16 @@ if (!API_URL) {
   throw new Error("Missing VITE_API_URL environment variable.");
 }
 
+export class ApiError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
 async function getAuthHeaders(): Promise<Record<string, string>> {
   const {
     data: { session },
@@ -31,7 +41,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const body = await response.json().catch(() => null);
     const message = body?.error ?? `Request failed with status ${response.status}`;
-    throw new Error(message);
+    throw new ApiError(message, response.status);
   }
 
   if (response.status === 204) {

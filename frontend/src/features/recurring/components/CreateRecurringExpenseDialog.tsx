@@ -144,7 +144,7 @@ export function CreateRecurringExpenseDialog() {
             <CategoryCombobox
               value={categoryId}
               onChange={setCategoryId}
-              categories={categories ?? []}
+              categories={(categories ?? []).filter((c) => !c.isArchived)}
             />
           </div>
           <div className="flex flex-col gap-2">

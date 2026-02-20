@@ -36,6 +36,7 @@ public class CategoryFunctionsTests
             Name: "Test Category",
             Icon: null,
             SortOrder: 0,
+            IsArchived: false,
             CreatedAt: DateTime.UtcNow
         );
     }
@@ -46,8 +47,8 @@ public class CategoryFunctionsTests
         // Arrange
         var categories = new List<Category>
         {
-            new(Guid.NewGuid(), _userId, "Food", null, 1, DateTime.UtcNow),
-            new(Guid.NewGuid(), _userId, "Transport", null, 2, DateTime.UtcNow)
+            new(Guid.NewGuid(), _userId, "Food", null, 1, false, DateTime.UtcNow),
+            new(Guid.NewGuid(), _userId, "Transport", null, 2, false, DateTime.UtcNow)
         };
         _categoryRepository.GetAllAsync(_userId).Returns(categories);
 
@@ -94,7 +95,7 @@ public class CategoryFunctionsTests
     {
         // Arrange
         var categoryId = Guid.NewGuid();
-        var request = new UpdateCategoryRequest("New Name");
+        var request = new UpdateCategoryRequest("New Name", null);
         var updated = CreateTestCategory(_userId, categoryId);
         _categoryRepository.UpdateAsync(_userId, categoryId, Arg.Any<UpdateCategoryRequest>()).Returns(updated);
 
@@ -111,7 +112,7 @@ public class CategoryFunctionsTests
     {
         // Arrange
         var categoryId = Guid.NewGuid();
-        var request = new UpdateCategoryRequest("New Name");
+        var request = new UpdateCategoryRequest("New Name", null);
         _categoryRepository.UpdateAsync(_userId, categoryId, Arg.Any<UpdateCategoryRequest>()).Returns((Category?)null);
 
         // Act
@@ -126,7 +127,7 @@ public class CategoryFunctionsTests
     {
         // Arrange
         var categoryId = Guid.NewGuid();
-        var request = new UpdateCategoryRequest("  ");
+        var request = new UpdateCategoryRequest("  ", null);
 
         // Act
         var result = await CategoryFunctions.Update(CreateContext(), categoryId, request, _categoryRepository);
@@ -134,6 +135,23 @@ public class CategoryFunctionsTests
         // Assert
         Assert.Equal(400, GetStatusCode(result));
         await _categoryRepository.DidNotReceive().UpdateAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<UpdateCategoryRequest>());
+    }
+
+    [Fact]
+    public async Task Update_ArchiveCategory_ReturnsUpdated()
+    {
+        // Arrange
+        var categoryId = Guid.NewGuid();
+        var request = new UpdateCategoryRequest(null, true);
+        var archived = new Category(categoryId, _userId, "Test", null, 0, true, DateTime.UtcNow);
+        _categoryRepository.UpdateAsync(_userId, categoryId, Arg.Any<UpdateCategoryRequest>()).Returns(archived);
+
+        // Act
+        var result = await CategoryFunctions.Update(CreateContext(), categoryId, request, _categoryRepository);
+
+        // Assert
+        var okResult = Assert.IsType<Ok<Category>>(result);
+        Assert.True(okResult.Value!.IsArchived);
     }
 
     [Fact]

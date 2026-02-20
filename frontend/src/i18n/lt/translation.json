@@ -111,7 +111,11 @@
     "deleteCategory": "Ištrinti kategoriją",
     "confirmDelete": "Ar tikrai norite ištrinti šią kategoriją? Kategorijų su išlaidomis ištrinti negalima.",
     "noCategories": "Kategorijų dar nėra. Pridėkite pirmą kategoriją.",
-    "nameRequired": "Kategorijos pavadinimas privalomas"
+    "nameRequired": "Kategorijos pavadinimas privalomas",
+    "archived": "Archyvuota",
+    "active": "Aktyvi",
+    "showArchived": "Rodyti archyvuotas ({{count}})",
+    "hideArchived": "Slėpti archyvuotas"
   },
   "settings": {
     "title": "Nustatymai",
