@@ -89,6 +89,7 @@ export function CategoryCombobox({
     return (
       <>
         <Button
+          type="button"
           variant="outline"
           role="combobox"
           aria-expanded={isOpen}

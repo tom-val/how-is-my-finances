@@ -91,6 +91,7 @@ export function VendorCombobox({ value, onChange, vendors }: VendorComboboxProps
     return (
       <>
         <Button
+          type="button"
           variant="outline"
           role="combobox"
           aria-expanded={isOpen}
