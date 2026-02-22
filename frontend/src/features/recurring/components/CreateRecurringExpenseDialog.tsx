@@ -106,10 +106,11 @@ export function CreateRecurringExpenseDialog() {
               value={itemName}
               onChange={(e) => setItemName(e.target.value)}
               required
+              autoComplete="off"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
+            <div className="flex min-w-0 flex-col gap-2">
               <Label htmlFor="recurringAmount">{t("expenses.amount")}</Label>
               <Input
                 id="recurringAmount"
@@ -123,7 +124,7 @@ export function CreateRecurringExpenseDialog() {
                 placeholder="0.00"
               />
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex min-w-0 flex-col gap-2">
               <Label htmlFor="recurringDayOfMonth">
                 {t("recurring.dayOfMonth")}
               </Label>

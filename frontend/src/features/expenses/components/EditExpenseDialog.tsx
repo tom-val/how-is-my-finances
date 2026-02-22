@@ -92,10 +92,11 @@ export function EditExpenseDialog({
               value={itemName}
               onChange={(e) => setItemName(e.target.value)}
               required
+              autoComplete="off"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
+            <div className="flex min-w-0 flex-col gap-2">
               <Label htmlFor="edit-amount">{t("expenses.amount")}</Label>
               <Input
                 id="edit-amount"
@@ -109,7 +110,7 @@ export function EditExpenseDialog({
                 placeholder="0.00"
               />
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex min-w-0 flex-col gap-2">
               <Label htmlFor="edit-expenseDate">{t("expenses.date")}</Label>
               <Input
                 id="edit-expenseDate"
