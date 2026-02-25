@@ -1,6 +1,8 @@
 import * as XLSX from "xlsx";
 import type { ImportMonth, ImportExpense } from "@shared/types/import";
 
+export type ImportFormat = "tomas" | "ugne";
+
 export interface ParsedExcelData {
   categories: string[];
   months: ImportMonth[];
@@ -9,23 +11,37 @@ export interface ParsedExcelData {
 }
 
 const MONTH_SHEET_REGEX = /^(\d{4})-(\d{2})$/;
-const DATA_START_ROW = 7; // Row 7 is where expense data starts (1-indexed)
-const SALARY_CELL = "J3";
 const FALLBACK_CATEGORY = "Kita";
 
+/** Format-specific configuration */
+const FORMAT_CONFIG = {
+  tomas: {
+    salaryCellRef: "J3",
+    dataStartRow: 7, // 1-indexed
+  },
+  ugne: {
+    salaryCellRef: "H3",
+    dataStartRow: 2, // 1-indexed
+  },
+} as const;
+
 /**
- * Parse an Excel file (Alga.xlsx format) into structured import data.
+ * Parse an Excel file into structured import data.
  *
- * Expected structure:
- * - "Kategorijos" sheet: category names in column B (starting row 2)
- * - "YYYY-MM" sheets: month data with salary in J3, expenses from row 7
+ * Supports two formats:
+ * - "tomas" (Alga.xlsx): salary in J3, expenses from row 7, columns A–F (item, amount, vendor, date, category, comment)
+ * - "ugne" (Finansai): salary in H3, expenses from row 2, columns A–D (item, amount, date, category)
+ *
+ * Both formats expect:
+ * - "Kategorijos" sheet: category names in column B
+ * - "YYYY-MM" sheets: month data with expenses
  * - "YYYY-MM kred" sheets: skipped
  */
-export function parseExcelFile(data: ArrayBuffer): ParsedExcelData {
+export function parseExcelFile(data: ArrayBuffer, format: ImportFormat): ParsedExcelData {
   const workbook = XLSX.read(data, { type: "array" });
 
   const categories = parseCategoriesSheet(workbook);
-  const months = parseMonthSheets(workbook, categories);
+  const months = parseMonthSheets(workbook, categories, format);
 
   const totalExpenses = months.reduce((sum, m) => sum + m.expenses.length, 0);
   const totalIncomes = months.reduce((sum, m) => sum + m.incomes.length, 0);
@@ -61,8 +77,13 @@ function parseCategoriesSheet(workbook: XLSX.WorkBook): string[] {
   return categories;
 }
 
-function parseMonthSheets(workbook: XLSX.WorkBook, categories: string[]): ImportMonth[] {
+function parseMonthSheets(
+  workbook: XLSX.WorkBook,
+  categories: string[],
+  format: ImportFormat,
+): ImportMonth[] {
   const months: ImportMonth[] = [];
+  const config = FORMAT_CONFIG[format];
 
   for (const sheetName of workbook.SheetNames) {
     const match = MONTH_SHEET_REGEX.exec(sheetName);
@@ -73,8 +94,10 @@ function parseMonthSheets(workbook: XLSX.WorkBook, categories: string[]): Import
     const sheet = workbook.Sheets[sheetName];
     if (!sheet) continue;
 
-    const salary = parseSalary(sheet);
-    const expenses = parseExpenses(sheet, year, month, categories);
+    const salary = parseSalary(sheet, config.salaryCellRef);
+    const expenses = format === "tomas"
+      ? parseExpensesTomas(sheet, year, month, categories, config.dataStartRow)
+      : parseExpensesUgne(sheet, year, month, categories, config.dataStartRow);
 
     // Salary is stored on the month record — no separate income entries needed
     months.push({ year, month, salary, expenses, incomes: [] });
@@ -86,27 +109,32 @@ function parseMonthSheets(workbook: XLSX.WorkBook, categories: string[]): Import
   return months;
 }
 
-function parseSalary(sheet: XLSX.WorkSheet): number {
-  const cell = sheet[SALARY_CELL];
+function parseSalary(sheet: XLSX.WorkSheet, cellRef: string): number {
+  const cell = sheet[cellRef];
   if (!cell) return 0;
 
   const value = typeof cell.v === "number" ? cell.v : parseFloat(String(cell.v));
   return isNaN(value) ? 0 : Math.round(value * 100) / 100;
 }
 
-function parseExpenses(
+/**
+ * Tomas format: A=item, B=amount, C=vendor, D=date, E=category, F=comment
+ * Data starts at row 7 (1-indexed). Category header checked at row 6.
+ */
+function parseExpensesTomas(
   sheet: XLSX.WorkSheet,
   year: number,
   month: number,
   categories: string[],
+  dataStartRow: number,
 ): ImportExpense[] {
   const expenses: ImportExpense[] = [];
   const range = XLSX.utils.decode_range(sheet["!ref"] ?? "A1");
 
-  // Check if category column (E) has data by looking at the header row (row 6, 0-indexed: 5)
-  const hasCategoryColumn = hasColumn(sheet, 5, 4);
+  // Check if category column (E) has data by looking at the header row (row before data)
+  const hasCategoryColumn = hasColumn(sheet, dataStartRow - 2, 4);
 
-  for (let row = DATA_START_ROW - 1; row <= range.e.r; row++) {
+  for (let row = dataStartRow - 1; row <= range.e.r; row++) {
     const itemName = getCellString(sheet, row, 0); // Column A
     const amount = getCellNumber(sheet, row, 1); // Column B
     const vendor = getCellString(sheet, row, 2); // Column C
@@ -130,6 +158,46 @@ function parseExpenses(
       vendor: vendor || undefined,
       expenseDate: dateValue,
       comment: comment || undefined,
+    });
+  }
+
+  return expenses;
+}
+
+/**
+ * Ugnė format: A=item, B=amount, C=date, D=category (no vendor, no comment)
+ * Data starts at row 2 (1-indexed).
+ */
+function parseExpensesUgne(
+  sheet: XLSX.WorkSheet,
+  year: number,
+  month: number,
+  categories: string[],
+  dataStartRow: number,
+): ImportExpense[] {
+  const expenses: ImportExpense[] = [];
+  const range = XLSX.utils.decode_range(sheet["!ref"] ?? "A1");
+
+  for (let row = dataStartRow - 1; row <= range.e.r; row++) {
+    const itemName = getCellString(sheet, row, 0); // Column A
+    const amount = getCellNumber(sheet, row, 1); // Column B
+    const dateValue = getCellDate(sheet, row, 2, year, month); // Column C
+    const categoryName = getCellString(sheet, row, 3); // Column D
+
+    // Skip rows with no item name or zero/empty amount
+    if (!itemName || !amount || amount <= 0) continue;
+
+    const resolvedCategory = categoryName && categories.includes(categoryName)
+      ? categoryName
+      : FALLBACK_CATEGORY;
+
+    expenses.push({
+      itemName,
+      amount: Math.round(amount * 100) / 100,
+      categoryName: resolvedCategory,
+      vendor: undefined,
+      expenseDate: dateValue,
+      comment: undefined,
     });
   }
 

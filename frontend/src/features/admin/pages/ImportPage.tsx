@@ -9,22 +9,36 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { importData } from "@/api/import";
 import { parseExcelFile } from "../utils/parseExcel";
-import type { ParsedExcelData } from "../utils/parseExcel";
+import type { ImportFormat, ParsedExcelData } from "../utils/parseExcel";
 import type { ImportRequest } from "@shared/types/import";
 
 type ImportState = "idle" | "parsing" | "ready" | "importing" | "done";
+
+const FORMATS: ImportFormat[] = ["tomas", "ugne"];
 
 export function ImportPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [format, setFormat] = useState<ImportFormat>("tomas");
   const [state, setState] = useState<ImportState>("idle");
   const [parsedData, setParsedData] = useState<ParsedExcelData | null>(null);
   const [confirmText, setConfirmText] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const isConfirmed = confirmText === "DELETE";
+
+  function handleFormatChange(newFormat: ImportFormat) {
+    setFormat(newFormat);
+    setParsedData(null);
+    setConfirmText("");
+    setError(null);
+    setState("idle");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }
 
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -37,7 +51,7 @@ export function ImportPage() {
 
     try {
       const buffer = await file.arrayBuffer();
-      const data = parseExcelFile(buffer);
+      const data = parseExcelFile(buffer, format);
       setParsedData(data);
       setState("ready");
     } catch (err) {
@@ -103,6 +117,24 @@ export function ImportPage() {
           <CardTitle>{t("admin.importTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
+          {/* Format selector */}
+          <div className="flex flex-col gap-2">
+            <Label>{t("admin.formatLabel")}</Label>
+            <div className="flex gap-2">
+              {FORMATS.map((f) => (
+                <Button
+                  key={f}
+                  type="button"
+                  variant={format === f ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handleFormatChange(f)}
+                >
+                  {t(`admin.format_${f}`)}
+                </Button>
+              ))}
+            </div>
+          </div>
+
           {/* File input */}
           <div className="flex flex-col gap-2">
             <Label htmlFor="excel-file">{t("admin.selectFile")}</Label>

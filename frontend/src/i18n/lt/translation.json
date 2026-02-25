@@ -180,7 +180,10 @@
     "importButton": "Importuoti ir pakeisti visus duomenis",
     "importing": "Importuojama...",
     "importSuccess": "Importas baigtas: sukurta {{categories}} kategorijų, {{months}} mėnesių, {{expenses}} išlaidų, {{incomes}} pajamų.",
-    "parsingFile": "Analizuojamas failas..."
+    "parsingFile": "Analizuojamas failas...",
+    "formatLabel": "Importo formatas",
+    "format_tomas": "Tomas",
+    "format_ugne": "Ugnė"
   },
   "nav": {
     "months": "Mėnesiai",

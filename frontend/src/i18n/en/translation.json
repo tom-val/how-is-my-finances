@@ -180,7 +180,10 @@
     "importButton": "Import & Replace All Data",
     "importing": "Importing...",
     "importSuccess": "Import complete: {{categories}} categories, {{months}} months, {{expenses}} expenses, {{incomes}} incomes created.",
-    "parsingFile": "Parsing file..."
+    "parsingFile": "Parsing file...",
+    "formatLabel": "Import format",
+    "format_tomas": "Tomas",
+    "format_ugne": "Ugnė"
   },
   "nav": {
     "months": "Months",
