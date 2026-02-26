@@ -26,7 +26,7 @@ export function MonthCard({ month }: MonthCardProps) {
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>{t("months.remaining")}</span>
             <span
-              className={`font-medium ${month.remaining < 0 ? "text-destructive" : "text-foreground"}`}
+              className={`font-medium ${month.remaining < 0 ? "text-destructive" : "text-green-600 dark:text-green-400"}`}
             >
               {month.remaining.toFixed(2)} EUR
             </span>
