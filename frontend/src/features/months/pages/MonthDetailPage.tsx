@@ -93,7 +93,7 @@ export function MonthDetailPage() {
               {t("months.remaining")}
             </p>
             <p
-              className={`text-sm sm:text-lg font-bold ${month.remaining < 0 ? "text-destructive" : ""}`}
+              className={`text-sm sm:text-lg font-bold ${month.remaining < 0 ? "text-destructive" : "text-green-600 dark:text-green-400"}`}
             >
               {month.remaining.toFixed(2)} EUR
             </p>
