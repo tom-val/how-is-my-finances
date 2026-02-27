@@ -49,6 +49,18 @@ export function SettingsPage() {
     localStorage.setItem(AUTO_OPEN_KEY, String(checked));
   }
 
+  async function handleRefreshApp() {
+    if ("caches" in window) {
+      const names = await caches.keys();
+      await Promise.all(names.map((name) => caches.delete(name)));
+    }
+    if ("serviceWorker" in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((r) => r.unregister()));
+    }
+    window.location.reload();
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-bold">{t("settings.title")}</h1>
@@ -159,6 +171,15 @@ export function SettingsPage() {
           </CardContent>
         </Card>
       </Link>
+
+      {/* Refresh App */}
+      <Button
+        variant="outline"
+        className="w-full"
+        onClick={handleRefreshApp}
+      >
+        {t("settings.refreshApp")}
+      </Button>
     </div>
   );
 }

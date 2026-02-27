@@ -147,7 +147,8 @@
       "hiddenCount": "{{count}} paslėpti",
       "noVendors": "Pardavėjų nerasta. Pardavėjai sukuriami automatiškai pridedant išlaidas.",
       "saved": "Pardavėjo matomumas atnaujintas"
-    }
+    },
+    "refreshApp": "Atnaujinti programėlę"
   },
   "insights": {
     "title": "Apžvalga",

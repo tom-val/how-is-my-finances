@@ -147,7 +147,8 @@
       "hiddenCount": "{{count}} hidden",
       "noVendors": "No vendors found. Vendors are created automatically when you add expenses.",
       "saved": "Vendor visibility updated"
-    }
+    },
+    "refreshApp": "Refresh app"
   },
   "insights": {
     "title": "Insights",
