@@ -14,7 +14,7 @@ export function Header() {
   }
 
   return (
-    <header className="border-b bg-background">
+    <header className="border-b bg-background pt-[var(--safe-area-top)]">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
         <div className="flex items-center gap-6">
           <Link to="/" className="text-lg font-semibold">
