@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MoneyInput } from "@/components/shared/MoneyInput";
+import { parseDecimalInput } from "@/lib/format";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -37,7 +39,7 @@ export function EditIncomeDialog({
     e.preventDefault();
     setError(null);
 
-    const amountNum = parseFloat(amount);
+    const amountNum = parseDecimalInput(amount);
     if (isNaN(amountNum) || amountNum <= 0) {
       setError("Amount must be greater than zero");
       return;
@@ -82,16 +84,11 @@ export function EditIncomeDialog({
               <Label htmlFor="edit-income-amount">
                 {t("incomes.amount")}
               </Label>
-              <Input
+              <MoneyInput
                 id="edit-income-amount"
-                type="number"
-                inputMode="decimal"
-                step="0.01"
-                min="0.01"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={setAmount}
                 required
-                placeholder="0.00"
               />
             </div>
             <div className="flex flex-col gap-2">

@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MoneyInput } from "@/components/shared/MoneyInput";
+import { parseDecimalInput } from "@/lib/format";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -36,7 +37,7 @@ export function CreateMonthDialog() {
     e.preventDefault();
     setError(null);
 
-    const salaryNum = parseFloat(salary);
+    const salaryNum = parseDecimalInput(salary);
     if (isNaN(salaryNum) || salaryNum < 0) {
       setError("Salary must be a valid non-negative number");
       return;
@@ -102,16 +103,11 @@ export function CreateMonthDialog() {
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="salary">{t("months.salary")}</Label>
-            <Input
+            <MoneyInput
               id="salary"
-              type="number"
-              inputMode="decimal"
-              step="0.01"
-              min="0"
               value={salary}
-              onChange={(e) => setSalary(e.target.value)}
+              onChange={setSalary}
               required
-              placeholder="0.00"
             />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
