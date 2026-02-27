@@ -8,8 +8,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { XIcon } from "lucide-react";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetHeader,
   SheetTitle,
@@ -59,6 +61,7 @@ export function ResponsiveDialogContent({
     return (
       <SheetContent
         side="bottom"
+        showCloseButton={false}
         className={cn(
           "h-[100dvh] overflow-y-auto px-4 pb-8 pt-[env(safe-area-inset-top)]",
           className,
@@ -83,7 +86,15 @@ export function ResponsiveDialogHeader({
   const isMobile = useIsMobile();
 
   if (isMobile) {
-    return <SheetHeader className="px-0" {...props}>{children}</SheetHeader>;
+    return (
+      <SheetHeader className="flex-row items-center justify-between px-0" {...props}>
+        {children}
+        <SheetClose className="rounded-xs opacity-70 transition-opacity hover:opacity-100">
+          <XIcon className="size-4" />
+          <span className="sr-only">Close</span>
+        </SheetClose>
+      </SheetHeader>
+    );
   }
 
   return <DialogHeader {...props}>{children}</DialogHeader>;
