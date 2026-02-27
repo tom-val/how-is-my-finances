@@ -136,6 +136,9 @@
     "themeSystem": "System",
     "accentColour": "Accent Colour",
     "accentColourDescription": "Primary colour used across the interface",
+    "behaviour": "Behaviour",
+    "autoOpenCurrentMonth": "Auto-open current month",
+    "autoOpenCurrentMonthDescription": "Navigate to the current month when opening the app",
     "vendors": {
       "title": "Vendors",
       "description": "Hide vendors you no longer use. Hidden vendors won't appear in the dropdown when adding expenses.",

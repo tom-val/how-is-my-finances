@@ -136,6 +136,9 @@
     "themeSystem": "Sistemos",
     "accentColour": "Pagrindinė spalva",
     "accentColourDescription": "Pagrindinė spalva naudojama visoje sąsajoje",
+    "behaviour": "Elgsena",
+    "autoOpenCurrentMonth": "Automatiškai atidaryti esamą mėnesį",
+    "autoOpenCurrentMonthDescription": "Atidaryti einamojo mėnesio langą paleidus programėlę",
     "vendors": {
       "title": "Pardavėjai",
       "description": "Paslėpkite pardavėjus, kurių nebenaudojate. Paslėpti pardavėjai nebus rodomi išlaidų pridėjimo sąraše.",

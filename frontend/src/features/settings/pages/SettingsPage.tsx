@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -19,11 +20,16 @@ import { useProfile, useUpdateProfile } from "../hooks/useProfile";
 import { useAccentColour } from "../hooks/useAccentColour";
 import type { Profile } from "@shared/types/profile";
 
+const AUTO_OPEN_KEY = "auto-open-current-month";
+
 export function SettingsPage() {
   const { t, i18n } = useTranslation();
   const { theme, setTheme } = useTheme();
   const { accentColour, setAccentColour, presets } = useAccentColour();
   const { data: profile, isLoading, error } = useProfile();
+  const [autoOpen, setAutoOpen] = useState(
+    () => localStorage.getItem(AUTO_OPEN_KEY) === "true",
+  );
 
   if (isLoading) {
     return <p className="text-muted-foreground">{t("common.loading")}</p>;
@@ -36,6 +42,11 @@ export function SettingsPage() {
   // Sync i18n language to profile on first load
   if (profile.preferredLanguage !== i18n.language) {
     i18n.changeLanguage(profile.preferredLanguage);
+  }
+
+  function handleAutoOpenChange(checked: boolean) {
+    setAutoOpen(checked);
+    localStorage.setItem(AUTO_OPEN_KEY, String(checked));
   }
 
   return (
@@ -99,6 +110,32 @@ export function SettingsPage() {
                 </button>
               ))}
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Behaviour Section */}
+      <Card className="p-0">
+        <CardContent className="flex flex-col gap-5 px-4 py-4 sm:px-6 sm:py-5">
+          <h2 className="text-sm font-semibold">
+            {t("settings.behaviour")}
+          </h2>
+
+          {/* Auto-open current month */}
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col gap-0.5">
+              <Label htmlFor="auto-open-month">
+                {t("settings.autoOpenCurrentMonth")}
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                {t("settings.autoOpenCurrentMonthDescription")}
+              </p>
+            </div>
+            <Switch
+              id="auto-open-month"
+              checked={autoOpen}
+              onCheckedChange={handleAutoOpenChange}
+            />
           </div>
         </CardContent>
       </Card>

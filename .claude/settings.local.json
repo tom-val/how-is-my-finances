@@ -21,7 +21,8 @@
       "Bash(npm run test:*)",
       "Bash(lsof:*)",
       "Bash(xargs kill:*)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(npm run dev:*)"
     ]
   }
 }

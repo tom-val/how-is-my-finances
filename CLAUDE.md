@@ -20,7 +20,7 @@ Personal finance tracking app. Monorepo with separate frontend, backend, infra, 
 
 ### Frontend
 ```bash
-cd frontend && npm run dev          # Dev server at localhost:5173
+cd frontend && npm run dev          # Dev server at localhost:6173
 cd frontend && npm run build        # Production build
 cd frontend && npm run lint         # ESLint
 cd frontend && npm run typecheck    # TypeScript check

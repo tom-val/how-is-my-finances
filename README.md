@@ -67,7 +67,7 @@ cd frontend && npm run dev
 cd backend/src/HowAreMyFinances.Api && dotnet run
 ```
 
-The frontend runs at http://localhost:5173, the API at http://localhost:5000, and Supabase Studio at http://127.0.0.1:54323.
+The frontend runs at http://localhost:6173, the API at http://localhost:5000, and Supabase Studio at http://127.0.0.1:54323.
 
 ### Local Supabase
 
@@ -95,7 +95,7 @@ Edit the generated file, then run `supabase db reset` to apply it locally.
 ```bash
 cd frontend
 npm install
-npm run dev          # Dev server at http://localhost:5173
+npm run dev          # Dev server at http://localhost:6173
 npm run build        # Production build
 npm run typecheck    # TypeScript type checking
 npm run lint         # ESLint
