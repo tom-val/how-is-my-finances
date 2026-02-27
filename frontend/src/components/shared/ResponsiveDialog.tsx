@@ -60,7 +60,7 @@ export function ResponsiveDialogContent({
       <SheetContent
         side="bottom"
         className={cn(
-          "h-[100dvh] overflow-y-auto px-4 pb-8",
+          "h-[100dvh] overflow-y-auto px-4 pb-8 pt-[env(safe-area-inset-top)]",
           className,
         )}
       >
