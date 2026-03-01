@@ -13,7 +13,7 @@ module "supabase" {
   organization_id   = var.supabase_organization_id
   database_password = var.supabase_database_password
   region            = "eu-central-1"
-  site_url          = "https://${module.cloudfront.distribution_domain_name}"
+  site_url          = "https://finances.valiunas.dev"
   pooler_host       = "aws-1-eu-central-1.pooler.supabase.com"
 }
 
@@ -34,6 +34,8 @@ module "cloudfront" {
   project_name                   = local.project_name
   environment                    = local.environment
   s3_bucket_regional_domain_name = module.s3_frontend.bucket_regional_domain_name
+  aliases                        = ["finances.valiunas.dev"]
+  acm_certificate_arn            = "arn:aws:acm:us-east-1:054630617930:certificate/b65a278b-6ba4-4ed0-b5f4-87e0dd9e9210"
 }
 
 # --- S3 bucket policy (ties S3 and CloudFront together, breaks circular dep) ---
@@ -66,7 +68,7 @@ module "api_gateway" {
   project_name       = local.project_name
   environment        = local.environment
   lambda_invoke_arn  = module.lambda.invoke_arn
-  cors_allow_origins = ["https://${module.cloudfront.distribution_domain_name}"]
+  cors_allow_origins = ["https://${module.cloudfront.distribution_domain_name}", "https://finances.valiunas.dev"]
   authorizer_id      = module.lambda_authorizer.authorizer_id
 }
 
@@ -96,5 +98,5 @@ module "lambda" {
   supabase_service_key          = module.supabase.service_role_key
   supabase_db_connection_string = module.supabase.db_connection_string
   api_gateway_execution_arn     = module.api_gateway.execution_arn
-  cors_allowed_origins          = "https://${module.cloudfront.distribution_domain_name}"
+  cors_allowed_origins          = "https://${module.cloudfront.distribution_domain_name},https://finances.valiunas.dev"
 }

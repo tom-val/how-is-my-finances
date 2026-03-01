@@ -31,7 +31,7 @@ public sealed class RecurringExpenseRepository : IRecurringExpenseRepository
             FROM public.recurring_expenses r
             INNER JOIN public.categories c ON c.id = r.category_id
             WHERE r.user_id = @userId
-            ORDER BY r.is_active DESC, r.item_name
+            ORDER BY r.is_active DESC, r.day_of_month ASC, r.item_name
             """,
             connection);
 
