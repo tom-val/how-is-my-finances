@@ -13,6 +13,7 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from "@/components/shared/ResponsiveDialog";
+import { Switch } from "@/components/ui/switch";
 import { useCreateExpense, useVendors } from "../hooks/useExpenses";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { VendorCombobox } from "./VendorCombobox";
@@ -36,6 +37,7 @@ export function CreateExpenseDialog({ monthId }: CreateExpenseDialogProps) {
   );
   const [vendor, setVendor] = useState("");
   const [comment, setComment] = useState("");
+  const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function resetForm() {
@@ -45,6 +47,7 @@ export function CreateExpenseDialog({ monthId }: CreateExpenseDialogProps) {
     setExpenseDate(new Date().toISOString().split("T")[0]);
     setVendor("");
     setComment("");
+    setIsPending(false);
     setError(null);
   }
 
@@ -71,6 +74,7 @@ export function CreateExpenseDialog({ monthId }: CreateExpenseDialogProps) {
         expenseDate,
         vendor: vendor.trim() || undefined,
         comment: comment.trim() || undefined,
+        isCompleted: !isPending,
       });
       resetForm();
       setIsOpen(false);
@@ -157,6 +161,21 @@ export function CreateExpenseDialog({ monthId }: CreateExpenseDialogProps) {
               id="comment"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-col">
+              <Label htmlFor="expenseIsPending">
+                {t("expenses.pendingPayment")}
+              </Label>
+              <span className="text-xs text-muted-foreground">
+                {t("expenses.pendingPaymentDescription")}
+              </span>
+            </div>
+            <Switch
+              id="expenseIsPending"
+              checked={isPending}
+              onCheckedChange={setIsPending}
             />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}

@@ -25,7 +25,7 @@ public sealed class ExpenseRepository : IExpenseRepository
             SELECT
                 e.id, e.user_id, e.month_id, e.category_id,
                 e.item_name, e.amount, e.vendor, e.expense_date,
-                e.comment, e.is_recurring_instance,
+                e.comment, e.is_recurring_instance, e.is_completed,
                 c.name AS category_name, c.icon AS category_icon,
                 e.created_at, e.updated_at
             FROM public.expenses e
@@ -57,14 +57,14 @@ public sealed class ExpenseRepository : IExpenseRepository
         await using var command = new NpgsqlCommand(
             """
             WITH inserted AS (
-                INSERT INTO public.expenses (user_id, month_id, category_id, item_name, amount, vendor, expense_date, comment)
-                VALUES (@userId, @monthId, @categoryId, @itemName, @amount, @vendor, @expenseDate, @comment)
+                INSERT INTO public.expenses (user_id, month_id, category_id, item_name, amount, vendor, expense_date, comment, is_completed)
+                VALUES (@userId, @monthId, @categoryId, @itemName, @amount, @vendor, @expenseDate, @comment, @isCompleted)
                 RETURNING *
             )
             SELECT
                 i.id, i.user_id, i.month_id, i.category_id,
                 i.item_name, i.amount, i.vendor, i.expense_date,
-                i.comment, i.is_recurring_instance,
+                i.comment, i.is_recurring_instance, i.is_completed,
                 c.name AS category_name, c.icon AS category_icon,
                 i.created_at, i.updated_at
             FROM inserted i
@@ -80,6 +80,7 @@ public sealed class ExpenseRepository : IExpenseRepository
         command.Parameters.AddWithValue("vendor", (object?)request.Vendor ?? DBNull.Value);
         command.Parameters.AddWithValue("expenseDate", request.ExpenseDate);
         command.Parameters.AddWithValue("comment", (object?)request.Comment ?? DBNull.Value);
+        command.Parameters.AddWithValue("isCompleted", request.IsCompleted);
 
         await using var reader = await command.ExecuteReaderAsync();
         await reader.ReadAsync();
@@ -150,7 +151,7 @@ public sealed class ExpenseRepository : IExpenseRepository
             SELECT
                 u.id, u.user_id, u.month_id, u.category_id,
                 u.item_name, u.amount, u.vendor, u.expense_date,
-                u.comment, u.is_recurring_instance,
+                u.comment, u.is_recurring_instance, u.is_completed,
                 c.name AS category_name, c.icon AS category_icon,
                 u.created_at, u.updated_at
             FROM updated u
@@ -196,8 +197,8 @@ public sealed class ExpenseRepository : IExpenseRepository
 
         await using var command = new NpgsqlCommand(
             """
-            INSERT INTO public.expenses (user_id, month_id, category_id, item_name, amount, vendor, expense_date, comment, is_recurring_instance, recurring_expense_id)
-            VALUES (@userId, @monthId, @categoryId, @itemName, @amount, @vendor, @expenseDate, @comment, true, @recurringExpenseId)
+            INSERT INTO public.expenses (user_id, month_id, category_id, item_name, amount, vendor, expense_date, comment, is_recurring_instance, recurring_expense_id, is_completed)
+            VALUES (@userId, @monthId, @categoryId, @itemName, @amount, @vendor, @expenseDate, @comment, true, @recurringExpenseId, @isCompleted)
             """,
             connection);
 
@@ -210,8 +211,46 @@ public sealed class ExpenseRepository : IExpenseRepository
         command.Parameters.AddWithValue("expenseDate", expenseDate);
         command.Parameters.AddWithValue("comment", (object?)template.Comment ?? DBNull.Value);
         command.Parameters.AddWithValue("recurringExpenseId", template.Id);
+        command.Parameters.AddWithValue("isCompleted", !template.IsManual);
 
         await command.ExecuteNonQueryAsync();
+    }
+
+    public async Task<ExpenseWithCategory?> ToggleCompleteAsync(Guid userId, Guid expenseId)
+    {
+        await using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        await using var command = new NpgsqlCommand(
+            """
+            WITH toggled AS (
+                UPDATE public.expenses
+                SET is_completed = NOT is_completed
+                WHERE id = @expenseId AND user_id = @userId
+                RETURNING *
+            )
+            SELECT
+                t.id, t.user_id, t.month_id, t.category_id,
+                t.item_name, t.amount, t.vendor, t.expense_date,
+                t.comment, t.is_recurring_instance, t.is_completed,
+                c.name AS category_name, c.icon AS category_icon,
+                t.created_at, t.updated_at
+            FROM toggled t
+            INNER JOIN public.categories c ON c.id = t.category_id
+            """,
+            connection);
+
+        command.Parameters.AddWithValue("expenseId", expenseId);
+        command.Parameters.AddWithValue("userId", userId);
+
+        await using var reader = await command.ExecuteReaderAsync();
+
+        if (!await reader.ReadAsync())
+        {
+            return null;
+        }
+
+        return ReadExpenseWithCategory(reader);
     }
 
     private static async Task<ExpenseWithCategory?> GetByIdAsync(NpgsqlConnection connection, Guid userId, Guid expenseId)
@@ -221,7 +260,7 @@ public sealed class ExpenseRepository : IExpenseRepository
             SELECT
                 e.id, e.user_id, e.month_id, e.category_id,
                 e.item_name, e.amount, e.vendor, e.expense_date,
-                e.comment, e.is_recurring_instance,
+                e.comment, e.is_recurring_instance, e.is_completed,
                 c.name AS category_name, c.icon AS category_icon,
                 e.created_at, e.updated_at
             FROM public.expenses e
@@ -256,10 +295,11 @@ public sealed class ExpenseRepository : IExpenseRepository
             ExpenseDate: reader.GetFieldValue<DateOnly>(7),
             Comment: reader.IsDBNull(8) ? null : reader.GetString(8),
             IsRecurringInstance: reader.GetBoolean(9),
-            CategoryName: reader.GetString(10),
-            CategoryIcon: reader.IsDBNull(11) ? null : reader.GetString(11),
-            CreatedAt: reader.GetDateTime(12),
-            UpdatedAt: reader.GetDateTime(13)
+            IsCompleted: reader.GetBoolean(10),
+            CategoryName: reader.GetString(11),
+            CategoryIcon: reader.IsDBNull(12) ? null : reader.GetString(12),
+            CreatedAt: reader.GetDateTime(13),
+            UpdatedAt: reader.GetDateTime(14)
         );
     }
 }

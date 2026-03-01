@@ -13,6 +13,7 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from "@/components/shared/ResponsiveDialog";
+import { Switch } from "@/components/ui/switch";
 import { useCreateRecurringExpense } from "../hooks/useRecurringExpenses";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { CategoryCombobox } from "@/features/expenses/components/CategoryCombobox";
@@ -31,6 +32,7 @@ export function CreateRecurringExpenseDialog() {
   const [dayOfMonth, setDayOfMonth] = useState("1");
   const [vendor, setVendor] = useState("");
   const [comment, setComment] = useState("");
+  const [isManual, setIsManual] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function resetForm() {
@@ -40,6 +42,7 @@ export function CreateRecurringExpenseDialog() {
     setDayOfMonth("1");
     setVendor("");
     setComment("");
+    setIsManual(false);
     setError(null);
   }
 
@@ -72,6 +75,7 @@ export function CreateRecurringExpenseDialog() {
         dayOfMonth: dayNum,
         vendor: vendor.trim() || undefined,
         comment: comment.trim() || undefined,
+        isManual,
       });
       resetForm();
       setIsOpen(false);
@@ -159,6 +163,21 @@ export function CreateRecurringExpenseDialog() {
               id="recurringComment"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-col">
+              <Label htmlFor="recurringIsManual">
+                {t("recurring.isManual")}
+              </Label>
+              <span className="text-xs text-muted-foreground">
+                {t("recurring.isManualDescription")}
+              </span>
+            </div>
+            <Switch
+              id="recurringIsManual"
+              checked={isManual}
+              onCheckedChange={setIsManual}
             />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}

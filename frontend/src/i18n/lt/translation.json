@@ -69,7 +69,11 @@
     "viewCompact": "Kompaktiškas vaizdas",
     "searchCategory": "Ieškoti kategorijos...",
     "noCategoriesFound": "Kategorijų nerasta.",
-    "noVendorsFound": "Tiekėjų nerasta."
+    "noVendorsFound": "Tiekėjų nerasta.",
+    "pendingPayment": "Laukiantis mokėjimas",
+    "pendingPaymentDescription": "Mokėjimas dar neatliktas",
+    "markAsCompleted": "Pažymėti kaip apmokėtą",
+    "markAsIncomplete": "Pažymėti kaip neapmokėtą"
   },
   "incomes": {
     "title": "Pajamos",
@@ -103,7 +107,9 @@
     "monthlyTotal": "Mėnesio suma",
     "amountRequired": "Suma turi būti didesnė nei nulis",
     "categoryRequired": "Kategorija privaloma",
-    "recurringTotal": "Pasikartojančios"
+    "recurringTotal": "Pasikartojančios",
+    "isManual": "Rankinis mokėjimas",
+    "isManualDescription": "Pažymėti kaip atliktą rankiniu būdu"
   },
   "categories": {
     "title": "Kategorijos",

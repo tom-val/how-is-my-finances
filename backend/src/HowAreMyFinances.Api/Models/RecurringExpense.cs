@@ -10,6 +10,7 @@ public sealed record RecurringExpense(
     string? Comment,
     int DayOfMonth,
     bool IsActive,
+    bool IsManual,
     DateTime CreatedAt,
     DateTime UpdatedAt
 );
@@ -24,6 +25,7 @@ public sealed record RecurringExpenseWithCategory(
     string? Comment,
     int DayOfMonth,
     bool IsActive,
+    bool IsManual,
     string CategoryName,
     string? CategoryIcon,
     DateTime CreatedAt,
@@ -36,7 +38,8 @@ public sealed record CreateRecurringExpenseRequest(
     Guid CategoryId,
     string? Vendor,
     string? Comment,
-    int DayOfMonth
+    int DayOfMonth,
+    bool IsManual = false
 );
 
 public sealed record UpdateRecurringExpenseRequest(
@@ -46,5 +49,6 @@ public sealed record UpdateRecurringExpenseRequest(
     string? Vendor,
     string? Comment,
     int? DayOfMonth,
-    bool? IsActive
+    bool? IsActive,
+    bool? IsManual
 );

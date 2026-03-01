@@ -69,7 +69,11 @@
     "viewCompact": "Compact view",
     "searchCategory": "Search category...",
     "noCategoriesFound": "No categories found.",
-    "noVendorsFound": "No matching vendors."
+    "noVendorsFound": "No matching vendors.",
+    "pendingPayment": "Pending payment",
+    "pendingPaymentDescription": "Payment has not been made yet",
+    "markAsCompleted": "Mark as paid",
+    "markAsIncomplete": "Mark as unpaid"
   },
   "incomes": {
     "title": "Income",
@@ -103,7 +107,9 @@
     "monthlyTotal": "Monthly total",
     "amountRequired": "Amount must be greater than zero",
     "categoryRequired": "Category is required",
-    "recurringTotal": "Recurring"
+    "recurringTotal": "Recurring",
+    "isManual": "Manual payment",
+    "isManualDescription": "Mark as completed manually instead of automatically"
   },
   "categories": {
     "title": "Categories",

@@ -41,6 +41,7 @@ public class RecurringExpenseFunctionsTests
             Comment: null,
             DayOfMonth: 1,
             IsActive: true,
+            IsManual: false,
             CategoryName: "Housing",
             CategoryIcon: null,
             CreatedAt: DateTime.UtcNow,
@@ -134,7 +135,7 @@ public class RecurringExpenseFunctionsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new UpdateRecurringExpenseRequest("New Name", null, null, null, null, null, null);
+        var request = new UpdateRecurringExpenseRequest("New Name", null, null, null, null, null, null, null);
         var updated = CreateTestRecurringExpense(_userId, id);
         _recurringExpenseRepository.UpdateAsync(_userId, id, Arg.Any<UpdateRecurringExpenseRequest>()).Returns(updated);
 
@@ -151,7 +152,7 @@ public class RecurringExpenseFunctionsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new UpdateRecurringExpenseRequest("New Name", null, null, null, null, null, null);
+        var request = new UpdateRecurringExpenseRequest("New Name", null, null, null, null, null, null, null);
         _recurringExpenseRepository.UpdateAsync(_userId, id, Arg.Any<UpdateRecurringExpenseRequest>()).Returns((RecurringExpenseWithCategory?)null);
 
         // Act
@@ -166,7 +167,7 @@ public class RecurringExpenseFunctionsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new UpdateRecurringExpenseRequest(null, -5m, null, null, null, null, null);
+        var request = new UpdateRecurringExpenseRequest(null, -5m, null, null, null, null, null, null);
 
         // Act
         var result = await RecurringExpenseFunctions.Update(CreateContext(), id, request, _recurringExpenseRepository, _vendorRepository);

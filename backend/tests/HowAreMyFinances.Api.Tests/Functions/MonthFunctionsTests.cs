@@ -137,8 +137,8 @@ public class MonthFunctionsTests
 
         var templates = new List<RecurringExpense>
         {
-            new(Guid.NewGuid(), _userId, Guid.NewGuid(), "Rent", 500m, null, null, 1, true, DateTime.UtcNow, DateTime.UtcNow),
-            new(Guid.NewGuid(), _userId, Guid.NewGuid(), "Internet", 30m, "ISP", null, 15, true, DateTime.UtcNow, DateTime.UtcNow)
+            new(Guid.NewGuid(), _userId, Guid.NewGuid(), "Rent", 500m, null, null, 1, true, false, DateTime.UtcNow, DateTime.UtcNow),
+            new(Guid.NewGuid(), _userId, Guid.NewGuid(), "Internet", 30m, "ISP", null, 15, true, false, DateTime.UtcNow, DateTime.UtcNow)
         };
         _recurringExpenseRepository.GetActiveAsync(_userId).Returns(templates);
 

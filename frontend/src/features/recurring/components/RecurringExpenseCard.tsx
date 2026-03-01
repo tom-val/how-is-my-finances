@@ -48,6 +48,14 @@ export function RecurringExpenseCard({
               <span>
                 {t("recurring.dayOfMonth")} {recurringExpense.dayOfMonth}
               </span>
+              {recurringExpense.isManual && (
+                <>
+                  <span>·</span>
+                  <span className="rounded bg-orange-100 px-1 py-0.5 text-[10px] font-medium text-orange-700 dark:bg-orange-950 dark:text-orange-300">
+                    {t("recurring.isManual")}
+                  </span>
+                </>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-1 shrink-0">

@@ -3,6 +3,7 @@ import {
   getExpenses,
   createExpense,
   updateExpense,
+  toggleExpenseComplete,
   deleteExpense,
 } from "@/api/expenses";
 import { getVisibleVendors } from "@/api/vendors";
@@ -54,6 +55,17 @@ export function useUpdateExpense(monthId: string) {
       queryClient.invalidateQueries({ queryKey: ["months", monthId] });
       queryClient.invalidateQueries({ queryKey: ["visibleVendors"] });
       queryClient.invalidateQueries({ queryKey: ["vendors"] });
+    },
+  });
+}
+
+export function useToggleExpenseComplete(monthId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => toggleExpenseComplete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["expenses", monthId] });
+      queryClient.invalidateQueries({ queryKey: ["months", monthId] });
     },
   });
 }

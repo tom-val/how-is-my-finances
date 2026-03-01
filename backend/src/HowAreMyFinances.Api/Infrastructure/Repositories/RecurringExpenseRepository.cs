@@ -25,7 +25,7 @@ public sealed class RecurringExpenseRepository : IRecurringExpenseRepository
             SELECT
                 r.id, r.user_id, r.category_id,
                 r.item_name, r.amount, r.vendor, r.comment,
-                r.day_of_month, r.is_active,
+                r.day_of_month, r.is_active, r.is_manual,
                 c.name AS category_name, c.icon AS category_icon,
                 r.created_at, r.updated_at
             FROM public.recurring_expenses r
@@ -56,14 +56,14 @@ public sealed class RecurringExpenseRepository : IRecurringExpenseRepository
         await using var command = new NpgsqlCommand(
             """
             WITH inserted AS (
-                INSERT INTO public.recurring_expenses (user_id, category_id, item_name, amount, vendor, comment, day_of_month)
-                VALUES (@userId, @categoryId, @itemName, @amount, @vendor, @comment, @dayOfMonth)
+                INSERT INTO public.recurring_expenses (user_id, category_id, item_name, amount, vendor, comment, day_of_month, is_manual)
+                VALUES (@userId, @categoryId, @itemName, @amount, @vendor, @comment, @dayOfMonth, @isManual)
                 RETURNING *
             )
             SELECT
                 i.id, i.user_id, i.category_id,
                 i.item_name, i.amount, i.vendor, i.comment,
-                i.day_of_month, i.is_active,
+                i.day_of_month, i.is_active, i.is_manual,
                 c.name AS category_name, c.icon AS category_icon,
                 i.created_at, i.updated_at
             FROM inserted i
@@ -78,6 +78,7 @@ public sealed class RecurringExpenseRepository : IRecurringExpenseRepository
         command.Parameters.AddWithValue("vendor", (object?)request.Vendor ?? DBNull.Value);
         command.Parameters.AddWithValue("comment", (object?)request.Comment ?? DBNull.Value);
         command.Parameters.AddWithValue("dayOfMonth", request.DayOfMonth);
+        command.Parameters.AddWithValue("isManual", request.IsManual);
 
         await using var reader = await command.ExecuteReaderAsync();
         await reader.ReadAsync();
@@ -139,6 +140,12 @@ public sealed class RecurringExpenseRepository : IRecurringExpenseRepository
             parameters.Add(new NpgsqlParameter("isActive", request.IsActive.Value));
         }
 
+        if (request.IsManual.HasValue)
+        {
+            setClauses.Add("is_manual = @isManual");
+            parameters.Add(new NpgsqlParameter("isManual", request.IsManual.Value));
+        }
+
         if (setClauses.Count == 0)
         {
             return await GetByIdAsync(connection, userId, id);
@@ -154,7 +161,7 @@ public sealed class RecurringExpenseRepository : IRecurringExpenseRepository
             SELECT
                 u.id, u.user_id, u.category_id,
                 u.item_name, u.amount, u.vendor, u.comment,
-                u.day_of_month, u.is_active,
+                u.day_of_month, u.is_active, u.is_manual,
                 c.name AS category_name, c.icon AS category_icon,
                 u.created_at, u.updated_at
             FROM updated u
@@ -203,7 +210,7 @@ public sealed class RecurringExpenseRepository : IRecurringExpenseRepository
             SELECT
                 id, user_id, category_id,
                 item_name, amount, vendor, comment,
-                day_of_month, is_active,
+                day_of_month, is_active, is_manual,
                 created_at, updated_at
             FROM public.recurring_expenses
             WHERE user_id = @userId AND is_active = true
@@ -231,7 +238,7 @@ public sealed class RecurringExpenseRepository : IRecurringExpenseRepository
             SELECT
                 r.id, r.user_id, r.category_id,
                 r.item_name, r.amount, r.vendor, r.comment,
-                r.day_of_month, r.is_active,
+                r.day_of_month, r.is_active, r.is_manual,
                 c.name AS category_name, c.icon AS category_icon,
                 r.created_at, r.updated_at
             FROM public.recurring_expenses r
@@ -265,10 +272,11 @@ public sealed class RecurringExpenseRepository : IRecurringExpenseRepository
             Comment: reader.IsDBNull(6) ? null : reader.GetString(6),
             DayOfMonth: reader.GetInt32(7),
             IsActive: reader.GetBoolean(8),
-            CategoryName: reader.GetString(9),
-            CategoryIcon: reader.IsDBNull(10) ? null : reader.GetString(10),
-            CreatedAt: reader.GetDateTime(11),
-            UpdatedAt: reader.GetDateTime(12)
+            IsManual: reader.GetBoolean(9),
+            CategoryName: reader.GetString(10),
+            CategoryIcon: reader.IsDBNull(11) ? null : reader.GetString(11),
+            CreatedAt: reader.GetDateTime(12),
+            UpdatedAt: reader.GetDateTime(13)
         );
     }
 
@@ -284,8 +292,9 @@ public sealed class RecurringExpenseRepository : IRecurringExpenseRepository
             Comment: reader.IsDBNull(6) ? null : reader.GetString(6),
             DayOfMonth: reader.GetInt32(7),
             IsActive: reader.GetBoolean(8),
-            CreatedAt: reader.GetDateTime(9),
-            UpdatedAt: reader.GetDateTime(10)
+            IsManual: reader.GetBoolean(9),
+            CreatedAt: reader.GetDateTime(10),
+            UpdatedAt: reader.GetDateTime(11)
         );
     }
 }

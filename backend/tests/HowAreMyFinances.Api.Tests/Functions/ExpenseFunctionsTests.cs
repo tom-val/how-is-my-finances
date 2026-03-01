@@ -41,6 +41,7 @@ public class ExpenseFunctionsTests
             ExpenseDate: new DateOnly(2026, 2, 19),
             Comment: null,
             IsRecurringInstance: false,
+            IsCompleted: true,
             CategoryName: "Food",
             CategoryIcon: null,
             CreatedAt: DateTime.UtcNow,
@@ -214,6 +215,36 @@ public class ExpenseFunctionsTests
 
         // Act
         var result = await ExpenseFunctions.Delete(CreateContext(), expenseId, _expenseRepository);
+
+        // Assert
+        Assert.Equal(404, GetStatusCode(result));
+    }
+
+    [Fact]
+    public async Task ToggleComplete_WhenExists_ReturnsUpdated()
+    {
+        // Arrange
+        var expenseId = Guid.NewGuid();
+        var toggled = CreateTestExpense(_userId, Guid.NewGuid(), expenseId);
+        _expenseRepository.ToggleCompleteAsync(_userId, expenseId).Returns(toggled);
+
+        // Act
+        var result = await ExpenseFunctions.ToggleComplete(CreateContext(), expenseId, _expenseRepository);
+
+        // Assert
+        var okResult = Assert.IsType<Ok<ExpenseWithCategory>>(result);
+        Assert.Equal(expenseId, okResult.Value!.Id);
+    }
+
+    [Fact]
+    public async Task ToggleComplete_WhenNotFound_ReturnsNotFound()
+    {
+        // Arrange
+        var expenseId = Guid.NewGuid();
+        _expenseRepository.ToggleCompleteAsync(_userId, expenseId).Returns((ExpenseWithCategory?)null);
+
+        // Act
+        var result = await ExpenseFunctions.ToggleComplete(CreateContext(), expenseId, _expenseRepository);
 
         // Assert
         Assert.Equal(404, GetStatusCode(result));

@@ -8,6 +8,7 @@ export interface Expense {
   expenseDate: string;
   comment: string | null;
   isRecurringInstance: boolean;
+  isCompleted: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -24,6 +25,7 @@ export interface CreateExpenseRequest {
   vendor?: string;
   expenseDate: string;
   comment?: string;
+  isCompleted?: boolean;
 }
 
 export interface UpdateExpenseRequest {

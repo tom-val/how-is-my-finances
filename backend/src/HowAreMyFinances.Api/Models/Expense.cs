@@ -11,6 +11,7 @@ public sealed record Expense(
     DateOnly ExpenseDate,
     string? Comment,
     bool IsRecurringInstance,
+    bool IsCompleted,
     DateTime CreatedAt,
     DateTime UpdatedAt
 );
@@ -26,6 +27,7 @@ public sealed record ExpenseWithCategory(
     DateOnly ExpenseDate,
     string? Comment,
     bool IsRecurringInstance,
+    bool IsCompleted,
     string CategoryName,
     string? CategoryIcon,
     DateTime CreatedAt,
@@ -38,7 +40,8 @@ public sealed record CreateExpenseRequest(
     Guid CategoryId,
     string? Vendor,
     DateOnly ExpenseDate,
-    string? Comment
+    string? Comment,
+    bool IsCompleted = true
 );
 
 public sealed record UpdateExpenseRequest(

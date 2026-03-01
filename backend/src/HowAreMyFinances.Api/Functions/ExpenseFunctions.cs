@@ -89,4 +89,14 @@ public static class ExpenseFunctions
             ? Results.NoContent()
             : Results.NotFound(new { error = "Expense not found" });
     }
+
+    public static async Task<IResult> ToggleComplete(HttpContext context, Guid id, IExpenseRepository expenseRepository)
+    {
+        var userId = context.GetUserId();
+        var expense = await expenseRepository.ToggleCompleteAsync(userId, id);
+
+        return expense is null
+            ? Results.NotFound(new { error = "Expense not found" })
+            : Results.Ok(expense);
+    }
 }

@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pencil, Trash2 } from "lucide-react";
+import { Circle, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { ExpenseWithCategory } from "@shared/types/expense";
 import { EditExpenseDialog } from "./EditExpenseDialog";
 import { DeleteExpenseDialog } from "./DeleteExpenseDialog";
+import { useToggleExpenseComplete } from "../hooks/useExpenses";
 
 interface ExpenseCardProps {
   expense: ExpenseWithCategory;
@@ -20,10 +21,16 @@ function isPlannedExpense(expenseDate: string): boolean {
 
 export function ExpenseCard({ expense, monthId, compact = false }: ExpenseCardProps) {
   const { t } = useTranslation();
+  const toggleComplete = useToggleExpenseComplete(monthId);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   const isPlanned = isPlannedExpense(expense.expenseDate);
+  const isIncomplete = !expense.isCompleted;
+
+  function handleToggleComplete() {
+    toggleComplete.mutate(expense.id);
+  }
 
   if (compact) {
     return (
@@ -32,8 +39,20 @@ export function ExpenseCard({ expense, monthId, compact = false }: ExpenseCardPr
           className={cn(
             "flex items-center gap-3 rounded-md border px-3 py-1.5 text-sm hover:bg-muted/50",
             isPlanned && "opacity-60",
+            isIncomplete && "border-dashed border-orange-300 dark:border-orange-700",
           )}
         >
+          {isIncomplete && (
+            <button
+              type="button"
+              onClick={handleToggleComplete}
+              disabled={toggleComplete.isPending}
+              className="shrink-0 text-orange-500 hover:text-green-600 transition-colors"
+              aria-label={t("expenses.markAsCompleted")}
+            >
+              <Circle className="h-4 w-4" />
+            </button>
+          )}
           <span className="font-medium truncate min-w-0 shrink">{expense.itemName}</span>
           <span className="text-xs text-muted-foreground shrink-0">
             {expense.categoryName}
@@ -96,8 +115,24 @@ export function ExpenseCard({ expense, monthId, compact = false }: ExpenseCardPr
 
   return (
     <>
-      <Card className={cn(isPlanned && "opacity-60")}>
+      <Card
+        className={cn(
+          isPlanned && "opacity-60",
+          isIncomplete && "border-dashed border-orange-300 dark:border-orange-700",
+        )}
+      >
         <CardContent className="flex items-center justify-between gap-4 py-3">
+          {isIncomplete && (
+            <button
+              type="button"
+              onClick={handleToggleComplete}
+              disabled={toggleComplete.isPending}
+              className="shrink-0 text-orange-500 hover:text-green-600 transition-colors min-h-11 min-w-11 md:min-h-0 md:min-w-0 flex items-center justify-center"
+              aria-label={t("expenses.markAsCompleted")}
+            >
+              <Circle className="h-5 w-5" />
+            </button>
+          )}
           <div className="flex flex-col gap-0.5 min-w-0">
             <div className="flex items-center gap-2">
               <span className="font-medium truncate">{expense.itemName}</span>
@@ -110,6 +145,11 @@ export function ExpenseCard({ expense, monthId, compact = false }: ExpenseCardPr
               {isPlanned && (
                 <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium">
                   {t("months.plannedSpent")}
+                </span>
+              )}
+              {isIncomplete && (
+                <span className="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-medium text-orange-700 dark:bg-orange-950 dark:text-orange-300">
+                  {t("expenses.pendingPayment")}
                 </span>
               )}
               {expense.vendor && (

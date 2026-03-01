@@ -7,6 +7,7 @@ export interface RecurringExpense {
   comment: string | null;
   dayOfMonth: number;
   isActive: boolean;
+  isManual: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -23,6 +24,7 @@ export interface CreateRecurringExpenseRequest {
   vendor?: string;
   comment?: string;
   dayOfMonth: number;
+  isManual?: boolean;
 }
 
 export interface UpdateRecurringExpenseRequest {
@@ -33,4 +35,5 @@ export interface UpdateRecurringExpenseRequest {
   comment?: string;
   dayOfMonth?: number;
   isActive?: boolean;
+  isManual?: boolean;
 }

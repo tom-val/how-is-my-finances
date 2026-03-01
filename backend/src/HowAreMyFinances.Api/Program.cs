@@ -71,6 +71,7 @@ app.MapDelete("/v1/months/{id:guid}", MonthFunctions.Delete);
 app.MapGet("/v1/months/{monthId:guid}/expenses", ExpenseFunctions.GetAll);
 app.MapPost("/v1/months/{monthId:guid}/expenses", ExpenseFunctions.Create);
 app.MapPut("/v1/expenses/{id:guid}", ExpenseFunctions.Update);
+app.MapPatch("/v1/expenses/{id:guid}/toggle-complete", ExpenseFunctions.ToggleComplete);
 app.MapDelete("/v1/expenses/{id:guid}", ExpenseFunctions.Delete);
 
 // Vendor endpoints

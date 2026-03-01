@@ -11,6 +11,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@/components/shared/ResponsiveDialog";
+import { Switch } from "@/components/ui/switch";
 import { useUpdateRecurringExpense } from "../hooks/useRecurringExpenses";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { CategoryCombobox } from "@/features/expenses/components/CategoryCombobox";
@@ -41,6 +42,7 @@ export function EditRecurringExpenseDialog({
   );
   const [vendor, setVendor] = useState(recurringExpense.vendor ?? "");
   const [comment, setComment] = useState(recurringExpense.comment ?? "");
+  const [isManual, setIsManual] = useState(recurringExpense.isManual);
   const [error, setError] = useState<string | null>(null);
 
   const activeCategories = useMemo(
@@ -82,6 +84,7 @@ export function EditRecurringExpenseDialog({
           dayOfMonth: dayNum,
           vendor: vendor.trim() || undefined,
           comment: comment.trim() || undefined,
+          isManual,
         },
       });
       onOpenChange(false);
@@ -163,6 +166,21 @@ export function EditRecurringExpenseDialog({
               id="edit-recurringComment"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-col">
+              <Label htmlFor="edit-recurringIsManual">
+                {t("recurring.isManual")}
+              </Label>
+              <span className="text-xs text-muted-foreground">
+                {t("recurring.isManualDescription")}
+              </span>
+            </div>
+            <Switch
+              id="edit-recurringIsManual"
+              checked={isManual}
+              onCheckedChange={setIsManual}
             />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
