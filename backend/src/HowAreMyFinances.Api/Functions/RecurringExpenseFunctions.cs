@@ -35,7 +35,8 @@ public static class RecurringExpenseFunctions
             var created = await recurringExpenseRepository.CreateAsync(userId,
                 new CreateRecurringExpenseRequest(
                     entity.ItemName, request.Amount, request.CategoryId,
-                    request.Vendor, request.Comment, request.DayOfMonth));
+                    request.Vendor, request.Comment, request.DayOfMonth,
+                    request.IsManual));
             await vendorRepository.EnsureExistsAsync(userId, request.Vendor);
             return Results.Created($"/v1/recurring-expenses/{created.Id}", created);
         }
