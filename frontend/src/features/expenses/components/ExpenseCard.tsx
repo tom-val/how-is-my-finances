@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Circle, Pencil, Trash2 } from "lucide-react";
+import { Circle, CheckCircle2, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -42,17 +42,24 @@ export function ExpenseCard({ expense, monthId, compact = false }: ExpenseCardPr
             isIncomplete && "border-dashed border-orange-300 dark:border-orange-700",
           )}
         >
-          {isIncomplete && (
-            <button
-              type="button"
-              onClick={handleToggleComplete}
-              disabled={toggleComplete.isPending}
-              className="shrink-0 text-orange-500 hover:text-green-600 transition-colors"
-              aria-label={t("expenses.markAsCompleted")}
-            >
+          <button
+            type="button"
+            onClick={handleToggleComplete}
+            disabled={toggleComplete.isPending}
+            className={cn(
+              "shrink-0 transition-colors",
+              isIncomplete
+                ? "text-orange-500 hover:text-green-600"
+                : "text-green-600 hover:text-orange-500",
+            )}
+            aria-label={isIncomplete ? t("expenses.markAsCompleted") : t("expenses.markAsIncomplete")}
+          >
+            {isIncomplete ? (
               <Circle className="h-4 w-4" />
-            </button>
-          )}
+            ) : (
+              <CheckCircle2 className="h-4 w-4" />
+            )}
+          </button>
           <span className="font-medium truncate min-w-0 shrink">{expense.itemName}</span>
           <span className="text-xs text-muted-foreground shrink-0">
             {expense.categoryName}
@@ -122,17 +129,24 @@ export function ExpenseCard({ expense, monthId, compact = false }: ExpenseCardPr
         )}
       >
         <CardContent className="flex items-center justify-between gap-4 py-3">
-          {isIncomplete && (
-            <button
-              type="button"
-              onClick={handleToggleComplete}
-              disabled={toggleComplete.isPending}
-              className="shrink-0 text-orange-500 hover:text-green-600 transition-colors min-h-11 min-w-11 md:min-h-0 md:min-w-0 flex items-center justify-center"
-              aria-label={t("expenses.markAsCompleted")}
-            >
+          <button
+            type="button"
+            onClick={handleToggleComplete}
+            disabled={toggleComplete.isPending}
+            className={cn(
+              "shrink-0 transition-colors min-h-11 min-w-11 md:min-h-0 md:min-w-0 flex items-center justify-center",
+              isIncomplete
+                ? "text-orange-500 hover:text-green-600"
+                : "text-green-600 hover:text-orange-500",
+            )}
+            aria-label={isIncomplete ? t("expenses.markAsCompleted") : t("expenses.markAsIncomplete")}
+          >
+            {isIncomplete ? (
               <Circle className="h-5 w-5" />
-            </button>
-          )}
+            ) : (
+              <CheckCircle2 className="h-5 w-5" />
+            )}
+          </button>
           <div className="flex flex-col gap-0.5 min-w-0">
             <div className="flex items-center gap-2">
               <span className="font-medium truncate">{expense.itemName}</span>

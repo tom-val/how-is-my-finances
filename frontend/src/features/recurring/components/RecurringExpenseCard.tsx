@@ -38,7 +38,7 @@ export function RecurringExpenseCard({
             <span className="text-sm font-medium truncate">
               {recurringExpense.itemName}
             </span>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
               <span>{recurringExpense.categoryName}</span>
               <span>·</span>
               <span>
@@ -49,12 +49,9 @@ export function RecurringExpenseCard({
                 {t("recurring.dayOfMonth")} {recurringExpense.dayOfMonth}
               </span>
               {recurringExpense.isManual && (
-                <>
-                  <span>·</span>
-                  <span className="rounded bg-orange-100 px-1 py-0.5 text-[10px] font-medium text-orange-700 dark:bg-orange-950 dark:text-orange-300">
-                    {t("recurring.isManual")}
-                  </span>
-                </>
+                <span className="rounded bg-orange-100 px-1 py-0.5 text-[10px] font-medium text-orange-700 dark:bg-orange-950 dark:text-orange-300">
+                  {t("recurring.isManual")}
+                </span>
               )}
             </div>
           </div>
