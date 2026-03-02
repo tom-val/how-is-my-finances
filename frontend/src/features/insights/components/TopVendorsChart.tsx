@@ -13,9 +13,10 @@ import type { VendorTotal } from "@shared/types/analytics";
 interface TopVendorsChartProps {
   data: VendorTotal[];
   currency: string;
+  onBarClick?: (vendor: string) => void;
 }
 
-export function TopVendorsChart({ data, currency }: TopVendorsChartProps) {
+export function TopVendorsChart({ data, currency, onBarClick }: TopVendorsChartProps) {
   const { t } = useTranslation();
 
   if (data.length === 0) {
@@ -66,6 +67,12 @@ export function TopVendorsChart({ data, currency }: TopVendorsChartProps) {
           fill="var(--color-primary)"
           radius={[0, 4, 4, 0]}
           fillOpacity={0.7}
+          className={onBarClick ? "cursor-pointer" : undefined}
+          onClick={(entry) => {
+            if (onBarClick && entry?.name) {
+              onBarClick(entry.name as string);
+            }
+          }}
         />
       </BarChart>
     </ResponsiveContainer>

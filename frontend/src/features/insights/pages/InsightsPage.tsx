@@ -13,6 +13,11 @@ import type { MonthlyTrendData } from "@/features/insights/components/MonthlyTre
 import { IncomeVsExpensesChart } from "@/features/insights/components/IncomeVsExpensesChart";
 import type { IncomeVsExpensesData } from "@/features/insights/components/IncomeVsExpensesChart";
 import { TopVendorsChart } from "@/features/insights/components/TopVendorsChart";
+import { TopExpensesChart } from "@/features/insights/components/TopExpensesChart";
+import {
+  DrillDownSheet,
+  type DrillDownFilter,
+} from "@/features/insights/components/DrillDownSheet";
 
 function getPresetRange(preset: Exclude<PresetKey, "custom">, earliestYear: number, earliestMonth: number) {
   const now = new Date();
@@ -60,6 +65,7 @@ export function InsightsPage() {
   const [startMonth, setStartMonth] = useState(defaultRange.startMonth);
   const [endYear, setEndYear] = useState(defaultRange.endYear);
   const [endMonth, setEndMonth] = useState(defaultRange.endMonth);
+  const [drillDown, setDrillDown] = useState<DrillDownFilter | null>(null);
 
   const { data: analytics, isLoading: isAnalyticsLoading } = useAnalytics(
     startYear,
@@ -142,11 +148,31 @@ export function InsightsPage() {
             <CategorySpendingChart
               data={analytics?.categoryTotals ?? []}
               currency={currency}
+              onBarClick={(categoryId, categoryName) =>
+                setDrillDown({ type: "category", id: categoryId, name: categoryName })
+              }
+            />
+          </InsightCard>
+
+          <InsightCard title={t("insights.topExpenses")}>
+            <TopExpensesChart
+              data={analytics?.topExpenses ?? []}
+              currency={currency}
             />
           </InsightCard>
 
           <InsightCard title={t("insights.monthlyTrend")}>
             <MonthlyTrendChart data={trendData} currency={currency} />
+          </InsightCard>
+
+          <InsightCard title={t("insights.topVendors")}>
+            <TopVendorsChart
+              data={analytics?.vendorTotals ?? []}
+              currency={currency}
+              onBarClick={(vendor) =>
+                setDrillDown({ type: "vendor", id: vendor, name: vendor })
+              }
+            />
           </InsightCard>
 
           <InsightCard title={t("insights.incomeVsExpenses")}>
@@ -155,15 +181,18 @@ export function InsightsPage() {
               currency={currency}
             />
           </InsightCard>
-
-          <InsightCard title={t("insights.topVendors")}>
-            <TopVendorsChart
-              data={analytics?.vendorTotals ?? []}
-              currency={currency}
-            />
-          </InsightCard>
         </div>
       )}
+
+      <DrillDownSheet
+        filter={drillDown}
+        onClose={() => setDrillDown(null)}
+        startYear={startYear}
+        startMonth={startMonth}
+        endYear={endYear}
+        endMonth={endMonth}
+        currency={currency}
+      />
     </div>
   );
 }

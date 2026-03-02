@@ -23,8 +23,9 @@ public sealed class AnalyticsRepository : IAnalyticsRepository
 
         var categoryTotals = await GetCategoryTotalsAsync(connection, userId, startYear, startMonth, endYear, endMonth);
         var vendorTotals = await GetVendorTotalsAsync(connection, userId, startYear, startMonth, endYear, endMonth);
+        var topExpenses = await GetTopExpensesAsync(connection, userId, startYear, startMonth, endYear, endMonth);
 
-        return new AnalyticsResponse(categoryTotals, vendorTotals);
+        return new AnalyticsResponse(categoryTotals, vendorTotals, topExpenses);
     }
 
     private static async Task<IReadOnlyList<CategoryTotal>> GetCategoryTotalsAsync(
@@ -97,6 +98,100 @@ public sealed class AnalyticsRepository : IAnalyticsRepository
                 Vendor: reader.GetString(0),
                 Total: reader.GetDecimal(1),
                 Count: reader.GetInt32(2)));
+        }
+
+        return results;
+    }
+
+    private static async Task<IReadOnlyList<ExpenseSummary>> GetTopExpensesAsync(
+        NpgsqlConnection connection, Guid userId, int startYear, int startMonth, int endYear, int endMonth)
+    {
+        await using var command = new NpgsqlCommand(
+            """
+            SELECT e.id, e.item_name, e.amount, e.vendor, c.name, e.expense_date
+            FROM public.expenses e
+            INNER JOIN public.categories c ON c.id = e.category_id
+            INNER JOIN public.months m ON m.id = e.month_id
+            WHERE e.user_id = @userId
+              AND (m.year > @startYear OR (m.year = @startYear AND m.month >= @startMonth))
+              AND (m.year < @endYear OR (m.year = @endYear AND m.month <= @endMonth))
+            ORDER BY e.amount DESC
+            LIMIT 20
+            """,
+            connection);
+
+        command.Parameters.AddWithValue("userId", userId);
+        command.Parameters.AddWithValue("startYear", startYear);
+        command.Parameters.AddWithValue("startMonth", startMonth);
+        command.Parameters.AddWithValue("endYear", endYear);
+        command.Parameters.AddWithValue("endMonth", endMonth);
+
+        return await ReadExpenseSummariesAsync(command);
+    }
+
+    public async Task<IReadOnlyList<ExpenseSummary>> GetFilteredExpensesAsync(
+        Guid userId, int startYear, int startMonth, int endYear, int endMonth,
+        Guid? categoryId = null, string? vendor = null)
+    {
+        await using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        var whereClauses = new List<string>
+        {
+            "e.user_id = @userId",
+            "(m.year > @startYear OR (m.year = @startYear AND m.month >= @startMonth))",
+            "(m.year < @endYear OR (m.year = @endYear AND m.month <= @endMonth))"
+        };
+        var parameters = new List<NpgsqlParameter>
+        {
+            new("userId", userId),
+            new("startYear", startYear),
+            new("startMonth", startMonth),
+            new("endYear", endYear),
+            new("endMonth", endMonth)
+        };
+
+        if (categoryId.HasValue)
+        {
+            whereClauses.Add("e.category_id = @categoryId");
+            parameters.Add(new NpgsqlParameter("categoryId", categoryId.Value));
+        }
+
+        if (vendor is not null)
+        {
+            whereClauses.Add("e.vendor = @vendor");
+            parameters.Add(new NpgsqlParameter("vendor", vendor));
+        }
+
+        var sql = $"""
+            SELECT e.id, e.item_name, e.amount, e.vendor, c.name, e.expense_date
+            FROM public.expenses e
+            INNER JOIN public.categories c ON c.id = e.category_id
+            INNER JOIN public.months m ON m.id = e.month_id
+            WHERE {string.Join(" AND ", whereClauses)}
+            ORDER BY e.amount DESC
+            """;
+
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.AddRange(parameters.ToArray());
+
+        return await ReadExpenseSummariesAsync(command);
+    }
+
+    private static async Task<IReadOnlyList<ExpenseSummary>> ReadExpenseSummariesAsync(NpgsqlCommand command)
+    {
+        await using var reader = await command.ExecuteReaderAsync();
+        var results = new List<ExpenseSummary>();
+
+        while (await reader.ReadAsync())
+        {
+            results.Add(new ExpenseSummary(
+                Id: reader.GetGuid(0),
+                ItemName: reader.GetString(1),
+                Amount: reader.GetDecimal(2),
+                Vendor: reader.IsDBNull(3) ? null : reader.GetString(3),
+                CategoryName: reader.GetString(4),
+                ExpenseDate: reader.GetFieldValue<DateOnly>(5)));
         }
 
         return results;

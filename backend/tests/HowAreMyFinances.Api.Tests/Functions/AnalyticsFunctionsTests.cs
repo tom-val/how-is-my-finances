@@ -33,7 +33,8 @@ public class AnalyticsFunctionsTests
         // Arrange
         var response = new AnalyticsResponse(
             CategoryTotals: [new CategoryTotal(Guid.NewGuid(), "Food", 500m)],
-            VendorTotals: [new VendorTotal("Lidl", 300m, 5)]);
+            VendorTotals: [new VendorTotal("Lidl", 300m, 5)],
+            TopExpenses: [new ExpenseSummary(Guid.NewGuid(), "Groceries", 50m, "Lidl", "Food", new DateOnly(2026, 1, 15))]);
 
         _analyticsRepository.GetAnalyticsAsync(_userId, 2026, 1, 2026, 3).Returns(response);
 
@@ -54,7 +55,8 @@ public class AnalyticsFunctionsTests
         // Arrange
         var response = new AnalyticsResponse(
             CategoryTotals: [],
-            VendorTotals: []);
+            VendorTotals: [],
+            TopExpenses: []);
 
         _analyticsRepository.GetAnalyticsAsync(_userId, 2026, 1, 2026, 3).Returns(response);
 

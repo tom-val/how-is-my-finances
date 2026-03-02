@@ -174,7 +174,13 @@
     "totalSpent": "Iš viso išleista",
     "transactions": "operacijos",
     "spent": "Išleista",
-    "income": "Pajamos"
+    "income": "Pajamos",
+    "topExpenses": "Didžiausios išlaidos",
+    "drillDown": {
+      "category": "Išlaidos kategorijoje {{name}}",
+      "vendor": "Išlaidos pas {{name}}",
+      "count": "{{count}} išlaidų"
+    }
   },
   "admin": {
     "title": "Duomenų importas",

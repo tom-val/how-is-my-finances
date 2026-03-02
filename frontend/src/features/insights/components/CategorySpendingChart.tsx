@@ -12,11 +12,13 @@ import type { CategoryTotal } from "@shared/types/analytics";
 interface CategorySpendingChartProps {
   data: CategoryTotal[];
   currency: string;
+  onBarClick?: (categoryId: string, categoryName: string) => void;
 }
 
 export function CategorySpendingChart({
   data,
   currency,
+  onBarClick,
 }: CategorySpendingChartProps) {
   const { t } = useTranslation();
 
@@ -31,6 +33,7 @@ export function CategorySpendingChart({
   const chartData = data.slice(0, 10).map((item) => ({
     name: item.categoryName,
     total: item.total,
+    categoryId: item.categoryId,
   }));
 
   return (
@@ -60,6 +63,13 @@ export function CategorySpendingChart({
           dataKey="total"
           fill="var(--color-primary)"
           radius={[0, 4, 4, 0]}
+          className={onBarClick ? "cursor-pointer" : undefined}
+          onClick={(_entry, index) => {
+            const item = chartData[index];
+            if (onBarClick && item?.categoryId) {
+              onBarClick(item.categoryId, item.name);
+            }
+          }}
         />
       </BarChart>
     </ResponsiveContainer>

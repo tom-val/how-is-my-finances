@@ -1,6 +1,16 @@
 export interface AnalyticsResponse {
   categoryTotals: CategoryTotal[];
   vendorTotals: VendorTotal[];
+  topExpenses: ExpenseSummary[];
+}
+
+export interface ExpenseSummary {
+  id: string;
+  itemName: string;
+  amount: number;
+  vendor: string | null;
+  categoryName: string;
+  expenseDate: string;
 }
 
 export interface CategoryTotal {

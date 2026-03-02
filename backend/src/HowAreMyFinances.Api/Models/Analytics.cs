@@ -2,7 +2,17 @@ namespace HowAreMyFinances.Api.Models;
 
 public sealed record AnalyticsResponse(
     IReadOnlyList<CategoryTotal> CategoryTotals,
-    IReadOnlyList<VendorTotal> VendorTotals
+    IReadOnlyList<VendorTotal> VendorTotals,
+    IReadOnlyList<ExpenseSummary> TopExpenses
+);
+
+public sealed record ExpenseSummary(
+    Guid Id,
+    string ItemName,
+    decimal Amount,
+    string? Vendor,
+    string CategoryName,
+    DateOnly ExpenseDate
 );
 
 public sealed record CategoryTotal(

@@ -20,4 +20,23 @@ public static class AnalyticsFunctions
 
         return Results.Ok(analytics);
     }
+
+    public static async Task<IResult> GetExpenses(HttpContext context, IAnalyticsRepository analyticsRepository)
+    {
+        var (query, error) = AnalyticsQuery.TryParse(context);
+        if (query is null)
+        {
+            return Results.BadRequest(new { error });
+        }
+
+        Guid? categoryId = Guid.TryParse(context.Request.Query["categoryId"], out var cid) ? cid : null;
+        var vendor = context.Request.Query["vendor"].FirstOrDefault();
+
+        var userId = context.GetUserId();
+        var expenses = await analyticsRepository.GetFilteredExpensesAsync(
+            userId, query.StartYear, query.StartMonth, query.EndYear, query.EndMonth,
+            categoryId, vendor);
+
+        return Results.Ok(expenses);
+    }
 }

@@ -103,6 +103,7 @@ app.MapPut("/v1/profile", ProfileFunctions.Update);
 
 // Analytics endpoints
 app.MapGet("/v1/analytics", AnalyticsFunctions.Get);
+app.MapGet("/v1/analytics/expenses", AnalyticsFunctions.GetExpenses);
 
 // Import endpoints
 app.MapPost("/v1/import", ImportFunctions.Import);

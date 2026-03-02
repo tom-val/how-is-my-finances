@@ -174,7 +174,13 @@
     "totalSpent": "Total spent",
     "transactions": "transactions",
     "spent": "Spent",
-    "income": "Income"
+    "income": "Income",
+    "topExpenses": "Top Expenses",
+    "drillDown": {
+      "category": "Expenses in {{name}}",
+      "vendor": "Expenses at {{name}}",
+      "count": "{{count}} expenses"
+    }
   },
   "admin": {
     "title": "Data Import",
