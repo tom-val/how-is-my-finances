@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
-import { Loader2 } from "lucide-react";
+import { Loader2, XIcon } from "lucide-react";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetHeader,
   SheetTitle,
@@ -52,14 +53,20 @@ export function DrillDownSheet({
 
   return (
     <Sheet open={filter !== null} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="right" className="w-full overflow-y-auto pt-[env(safe-area-inset-top)] sm:w-3/4 sm:max-w-sm">
-        <SheetHeader>
-          <SheetTitle>{title}</SheetTitle>
-          <SheetDescription>
-            {expenses
-              ? t("insights.drillDown.count", { count: expenses.length })
-              : ""}
-          </SheetDescription>
+      <SheetContent side="right" showCloseButton={false} className="w-full overflow-y-auto pt-[env(safe-area-inset-top)] sm:w-3/4 sm:max-w-sm">
+        <SheetHeader className="flex-row items-center justify-between">
+          <div className="flex flex-col gap-1.5">
+            <SheetTitle>{title}</SheetTitle>
+            <SheetDescription>
+              {expenses
+                ? t("insights.drillDown.count", { count: expenses.length })
+                : ""}
+            </SheetDescription>
+          </div>
+          <SheetClose className="rounded-xs opacity-70 transition-opacity hover:opacity-100">
+            <XIcon className="size-4" />
+            <span className="sr-only">Close</span>
+          </SheetClose>
         </SheetHeader>
 
         {isLoading ? (
