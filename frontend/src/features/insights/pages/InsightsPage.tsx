@@ -25,6 +25,10 @@ function getPresetRange(preset: Exclude<PresetKey, "custom">, earliestYear: numb
   const currentMonth = now.getMonth() + 1;
 
   switch (preset) {
+    case "lastMonth": {
+      const d = new Date(currentYear, currentMonth - 1 - 1, 1);
+      return { startYear: d.getFullYear(), startMonth: d.getMonth() + 1, endYear: d.getFullYear(), endMonth: d.getMonth() + 1 };
+    }
     case "last3": {
       const d = new Date(currentYear, currentMonth - 1 - 2, 1);
       return { startYear: d.getFullYear(), startMonth: d.getMonth() + 1, endYear: currentYear, endMonth: currentMonth };

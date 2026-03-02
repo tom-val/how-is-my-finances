@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
-type PresetKey = "last3" | "last6" | "thisYear" | "allTime" | "custom";
+type PresetKey = "lastMonth" | "last3" | "last6" | "thisYear" | "allTime" | "custom";
 
 interface TimePeriodSelectorProps {
   startYear: number;
@@ -50,6 +50,7 @@ export function TimePeriodSelector({
   }
 
   const presets: { key: PresetKey; label: string }[] = [
+    { key: "lastMonth", label: t("insights.lastMonth") },
     { key: "last3", label: t("insights.last3Months") },
     { key: "last6", label: t("insights.last6Months") },
     { key: "thisYear", label: t("insights.thisYear") },

@@ -26,7 +26,8 @@ export function TopExpensesChart({ data, currency }: TopExpensesChartProps) {
   }
 
   const chartData = [...data]
-    .sort((a, b) => a.amount - b.amount)
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 10)
     .map((item) => ({
       name: item.itemName,
       amount: item.amount,

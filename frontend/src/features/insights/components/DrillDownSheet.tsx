@@ -52,7 +52,7 @@ export function DrillDownSheet({
 
   return (
     <Sheet open={filter !== null} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="right" className="overflow-y-auto">
+      <SheetContent side="right" className="w-full overflow-y-auto pt-[env(safe-area-inset-top)] sm:w-3/4 sm:max-w-sm">
         <SheetHeader>
           <SheetTitle>{title}</SheetTitle>
           <SheetDescription>

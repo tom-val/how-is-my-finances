@@ -159,6 +159,7 @@
   "insights": {
     "title": "Apžvalga",
     "timePeriod": "Laikotarpis",
+    "lastMonth": "Praėjęs mėn.",
     "last3Months": "Paskutiniai 3 mėn.",
     "last6Months": "Paskutiniai 6 mėn.",
     "thisYear": "Šie metai",

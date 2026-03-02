@@ -159,6 +159,7 @@
   "insights": {
     "title": "Insights",
     "timePeriod": "Time Period",
+    "lastMonth": "Last month",
     "last3Months": "Last 3 months",
     "last6Months": "Last 6 months",
     "thisYear": "This year",
