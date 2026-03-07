@@ -24,5 +24,11 @@
       "Bash(node -e:*)",
       "Bash(npm run dev:*)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "chrome-devtools"
+  ],
+  "disabledMcpjsonServers": [
+    "notion"
+  ]
 }

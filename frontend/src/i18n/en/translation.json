@@ -34,6 +34,9 @@
     "plannedSpent": "planned",
     "perDay": "Per day",
     "daysRemaining": "Days remaining",
+    "editMonth": "Edit Month",
+    "deleteMonth": "Delete Month",
+    "confirmDelete": "Are you sure you want to delete this month? All expenses and income entries will be permanently removed.",
     "categoryBreakdown": "Category Breakdown",
     "noCategoryData": "No spending data for this month.",
     "monthNames": {

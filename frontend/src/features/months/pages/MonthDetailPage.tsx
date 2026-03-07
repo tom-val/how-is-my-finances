@@ -1,19 +1,21 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, Link } from "react-router";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Pencil } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TransactionList } from "../components/TransactionList";
 import { SpendingProgressBar } from "../components/SpendingProgressBar";
 import { useMonth } from "../hooks/useMonths";
 import { useExpenses } from "@/features/expenses/hooks/useExpenses";
+import { EditMonthDialog } from "../components/EditMonthDialog";
 
 export function MonthDetailPage() {
   const { t } = useTranslation();
   const { monthId } = useParams<{ monthId: string }>();
   const { data: month, isLoading, error } = useMonth(monthId!);
   const { data: expenses } = useExpenses(monthId!);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   const recurringTotal = useMemo(() => {
     if (!expenses) return 0;
@@ -46,7 +48,7 @@ export function MonthDetailPage() {
             {t("common.back")}
           </Button>
         </Link>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-bold">
             {t(`months.monthNames.${month.monthNumber}`)} {month.year}
           </h1>
@@ -54,6 +56,14 @@ export function MonthDetailPage() {
             {month.daysRemaining} {t("months.daysRemaining").toLowerCase()}
           </p>
         </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsEditOpen(true)}
+          aria-label={t("months.editMonth")}
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
       </div>
 
       <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
@@ -121,6 +131,14 @@ export function MonthDetailPage() {
       )}
 
       <TransactionList monthId={monthId!} />
+
+      {isEditOpen && (
+        <EditMonthDialog
+          month={month}
+          open={isEditOpen}
+          onOpenChange={setIsEditOpen}
+        />
+      )}
     </div>
   );
 }
