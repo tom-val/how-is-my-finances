@@ -253,6 +253,42 @@ public sealed class ExpenseRepository : IExpenseRepository
         return ReadExpenseWithCategory(reader);
     }
 
+    public async Task<IReadOnlyList<ExpenseWithCategory>> GetByCategoryAsync(Guid userId, Guid categoryId, int limit)
+    {
+        await using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        await using var command = new NpgsqlCommand(
+            """
+            SELECT
+                e.id, e.user_id, e.month_id, e.category_id,
+                e.item_name, e.amount, e.vendor, e.expense_date,
+                e.comment, e.is_recurring_instance, e.is_completed,
+                c.name AS category_name, c.icon AS category_icon,
+                e.created_at, e.updated_at
+            FROM public.expenses e
+            INNER JOIN public.categories c ON c.id = e.category_id
+            WHERE e.user_id = @userId AND e.category_id = @categoryId
+            ORDER BY e.expense_date DESC, e.created_at DESC
+            LIMIT @limit
+            """,
+            connection);
+
+        command.Parameters.AddWithValue("userId", userId);
+        command.Parameters.AddWithValue("categoryId", categoryId);
+        command.Parameters.AddWithValue("limit", limit);
+
+        await using var reader = await command.ExecuteReaderAsync();
+        var expenses = new List<ExpenseWithCategory>();
+
+        while (await reader.ReadAsync())
+        {
+            expenses.Add(ReadExpenseWithCategory(reader));
+        }
+
+        return expenses;
+    }
+
     private static async Task<ExpenseWithCategory?> GetByIdAsync(NpgsqlConnection connection, Guid userId, Guid expenseId)
     {
         await using var command = new NpgsqlCommand(

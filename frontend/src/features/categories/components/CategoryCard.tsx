@@ -7,6 +7,7 @@ import type { Category } from "@shared/types/category";
 import { useUpdateCategory } from "../hooks/useCategories";
 import { EditCategoryDialog } from "./EditCategoryDialog";
 import { DeleteCategoryDialog } from "./DeleteCategoryDialog";
+import { CategoryExpensesDialog } from "./CategoryExpensesDialog";
 
 interface CategoryCardProps {
   category: Category;
@@ -17,6 +18,7 @@ export function CategoryCard({ category }: CategoryCardProps) {
   const updateCategory = useUpdateCategory();
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isExpensesOpen, setIsExpensesOpen] = useState(false);
 
   function handleUnarchive() {
     updateCategory.mutate({
@@ -28,11 +30,15 @@ export function CategoryCard({ category }: CategoryCardProps) {
   return (
     <>
       <Card
-        className={`py-0 gap-0 ${category.isArchived ? "opacity-60" : ""}`}
+        className={`py-0 gap-0 cursor-pointer hover:bg-muted/50 transition-colors ${category.isArchived ? "opacity-60" : ""}`}
+        onClick={() => setIsExpensesOpen(true)}
       >
         <CardContent className="flex items-center justify-between gap-2 px-3 py-2">
           <span className="text-sm font-medium truncate">{category.name}</span>
-          <div className="flex items-center gap-1 shrink-0">
+          <div
+            className="flex items-center gap-1 shrink-0"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Button
               variant="ghost"
               size="icon"
@@ -67,6 +73,14 @@ export function CategoryCard({ category }: CategoryCardProps) {
           </div>
         </CardContent>
       </Card>
+
+      {isExpensesOpen && (
+        <CategoryExpensesDialog
+          category={category}
+          open={isExpensesOpen}
+          onOpenChange={setIsExpensesOpen}
+        />
+      )}
 
       {isEditOpen && (
         <EditCategoryDialog

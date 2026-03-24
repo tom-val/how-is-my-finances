@@ -90,6 +90,18 @@ public static class ExpenseFunctions
             : Results.NotFound(new { error = "Expense not found" });
     }
 
+    public static async Task<IResult> GetByCategory(HttpContext context, Guid categoryId, IExpenseRepository expenseRepository, int limit = 50)
+    {
+        if (limit is < 1 or > 100)
+        {
+            return Results.BadRequest(new { error = "Limit must be between 1 and 100" });
+        }
+
+        var userId = context.GetUserId();
+        var expenses = await expenseRepository.GetByCategoryAsync(userId, categoryId, limit);
+        return Results.Ok(expenses);
+    }
+
     public static async Task<IResult> ToggleComplete(HttpContext context, Guid id, IExpenseRepository expenseRepository)
     {
         var userId = context.GetUserId();

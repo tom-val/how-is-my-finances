@@ -126,7 +126,10 @@
     "archived": "Archived",
     "active": "Active",
     "showArchived": "Show archived ({{count}})",
-    "hideArchived": "Hide archived"
+    "hideArchived": "Hide archived",
+    "noExpenses": "No expenses in this category.",
+    "expenseCount": "{{count}} most recent expenses",
+    "showRecurring": "Show recurring"
   },
   "settings": {
     "title": "Settings",

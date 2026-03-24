@@ -126,7 +126,10 @@
     "archived": "Archyvuota",
     "active": "Aktyvi",
     "showArchived": "Rodyti archyvuotas ({{count}})",
-    "hideArchived": "Slėpti archyvuotas"
+    "hideArchived": "Slėpti archyvuotas",
+    "noExpenses": "Šioje kategorijoje išlaidų nėra.",
+    "expenseCount": "{{count}} naujausios išlaidos",
+    "showRecurring": "Rodyti pasikartojančias"
   },
   "settings": {
     "title": "Nustatymai",

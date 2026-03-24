@@ -10,4 +10,5 @@ public interface IExpenseRepository
     Task<bool> DeleteAsync(Guid userId, Guid expenseId);
     Task CreateFromRecurringAsync(Guid userId, Guid monthId, RecurringExpense template, DateOnly expenseDate);
     Task<ExpenseWithCategory?> ToggleCompleteAsync(Guid userId, Guid expenseId);
+    Task<IReadOnlyList<ExpenseWithCategory>> GetByCategoryAsync(Guid userId, Guid categoryId, int limit);
 }

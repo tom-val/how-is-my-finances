@@ -35,6 +35,15 @@ export function toggleExpenseComplete(
   );
 }
 
+export function getExpensesByCategory(
+  categoryId: string,
+  limit = 50,
+): Promise<ExpenseWithCategory[]> {
+  return apiGet<ExpenseWithCategory[]>(
+    `/v1/categories/${categoryId}/expenses?limit=${limit}`,
+  );
+}
+
 export function deleteExpense(id: string): Promise<void> {
   return apiDelete(`/v1/expenses/${id}`);
 }
