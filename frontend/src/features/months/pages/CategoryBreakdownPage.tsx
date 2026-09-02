@@ -63,7 +63,6 @@ function CategoryRow({ categoryId, categoryName, total, totalSpent, expenses, mo
               key={expense.id}
               expense={expense}
               monthId={monthId}
-              compact
             />
           ))}
         </div>

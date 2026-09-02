@@ -21,7 +21,7 @@ resource "supabase_settings" "this" {
 
   auth = jsonencode({
     site_url                = var.site_url
-    additional_redirect_urls = [var.site_url]
+    additional_redirect_urls = [var.site_url, "${var.site_url}/reset-password"]
   })
 }
 
