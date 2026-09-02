@@ -18,6 +18,12 @@ export function LoginPage() {
         <LanguageSwitcher />
       </div>
       <AuthForm mode="login" onSubmit={signIn} />
+      <Link
+        to="/forgot-password"
+        className="text-sm text-muted-foreground underline hover:text-foreground"
+      >
+        {t("auth.forgotPassword")}
+      </Link>
       <p className="text-sm text-muted-foreground">
         {t("auth.noAccount")}{" "}
         <Link to="/register" className="underline hover:text-foreground">
