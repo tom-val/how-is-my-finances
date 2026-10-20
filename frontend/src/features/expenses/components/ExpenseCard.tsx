@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Circle, CheckCircle2, Pencil, Trash2 } from "lucide-react";
+import { Circle, CheckCircle2, Loader2, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ExpenseWithCategory } from "@shared/types/expense";
@@ -51,7 +51,9 @@ export function ExpenseCard({ expense, monthId }: ExpenseCardProps) {
           )}
           aria-label={isIncomplete ? t("expenses.markAsCompleted") : t("expenses.markAsIncomplete")}
         >
-          {isIncomplete ? (
+          {toggleComplete.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : isIncomplete ? (
             <Circle className="h-4 w-4" />
           ) : (
             <CheckCircle2 className="h-4 w-4" />

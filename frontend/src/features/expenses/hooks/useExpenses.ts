@@ -72,10 +72,12 @@ export function useToggleExpenseComplete(monthId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => toggleExpenseComplete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["expenses", monthId] });
-      queryClient.invalidateQueries({ queryKey: ["months", monthId] });
-    },
+    // Return the refetch so isPending stays true until the new state is shown
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["expenses", monthId] }),
+        queryClient.invalidateQueries({ queryKey: ["months", monthId] }),
+      ]),
   });
 }
 
