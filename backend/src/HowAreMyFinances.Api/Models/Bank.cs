@@ -46,6 +46,7 @@ public sealed record SyncResult(
     Guid? JobId,
     bool Cooldown,
     int ExpiredConnections,
+    int FailedConnections,
     bool RateLimited
 );
 

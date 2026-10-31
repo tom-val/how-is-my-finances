@@ -269,6 +269,7 @@
     "syncDone_many": "{{count}} naujos operacijos",
     "syncDone_other": "{{count}} naujų operacijų",
     "syncNothingNew": "Naujų operacijų nėra",
+    "syncFailed": "Nepavyko gauti operacijų iš banko. Daugiau – Nustatymai → Banko jungtys.",
     "syncCooldown": "Ką tik sinchronizuota. Bandykite po kelių minučių.",
     "rateLimited": "Pasiektas banko užklausų limitas. Bandykite po kelių valandų.",
     "connectionExpired": "Banko prieiga baigėsi. Prijunkite banką iš naujo, kad galėtumėte sinchronizuoti.",

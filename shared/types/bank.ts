@@ -78,6 +78,8 @@ export interface SyncResult {
   cooldown: boolean;
   /** Connections whose consent expired during this sync. */
   expiredConnections: number;
+  /** Connections whose bank answered with an error; the message is on the connection (lastSyncError). */
+  failedConnections: number;
   /** A bank answered with its rate limit; try again in a few hours. */
   rateLimited: boolean;
 }

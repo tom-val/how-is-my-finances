@@ -12,9 +12,22 @@ namespace HowAreMyFinances.Api.Infrastructure;
 public sealed class BankSyncService : IBankSyncService
 {
     public static readonly TimeSpan Cooldown = TimeSpan.FromMinutes(5);
-    public const int InitialLookbackDays = 90;
+
+    /// <summary>
+    /// Furthest back a sync asks for, also on the first sync and after a long gap. Banks refuse anything over
+    /// 90 days once the bank login is older than a few minutes (422 WRONG_TRANSACTIONS_PERIOD), and Swedbank
+    /// pages through the range in mostly empty pages, so a short window keeps a sync to a handful of calls.
+    /// </summary>
+    public const int MaxLookbackDays = 7;
+
     public const int OverlapDays = 3;
-    public const int MaxPagesPerStatus = 10;
+
+    /// <summary>
+    /// Keeps two accounts × booked + pending inside the 30-second API timeout (~0.35 s per call). The log line
+    /// after each fetch shows how many pages a bank actually needs.
+    /// </summary>
+    public const int MaxPagesPerStatus = 15;
+
     public const int MinCategoriesForAi = 3;
     public const int MaxAiTransactions = 200;
     public const int MaxAiDescriptionLength = 140;
@@ -53,6 +66,7 @@ public sealed class BankSyncService : IBankSyncService
         var imported = 0;
         var skipped = 0;
         var expiredConnections = 0;
+        var failedConnections = 0;
         var cooldown = false;
         var rateLimited = false;
         var anySynced = false;
@@ -115,6 +129,8 @@ public sealed class BankSyncService : IBankSyncService
             else
             {
                 await _connectionRepository.UpdateSyncStateAsync(userId, connection.Id, now.UtcDateTime, error);
+                if (error is not null && !rateLimited)
+                    failedConnections++;
             }
         }
 
@@ -139,6 +155,7 @@ public sealed class BankSyncService : IBankSyncService
             JobId: jobId,
             Cooldown: cooldown,
             ExpiredConnections: expiredConnections,
+            FailedConnections: failedConnections,
             RateLimited: rateLimited);
     }
 
@@ -151,16 +168,15 @@ public sealed class BankSyncService : IBankSyncService
         Guid userId, BankAccountRecord account, IReadOnlySet<string> ownIbanHashes, PsuContext psu,
         DateOnly today, CancellationToken cancellationToken)
     {
-        var dateFrom = (account.SyncedUntil ?? today.AddDays(-InitialLookbackDays)).AddDays(-OverlapDays);
-
         // Booked transactions. A failure here stops the account (nothing is stored half-way).
-        var booked = await FetchAsync(account.ExternalUid, dateFrom, EbTransactionStatus.Booked, psu, cancellationToken);
+        var bookedFrom = BookedDateFrom(account.SyncedUntil, today);
+        var booked = await FetchAsync(account.ExternalUid, bookedFrom, EbTransactionStatus.Booked, psu, cancellationToken);
         if (booked.Error is not null && booked.Transactions.Count == 0)
             return new AccountOutcome(0, 0, [], [], booked.Error);
 
         // Pending (reserved) card payments. Some banks don't support the filter: that is not fatal,
         // unless the bank says the session expired or the rate limit was hit.
-        var pending = await FetchAsync(account.ExternalUid, dateFrom, EbTransactionStatus.Pending, psu, cancellationToken);
+        var pending = await FetchAsync(account.ExternalUid, today.AddDays(-MaxLookbackDays), EbTransactionStatus.Pending, psu, cancellationToken);
         if (pending.Error is EnableBankingErrors.Expired or EnableBankingErrors.RateLimited)
             return new AccountOutcome(0, 0, [], [], pending.Error);
 
@@ -228,6 +244,17 @@ public sealed class BankSyncService : IBankSyncService
         return new AccountOutcome(newRows.Count, skipped, newBooked, newPending, booked.Error);
     }
 
+    /// <summary>
+    /// Start of the booked window: a few days before the last complete read (late bookings), never older than
+    /// <see cref="MaxLookbackDays"/>.
+    /// </summary>
+    public static DateOnly BookedDateFrom(DateOnly? syncedUntil, DateOnly today)
+    {
+        var earliest = today.AddDays(-MaxLookbackDays);
+        var from = syncedUntil?.AddDays(-OverlapDays) ?? earliest;
+        return from < earliest ? earliest : from;
+    }
+
     private async Task<FetchOutcome> FetchAsync(
         string accountUid, DateOnly dateFrom, string status, PsuContext psu, CancellationToken cancellationToken)
     {
@@ -246,10 +273,15 @@ public sealed class BankSyncService : IBankSyncService
             transactions.AddRange(result.Value!.Transactions);
             continuationKey = result.Value.ContinuationKey;
             if (continuationKey is null)
+            {
+                _logger.LogInformation("[BankSync] Read {Count} {Status} transactions from {DateFrom} in {Pages} pages",
+                    transactions.Count, status, dateFrom, page + 1);
                 return new FetchOutcome(transactions, true, null);
+            }
         }
 
-        _logger.LogWarning("[BankSync] Stopped after {Pages} pages of {Status} transactions", MaxPagesPerStatus, status);
+        _logger.LogWarning("[BankSync] Stopped after {Pages} pages of {Status} transactions from {DateFrom} ({Count} read)",
+            MaxPagesPerStatus, status, dateFrom, transactions.Count);
         return new FetchOutcome(transactions, false, null);
     }
 
