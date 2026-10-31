@@ -39,8 +39,11 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Create dummy Lambda package
-        run: echo "placeholder" | zip dummy.zip -
+      # Same placeholders as deploy.yml: both Lambda modules hash their package at plan time.
+      - name: Create dummy Lambda packages
+        run: |
+          echo "placeholder" | zip dummy.zip -
+          echo "placeholder" | zip dummy-authorizer.zip -
 
       - name: Terraform Init
         run: terraform init
