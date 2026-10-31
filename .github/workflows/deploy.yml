@@ -9,6 +9,8 @@ env:
   AWS_REGION: eu-central-1
   DOTNET_VERSION: "10.0.x"
   NODE_VERSION: "20"
+  # Expo SDK 58 / eas-cli need Node 22+.
+  APP_NODE_VERSION: "22"
   TERRAFORM_DIR: infra/environments/dev
 
 permissions:
@@ -199,11 +201,14 @@ jobs:
             --function-name ${{ needs.infra.outputs.authorizer_function_name }} \
             --zip-file fileb://backend/src/authorizer/deployment.zip
 
-  # --- Frontend (after infra) ---
-  frontend:
+  # --- Web app (after infra): Expo web export of app/ -> S3 + CloudFront ---
+  web:
     needs: infra
     runs-on: ubuntu-latest
     environment: Prod
+    defaults:
+      run:
+        working-directory: app
     steps:
       - uses: actions/checkout@v4
 
@@ -215,37 +220,80 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: ${{ env.APP_NODE_VERSION }}
           cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: app/package-lock.json
 
       - name: Install dependencies
-        working-directory: frontend
         run: npm ci
 
       - name: Lint
-        working-directory: frontend
         run: npm run lint
 
       - name: Type check
-        working-directory: frontend
         run: npm run typecheck
 
-      - name: Build
-        working-directory: frontend
+      - name: Export web
         env:
-          VITE_SUPABASE_URL: ${{ needs.infra.outputs.supabase_url }}
-          VITE_API_URL: ${{ needs.infra.outputs.api_endpoint }}
+          EXPO_PUBLIC_SUPABASE_URL: ${{ needs.infra.outputs.supabase_url }}
+          EXPO_PUBLIC_API_URL: ${{ needs.infra.outputs.api_endpoint }}
         run: |
-          export VITE_SUPABASE_ANON_KEY=$(echo "${{ needs.infra.outputs.supabase_anon_key }}" | base64 -d)
-          npm run build
+          export EXPO_PUBLIC_SUPABASE_ANON_KEY=$(echo "${{ needs.infra.outputs.supabase_anon_key }}" | base64 -d)
+          npm run export:web
 
+      # Hashed bundles are immutable; everything else (index.html, sw.js, favicon) must revalidate so a
+      # deploy is visible on the next load.
       - name: Deploy to S3
-        working-directory: frontend
-        run: aws s3 sync dist/ s3://${{ needs.infra.outputs.s3_frontend_bucket }} --delete
+        run: |
+          aws s3 sync dist/_expo s3://${{ needs.infra.outputs.s3_frontend_bucket }}/_expo \
+            --delete --cache-control "public, max-age=31536000, immutable"
+          aws s3 sync dist/ s3://${{ needs.infra.outputs.s3_frontend_bucket }} \
+            --delete --exclude "_expo/*" --cache-control "no-cache"
 
       - name: Invalidate CloudFront cache
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ needs.infra.outputs.cloudfront_distribution_id }} \
             --paths "/*"
+
+  # --- EAS environment (after infra) ---
+  # Native builds (eas-build.yml) and OTA updates (eas-update.yml) bundle their EXPO_PUBLIC_* values
+  # from the EAS "production" environment, not from this repo, so keep it in step with Terraform.
+  # Opt-in: skipped until the EAS_ENABLED variable is "true" (and the EXPO_TOKEN secret exists).
+  # OTA updates themselves are deliberately NOT part of deploy; they ship via eas-update.yml.
+  eas-env:
+    needs: infra
+    if: ${{ vars.EAS_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    environment: Prod
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.APP_NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: app/package-lock.json
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      # eas env:create evaluates the app config (which loads plugins), so deps must be installed.
+      # --force overwrites the existing value, which is the point after a redeploy.
+      - name: Push EXPO_PUBLIC_* into EAS "production"
+        run: |
+          npm ci
+          ANON_KEY=$(echo "${{ needs.infra.outputs.supabase_anon_key }}" | base64 -d)
+          set_var() {
+            eas env:create --scope project --environment production \
+              --name "$1" --value "$2" \
+              --visibility plaintext --type string --force --non-interactive
+          }
+          set_var EXPO_PUBLIC_SUPABASE_URL "${{ needs.infra.outputs.supabase_url }}"
+          set_var EXPO_PUBLIC_SUPABASE_ANON_KEY "$ANON_KEY"
+          set_var EXPO_PUBLIC_API_URL "${{ needs.infra.outputs.api_endpoint }}"
