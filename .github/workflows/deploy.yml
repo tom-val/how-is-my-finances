@@ -259,26 +259,35 @@ jobs:
   # --- EAS environment (after infra) ---
   # Native builds (eas-build.yml) and OTA updates (eas-update.yml) bundle their EXPO_PUBLIC_* values
   # from the EAS "production" environment, not from this repo, so keep it in step with Terraform.
-  # Opt-in: skipped until the EAS_ENABLED variable is "true" (and the EXPO_TOKEN secret exists).
+  # Opt-in via the EAS_ENABLED variable (with the EXPO_TOKEN secret). The check sits on each step,
+  # not the job: a job-level `if` is evaluated before the job enters the Prod environment, so it
+  # can't see variables defined on that environment.
   # OTA updates themselves are deliberately NOT part of deploy; they ship via eas-update.yml.
   eas-env:
     needs: infra
-    if: ${{ vars.EAS_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     environment: Prod
     defaults:
       run:
         working-directory: app
     steps:
+      - name: EAS disabled (set EAS_ENABLED=true to sync)
+        if: vars.EAS_ENABLED != 'true'
+        working-directory: .
+        run: echo "EAS_ENABLED is not 'true'; skipping the EAS environment sync."
+
       - uses: actions/checkout@v4
+        if: vars.EAS_ENABLED == 'true'
 
       - uses: actions/setup-node@v4
+        if: vars.EAS_ENABLED == 'true'
         with:
           node-version: ${{ env.APP_NODE_VERSION }}
           cache: "npm"
           cache-dependency-path: app/package-lock.json
 
       - uses: expo/expo-github-action@v8
+        if: vars.EAS_ENABLED == 'true'
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
@@ -286,6 +295,7 @@ jobs:
       # eas env:create evaluates the app config (which loads plugins), so deps must be installed.
       # --force overwrites the existing value, which is the point after a redeploy.
       - name: Push EXPO_PUBLIC_* into EAS "production"
+        if: vars.EAS_ENABLED == 'true'
         run: |
           npm ci
           ANON_KEY=$(echo "${{ needs.infra.outputs.supabase_anon_key }}" | base64 -d)
