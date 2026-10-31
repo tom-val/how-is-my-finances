@@ -355,6 +355,19 @@
     "privacy": "Privacy policy",
     "terms": "Terms of use",
     "updated": "Last updated {{date}}",
-    "contact": "Questions or requests about your data?"
+    "contact": "Questions or requests about your data?",
+    "deleteAccount": "Delete account"
+  },
+  "account": {
+    "title": "Account",
+    "delete": "Delete account",
+    "deleteHint": "Permanently delete your account and all your data, including bank connections and imported transactions.",
+    "deleteTitle": "Delete your account?",
+    "deleteDescription": "This permanently deletes your account, all your months, expenses, incomes and categories, and revokes your bank connections. It cannot be undone.",
+    "deleteConfirm": "Delete permanently",
+    "deleted": "Your account has been deleted",
+    "deleteFailed": "Couldn't delete your account. Please try again.",
+    "signedInAs": "Signed in as {{email}}",
+    "signInToDelete": "Sign in to delete your account from here."
   }
 }

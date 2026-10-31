@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { ScrollView, View } from "react-native";
 import { Link, router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -8,7 +9,7 @@ import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 import { useAuth } from "@/hooks/useAuth";
 import { LEGAL_CONTACT, LEGAL_LAST_UPDATED } from "./constants";
-import { LegalLinks } from "./LegalLinks";
+import { LegalLinks, type LegalPage } from "./LegalLinks";
 
 /** One rendered block: a paragraph, or a bulleted list. */
 export type Block = { p: string } | { bullets: string[] };
@@ -26,14 +27,23 @@ export function usePickLanguage<T>(en: T, lt: T): T {
 }
 
 /**
- * Shared chrome for the public legal pages (/privacy, /terms). They are root routes outside the
+ * Shared chrome for the public legal pages (/privacy, /terms, /delete-account). They are root routes outside the
  * auth guards: Enable Banking, App Store and Google Play review open them from a link, before any
  * account exists. Plain text only, so nothing can fail to load.
  *
  * The documents live in the screen files as data in both languages rather than in translation.json:
  * they are long prose reviewed as a whole, not UI strings.
  */
-export function LegalLayout({ doc, current }: { doc: LegalDoc; current: "privacy" | "terms" }) {
+export function LegalLayout({
+  doc,
+  current,
+  children,
+}: {
+  doc: LegalDoc;
+  current: LegalPage;
+  /** Rendered after the sections, e.g. the delete-account page's button. */
+  children?: ReactNode;
+}) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
@@ -86,6 +96,8 @@ export function LegalLayout({ doc, current }: { doc: LegalDoc; current: "privacy
           )}
         </View>
       ))}
+
+      {children}
 
       <View className="items-center gap-1 border-t border-border pt-6">
         <Text className="text-sm text-muted-foreground">{t("legal.contact")}</Text>

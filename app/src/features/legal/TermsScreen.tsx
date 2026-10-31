@@ -75,7 +75,7 @@ const EN: LegalDoc = {
       heading: "8. Ending your use",
       blocks: [
         {
-          p: `You can stop using Finansai at any time and ask for your account and data to be deleted by writing to ${LEGAL_CONTACT}. We may suspend an account that breaks these terms or puts the service at risk, after telling you where possible.`,
+          p: `You can stop using Finansai at any time and delete your account and data in Settings → Account → Delete account, or by writing to ${LEGAL_CONTACT}. We may suspend an account that breaks these terms or puts the service at risk, after telling you where possible.`,
         },
       ],
     },
@@ -163,7 +163,7 @@ const LT: LegalDoc = {
       heading: "8. Naudojimosi nutraukimas",
       blocks: [
         {
-          p: `Galite bet kada nustoti naudotis Finansai ir paprašyti ištrinti paskyrą bei duomenis, parašę ${LEGAL_CONTACT}. Pažeidus šias sąlygas ar keliant grėsmę paslaugai, paskyrą galime sustabdyti, kai įmanoma – apie tai pranešę.`,
+          p: `Galite bet kada nustoti naudotis Finansai ir ištrinti paskyrą bei duomenis skiltyje Nustatymai → Paskyra → Ištrinti paskyrą arba parašę ${LEGAL_CONTACT}. Pažeidus šias sąlygas ar keliant grėsmę paslaugai, paskyrą galime sustabdyti, kai įmanoma – apie tai pranešę.`,
         },
       ],
     },

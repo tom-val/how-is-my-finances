@@ -106,9 +106,10 @@ Progress tracker for feature development. Each phase has a detailed plan in `doc
 - CI/CD: GitHub Actions pipeline (infra → DB migrations → backend → authorizer → web app + EAS env sync); manual `eas-build.yml` / `eas-update.yml`
 - Auth: Supabase Auth + Lambda authorizer + JWT middleware
 - Database: Full schema with RLS (all tables created, including future ones)
-- Backend: Months CRUD + Expenses CRUD + Categories CRUD + Recurring Expenses CRUD + Profile GET/PUT + Analytics GET + health endpoint
+- Backend: Months CRUD + Expenses CRUD + Categories CRUD + Recurring Expenses CRUD + Profile GET/PUT + Analytics GET + Bank (Enable Banking, notifications, inbox) + Account DELETE + health endpoint
 - Frontend: Login/Register, Month list/detail pages, Expenses, Categories, Recurring Expenses, Insights/Analytics, i18n (en/lt), PWA
 - Month Dashboard: Category breakdown, days remaining, spending progress bar with colour coding
+- Legal & account: public /privacy, /terms and /delete-account pages (en + lt); in-app account deletion in Settings → Account (`DELETE /v1/account` deletes all data, then the Supabase auth user via the admin API)
 - Settings & Profile: Settings page with theme toggle (light/dark/system), accent colour picker (6 OKLCH presets), language/currency/display name with backend persistence
 - Insights & Analytics: Time period selector (presets + custom range), top spending categories, monthly trend, income vs expenses, top vendors charts (recharts)
 - Shared types: Month, Expense, Category, RecurringExpense, Profile, Analytics TypeScript interfaces
