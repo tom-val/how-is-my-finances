@@ -111,14 +111,57 @@ public class BankSyncServiceTests
     }
 
     [Fact]
-    public async Task Sync_FirstSync_Looks90DaysBack()
+    public async Task Sync_FirstSync_LooksBackAsFarAsTheBankAllows()
     {
         // Act
         await CreateService().SyncAsync(_userId, null, PsuContext.None);
 
         // Assert
-        await _client.Received(1).GetTransactionsAsync("uid-1", Today.AddDays(-93), null, EbTransactionStatus.Booked,
+        await _client.Received(1).GetTransactionsAsync("uid-1", Today.AddDays(-89), null, EbTransactionStatus.Booked,
             null, Arg.Any<PsuContext>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Sync_LongUnsyncedAccount_NeverAsksForMoreThan89Days()
+    {
+        // Arrange: the last complete read was long ago (or the first sync stopped at the page cap)
+        var account = _account with { SyncedUntil = Today.AddDays(-120) };
+        _connectionRepository.GetEnabledAccountsAsync(_userId, _connection.Id).Returns(new List<BankAccountRecord> { account });
+
+        // Act
+        await CreateService().SyncAsync(_userId, null, PsuContext.None);
+
+        // Assert
+        await _client.Received(1).GetTransactionsAsync("uid-1", Today.AddDays(-89), null, EbTransactionStatus.Booked,
+            null, Arg.Any<PsuContext>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Sync_PendingUsesThirtyDayWindow()
+    {
+        // Act
+        await CreateService().SyncAsync(_userId, null, PsuContext.None);
+
+        // Assert
+        await _client.Received(1).GetTransactionsAsync("uid-1", Today.AddDays(-30), null, EbTransactionStatus.Pending,
+            null, Arg.Any<PsuContext>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Sync_BankError_CountsFailedConnection()
+    {
+        // Arrange
+        const string error = "Bank provider error (422): Wrong transactions period requested";
+        _client.GetTransactionsAsync("uid-1", Arg.Any<DateOnly>(), null, EbTransactionStatus.Booked, null, Arg.Any<PsuContext>(), Arg.Any<CancellationToken>())
+            .Returns(Result<EbTransactionsPage>.Failure(error));
+
+        // Act
+        var result = await CreateService().SyncAsync(_userId, null, PsuContext.None);
+
+        // Assert
+        Assert.Equal(1, result.FailedConnections);
+        await _connectionRepository.Received(1).UpdateSyncStateAsync(_userId, _connection.Id, Now.UtcDateTime, error);
+        await _connectionRepository.DidNotReceiveWithAnyArgs().UpdateAccountSyncedUntilAsync(default, default, default);
     }
 
     [Fact]
@@ -173,7 +216,7 @@ public class BankSyncServiceTests
     }
 
     [Fact]
-    public async Task Sync_FollowsContinuationKey_UpToTenPages()
+    public async Task Sync_FollowsContinuationKey_UpToPageCap()
     {
         // Arrange
         _client.GetTransactionsAsync("uid-1", Arg.Any<DateOnly>(), null, EbTransactionStatus.Booked, Arg.Any<string?>(), Arg.Any<PsuContext>(), Arg.Any<CancellationToken>())
@@ -183,7 +226,7 @@ public class BankSyncServiceTests
         await CreateService().SyncAsync(_userId, null, PsuContext.None);
 
         // Assert
-        await _client.Received(10).GetTransactionsAsync("uid-1", Arg.Any<DateOnly>(), null, EbTransactionStatus.Booked,
+        await _client.Received(BankSyncService.MaxPagesPerStatus).GetTransactionsAsync("uid-1", Arg.Any<DateOnly>(), null, EbTransactionStatus.Booked,
             Arg.Any<string?>(), Arg.Any<PsuContext>(), Arg.Any<CancellationToken>());
         // Not every page was read, so synced_until must not advance
         await _connectionRepository.DidNotReceiveWithAnyArgs().UpdateAccountSyncedUntilAsync(default, default, default);
@@ -300,6 +343,7 @@ public class BankSyncServiceTests
 
         // Assert
         Assert.True(result.RateLimited);
+        Assert.Equal(0, result.FailedConnections);
         await _connectionRepository.Received(1).UpdateSyncStateAsync(_userId, _connection.Id, Now.UtcDateTime,
             Arg.Is<string?>(e => e != null && e.Contains("rate limit")));
         await _transactionRepository.DidNotReceiveWithAnyArgs().InsertAsync(default, default, default!);

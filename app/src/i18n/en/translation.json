@@ -267,6 +267,7 @@
     "syncDone_one": "{{count}} new transaction",
     "syncDone_other": "{{count}} new transactions",
     "syncNothingNew": "Nothing new",
+    "syncFailed": "Couldn't get transactions from your bank. Details are in Settings → Bank connections.",
     "syncCooldown": "Synced a moment ago. Try again in a few minutes.",
     "rateLimited": "Your bank's limit was reached. Try again in a few hours.",
     "connectionExpired": "Bank access has expired. Reconnect to keep syncing.",

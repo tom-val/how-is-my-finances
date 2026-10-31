@@ -273,7 +273,7 @@ Follows the existing pattern: `Domain/` interfaces → `Infrastructure/` impleme
 
 ### Sync (`Infrastructure/BankSyncService.cs`) — `SyncAsync(userId, connectionId?, psu)`
 1. Load active connections. If `consent_expires_at < now` → mark `expired`, skip. If `last_synced_at > now - 5 min` → skip (cooldown).
-2. For each enabled account: `date_from = (synced_until ?? today - 90d) - 3 days` (the overlap catches late-booked items; the unique key dedups). Use `transaction_status = BOOK` and page through `continuation_key`, max 10 pages per account.
+2. For each enabled account: `date_from = max((synced_until ?? today - 89d) - 3 days, today - 89d)` (the overlap catches late-booked items; the unique key dedups). Never go further back than 89 days: without a fresh bank login, banks only serve 90 days and answer anything older with `422 WRONG_TRANSACTIONS_PERIOD`; the extra day covers the bank counting in local time. Use `transaction_status = BOOK` and page through `continuation_key` (pages can be empty and still carry a key), max 30 pages. Pending (`PDNG`) uses `today - 30d`.
 3. Map → rows (direction, amount, counterparty, `counterparty_key`, description, MCC, raw). Skip transfers between the user's own linked IBANs.
 4. Insert new rows → run duplicate detection → `ApplyRulesAsync`.
 5. If uncategorised pending debits remain and the user has ≥ 3 categories: build `CategoriseJobRequest` (user's non-archived categories with display name in their profile language + up to 200 transactions), create `ai_jobs` row, send SQS `{ jobId, type: "categorise_bank_transactions" }`.

@@ -56,11 +56,13 @@ export function useBankSync() {
     onSuccess: ({ result, ai }) => {
       if (result.rateLimited) toast.error(t("bank.rateLimited"));
       if (result.expiredConnections > 0) toast.error(t("bank.connectionExpired"));
+      if (result.failedConnections > 0) toast.error(t("bank.syncFailed"));
       if (ai === "failed" || ai === "timeout") toast.error(t("bank.aiFailed"));
 
       if (result.imported > 0) toast.success(t("bank.syncDone", { count: result.imported }));
       else if (result.cooldown) toast.success(t("bank.syncCooldown"));
-      else if (!result.rateLimited && result.expiredConnections === 0) toast.success(t("bank.syncNothingNew"));
+      else if (!result.rateLimited && result.expiredConnections === 0 && result.failedConnections === 0)
+        toast.success(t("bank.syncNothingNew"));
     },
     onError: (err) => {
       console.warn("Bank sync failed:", err);

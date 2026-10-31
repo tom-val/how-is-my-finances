@@ -284,7 +284,7 @@ public class BankFunctionsTests
         // Arrange
         var jobId = Guid.NewGuid();
         _syncService.SyncAsync(_userId, null, Arg.Any<PsuContext>(), Arg.Any<CancellationToken>())
-            .Returns(new SyncResult(3, 0, 1, jobId, false, 0, false));
+            .Returns(new SyncResult(3, 0, 1, jobId, false, 0, 0, false));
 
         // Act
         var result = await BankFunctions.Sync(CreateContext(), null, Configured, _connectionRepository, _syncService);
@@ -298,7 +298,7 @@ public class BankFunctionsTests
     {
         // Arrange
         _syncService.SyncAsync(_userId, null, Arg.Any<PsuContext>(), Arg.Any<CancellationToken>())
-            .Returns(new SyncResult(0, 0, 0, null, true, 0, false));
+            .Returns(new SyncResult(0, 0, 0, null, true, 0, 0, false));
 
         // Act
         var result = await BankFunctions.Sync(CreateContext(), null, Configured, _connectionRepository, _syncService);
