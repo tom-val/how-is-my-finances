@@ -16,7 +16,7 @@ let hasRedirected = false;
 
 export function MonthListScreen() {
   const { t } = useTranslation();
-  const { data: months, isLoading, error, refetch, isRefetching } = useMonths();
+  const { data: months, isLoading, error, refetch } = useMonths();
 
   useEffect(() => {
     if (!months || months.length === 0) return;
@@ -45,14 +45,14 @@ export function MonthListScreen() {
 
   if (error) {
     return (
-      <Screen onRefresh={() => void refetch()} refreshing={isRefetching}>
+      <Screen onRefresh={refetch}>
         <Text className="text-destructive">{t("common.error")}</Text>
       </Screen>
     );
   }
 
   return (
-    <Screen onRefresh={() => void refetch()} refreshing={isRefetching}>
+    <Screen onRefresh={refetch}>
       <View className="flex-row items-center justify-between gap-2">
         <Text role="heading" className="text-2xl font-bold">
           {t("months.title")}

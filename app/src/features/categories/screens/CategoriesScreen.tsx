@@ -10,7 +10,7 @@ import { CreateCategoryDialog } from "../components/CreateCategoryDialog";
 
 export function CategoriesScreen() {
   const { t } = useTranslation();
-  const { data: categories, isLoading, error, refetch, isRefetching } = useCategories();
+  const { data: categories, isLoading, error, refetch } = useCategories();
   const [isShowingArchived, setIsShowingArchived] = useState(false);
 
   const visibleCategories = useMemo(() => {
@@ -33,14 +33,14 @@ export function CategoriesScreen() {
 
   if (error) {
     return (
-      <Screen onRefresh={() => void refetch()} refreshing={isRefetching}>
+      <Screen onRefresh={refetch}>
         <Text className="text-destructive">{t("common.error")}</Text>
       </Screen>
     );
   }
 
   return (
-    <Screen onRefresh={() => void refetch()} refreshing={isRefetching}>
+    <Screen onRefresh={refetch}>
       <View className="flex-row items-center justify-between gap-2">
         <Text role="heading" className="text-2xl font-bold">
           {t("categories.title")}

@@ -9,7 +9,7 @@ import { CreateRecurringExpenseDialog } from "../components/CreateRecurringExpen
 
 export function RecurringExpensesScreen() {
   const { t } = useTranslation();
-  const { data: recurringExpenses, isLoading, error, refetch, isRefetching } = useRecurringExpenses();
+  const { data: recurringExpenses, isLoading, error, refetch } = useRecurringExpenses();
 
   const monthlyTotal = useMemo(() => {
     if (!recurringExpenses) return 0;
@@ -26,14 +26,14 @@ export function RecurringExpensesScreen() {
 
   if (error) {
     return (
-      <Screen onRefresh={() => void refetch()} refreshing={isRefetching}>
+      <Screen onRefresh={refetch}>
         <Text className="text-destructive">{t("common.error")}</Text>
       </Screen>
     );
   }
 
   return (
-    <Screen onRefresh={() => void refetch()} refreshing={isRefetching}>
+    <Screen onRefresh={refetch}>
       <View className="flex-row items-center justify-between gap-2">
         <Text role="heading" className="flex-1 text-2xl font-bold">
           {t("recurring.title")}

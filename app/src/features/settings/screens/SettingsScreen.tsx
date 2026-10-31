@@ -28,7 +28,7 @@ export function SettingsScreen() {
   const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
   const { preference, setPreference, accent, setAccent, colours } = useTheme();
-  const { data: profile, isLoading, error, refetch, isRefetching } = useProfile();
+  const { data: profile, isLoading, error, refetch } = useProfile();
   const [autoOpen, setAutoOpen] = useState(() => getItem(AUTO_OPEN_KEY) === "true");
 
   const profileLanguage = profile?.preferredLanguage;
@@ -93,14 +93,14 @@ export function SettingsScreen() {
 
   if (error || !profile) {
     return (
-      <Screen onRefresh={refetch} refreshing={isRefetching}>
+      <Screen onRefresh={refetch}>
         <Text className="text-destructive">{t("common.error")}</Text>
       </Screen>
     );
   }
 
   return (
-    <Screen onRefresh={refetch} refreshing={isRefetching}>
+    <Screen onRefresh={refetch}>
       <Text role="heading" className="text-2xl font-bold">
         {t("settings.title")}
       </Text>

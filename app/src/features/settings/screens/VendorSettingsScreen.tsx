@@ -24,7 +24,6 @@ export function VendorSettingsScreen() {
     data: vendors,
     isLoading,
     refetch,
-    isRefetching,
   } = useQuery({
     queryKey: ["vendors"],
     queryFn: getVendors,
@@ -72,7 +71,7 @@ export function VendorSettingsScreen() {
   }
 
   return (
-    <Screen onRefresh={refetch} refreshing={isRefetching}>
+    <Screen onRefresh={refetch}>
       <View className="flex-row items-center gap-3">
         <Pressable
           onPress={goBack}

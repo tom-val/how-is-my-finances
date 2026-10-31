@@ -24,7 +24,7 @@ function goBack() {
 export function MonthDetailScreen() {
   const { t } = useTranslation();
   const { monthId } = useLocalSearchParams<{ monthId: string }>();
-  const { data: month, isLoading, error, refetch: refetchMonth, isRefetching } = useMonth(monthId);
+  const { data: month, isLoading, error, refetch: refetchMonth } = useMonth(monthId);
   const { data: expenses, refetch: refetchExpenses } = useExpenses(monthId);
   const { refetch: refetchIncomes } = useIncomes(monthId);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -35,9 +35,7 @@ export function MonthDetailScreen() {
   }, [expenses]);
 
   function handleRefresh() {
-    void refetchMonth();
-    void refetchExpenses();
-    void refetchIncomes();
+    return Promise.all([refetchMonth(), refetchExpenses(), refetchIncomes()]);
   }
 
   if (isLoading) {
@@ -50,7 +48,7 @@ export function MonthDetailScreen() {
 
   if (error || !month) {
     return (
-      <Screen onRefresh={handleRefresh} refreshing={isRefetching}>
+      <Screen onRefresh={handleRefresh}>
         <Text className="text-destructive">{t("common.error")}</Text>
       </Screen>
     );
@@ -66,7 +64,7 @@ export function MonthDetailScreen() {
   const statValue = "text-sm font-bold sm:text-lg";
 
   return (
-    <Screen onRefresh={handleRefresh} refreshing={isRefetching}>
+    <Screen onRefresh={handleRefresh}>
       <View className="flex-row items-center gap-4">
         <Button variant="ghost" size="sm" onPress={goBack}>
           {t("common.back")}

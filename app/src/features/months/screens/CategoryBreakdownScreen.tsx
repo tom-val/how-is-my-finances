@@ -82,13 +82,11 @@ export function CategoryBreakdownScreen() {
     isLoading: isLoadingMonth,
     error: monthError,
     refetch: refetchMonth,
-    isRefetching: isRefetchingMonth,
   } = useMonth(monthId);
   const {
     data: expenses,
     isLoading: isLoadingExpenses,
     refetch: refetchExpenses,
-    isRefetching: isRefetchingExpenses,
   } = useExpenses(monthId);
   const [showRecurring, setShowRecurring] = useState(true);
 
@@ -122,8 +120,7 @@ export function CategoryBreakdownScreen() {
   const totalSpent = categoryBreakdown.reduce((sum, item) => sum + item.total, 0);
 
   function handleRefresh() {
-    void refetchMonth();
-    void refetchExpenses();
+    return Promise.all([refetchMonth(), refetchExpenses()]);
   }
 
   function goBack() {
@@ -141,14 +138,14 @@ export function CategoryBreakdownScreen() {
 
   if (monthError || !month) {
     return (
-      <Screen onRefresh={handleRefresh} refreshing={isRefetchingMonth || isRefetchingExpenses}>
+      <Screen onRefresh={handleRefresh}>
         <Text className="text-destructive">{t("common.error")}</Text>
       </Screen>
     );
   }
 
   return (
-    <Screen onRefresh={handleRefresh} refreshing={isRefetchingMonth || isRefetchingExpenses}>
+    <Screen onRefresh={handleRefresh}>
       <View className="flex-row items-center gap-4">
         <Button variant="ghost" size="sm" onPress={goBack}>
           {t("common.back")}

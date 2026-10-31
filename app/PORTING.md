@@ -32,7 +32,7 @@ Working notes for the PWA → Expo port. Delete once `frontend/` is removed.
 | `MoneyInput` | `@/components/shared/MoneyInput` (same props) |
 | `<input type="number">` | `Input` with `keyboardType="number-pad"`/`inputMode="numeric"` |
 | `toast` from sonner | `toast` from `@/components/ui/toast` (`success` / `error`) |
-| page wrapper / `<main>` | `<Screen onRefresh={refetch} refreshing={isRefetching}>` from `@/components/ui/screen` (scrolls; `gap-6` between children) |
+| page wrapper / `<main>` | `<Screen onRefresh={refetch}>` from `@/components/ui/screen` (scrolls; `gap-6` between children; return the refetch promise) |
 | `useNavigate` / `<Link to>` | `router.push("/months/" + id)` / `<Link href>` from `expo-router`; params via `useLocalSearchParams<{ monthId: string }>()` |
 | back links (`ArrowLeft`) | keep them: `router.back()` if `router.canGoBack()`, else `router.replace(parent)` |
 | `hover:` | `web:hover:` (native has `active:` for press feedback) |

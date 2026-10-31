@@ -77,7 +77,6 @@ export function InsightsScreen() {
   const {
     data: months,
     isLoading: isMonthsLoading,
-    isRefetching: isMonthsRefetching,
     refetch: refetchMonths,
   } = useMonths();
 
@@ -106,7 +105,6 @@ export function InsightsScreen() {
   const {
     data: analytics,
     isLoading: isAnalyticsLoading,
-    isRefetching: isAnalyticsRefetching,
     refetch: refetchAnalytics,
   } = useAnalytics(startYear, startMonth, endYear, endMonth);
 
@@ -163,11 +161,7 @@ export function InsightsScreen() {
 
   return (
     <Screen
-      onRefresh={() => {
-        void refetchMonths();
-        void refetchAnalytics();
-      }}
-      refreshing={isMonthsRefetching || isAnalyticsRefetching}
+      onRefresh={() => Promise.all([refetchMonths(), refetchAnalytics()])}
     >
       <Text role="heading" className="text-2xl font-bold">
         {t("insights.title")}
