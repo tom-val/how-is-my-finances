@@ -1,5 +1,6 @@
 using HowAreMyFinances.Api.Domain;
 using HowAreMyFinances.Api.Functions;
+using HowAreMyFinances.Api.Infrastructure;
 using HowAreMyFinances.Api.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -28,6 +29,9 @@ public class MonthFunctionsTests
         context.Items["UserId"] = _userId;
         return context;
     }
+
+    private MonthService CreateMonthService() =>
+        new(_monthRepository, _recurringExpenseRepository, _expenseRepository);
 
     private static int GetStatusCode(IResult result)
     {
@@ -94,7 +98,7 @@ public class MonthFunctionsTests
         _monthRepository.CreateAsync(_userId, request).Returns(created);
 
         // Act
-        var result = await MonthFunctions.Create(CreateContext(), request, _monthRepository, _recurringExpenseRepository, _expenseRepository);
+        var result = await MonthFunctions.Create(CreateContext(), request, CreateMonthService());
 
         // Assert
         var createdResult = Assert.IsType<Created<Month>>(result);
@@ -108,7 +112,7 @@ public class MonthFunctionsTests
         var request = new CreateMonthRequest(2026, 13, 4500m);
 
         // Act
-        var result = await MonthFunctions.Create(CreateContext(), request, _monthRepository, _recurringExpenseRepository, _expenseRepository);
+        var result = await MonthFunctions.Create(CreateContext(), request, CreateMonthService());
 
         // Assert
         Assert.Equal(400, GetStatusCode(result));
@@ -121,7 +125,7 @@ public class MonthFunctionsTests
         var request = new CreateMonthRequest(2026, 3, -100m);
 
         // Act
-        var result = await MonthFunctions.Create(CreateContext(), request, _monthRepository, _recurringExpenseRepository, _expenseRepository);
+        var result = await MonthFunctions.Create(CreateContext(), request, CreateMonthService());
 
         // Assert
         Assert.Equal(400, GetStatusCode(result));
@@ -143,7 +147,7 @@ public class MonthFunctionsTests
         _recurringExpenseRepository.GetActiveAsync(_userId).Returns(templates);
 
         // Act
-        var result = await MonthFunctions.Create(CreateContext(), request, _monthRepository, _recurringExpenseRepository, _expenseRepository);
+        var result = await MonthFunctions.Create(CreateContext(), request, CreateMonthService());
 
         // Assert
         Assert.IsType<Created<Month>>(result);
@@ -162,7 +166,7 @@ public class MonthFunctionsTests
         _monthRepository.CreateAsync(_userId, request).Returns(created);
 
         // Act
-        var result = await MonthFunctions.Create(CreateContext(), request, _monthRepository, _recurringExpenseRepository, _expenseRepository);
+        var result = await MonthFunctions.Create(CreateContext(), request, CreateMonthService());
 
         // Assert
         Assert.IsType<Created<Month>>(result);

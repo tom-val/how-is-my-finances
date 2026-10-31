@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bank_notifications_listener_label">Finansai payment detection</string>
+    <string name="bank_notifications_channel_name">Bank activity</string>
+    <string name="bank_notifications_channel_description">Tells you when a bank payment has been detected</string>
+    <string name="bank_notifications_detected_title">Payment detected</string>
+    <string name="bank_notifications_detected_text">Tap to review it in Finansai</string>
+</resources>

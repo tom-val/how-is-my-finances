@@ -2,7 +2,14 @@
 
 Import Swedbank (and other EEA bank) transactions via Enable Banking's PSD2 aggregator API and turn them into suggested expenses/incomes that the user reviews before they are saved. Categories are suggested by OpenAI (`gpt-6-luna`) from the user's existing categories, using the same async SQS + Node.js AI processor pattern as `how-is-my-food-planning` (shopping list categorisation).
 
-## Status: Not Started
+## Status: Implemented (awaiting end-to-end verification with a real bank login)
+
+### Changes from the original plan (decided 2026-10-31)
+- **Pending (PDNG) transactions are imported too**, with `booking_status = 'pending'`, so card payments show up while still reserved. Un-reviewed pending rows that disappear from the bank's PDNG list are deleted. A booked row matching an *accepted* pending row (amount, ±3 days, counterparty key) is auto-linked to the same expense.
+- **Android "Bank notifications" source**: Settings → Transaction source lets an Android device use the Swedbank app's notifications instead of Enable Banking. A local Expo module (`app/modules/bank-notifications`, a `NotificationListenerService`) captures notifications from `lt.swedbank.mobile` only. The app uploads them to `POST /v1/bank/notifications`, and the AI processor's `parse_bank_notifications` job extracts direction, amount, merchant, date, category and vendor. Rows carry `source = 'notification'` and a `parse_status`, and feed the same inbox. Raw text is stored so regex rules can be added once real samples exist.
+- **Navigation**: the Inbox replaces Categories in the tab bar (with a pending-count badge). Categories moved to Settings → Categories.
+- **Any bank**: the connect dialog has a country picker and lists every bank Enable Banking supports. Restricted mode only returns accounts linked in the Control Panel; unrestricted production needs no code change.
+- The migration is `supabase/migrations/20261101000001_bank_integration.sql`, which extends the SQL below with `source`, `parse_status`, `booking_status`, the notification columns and `bank_connections.client`.
 
 ## Why Enable Banking
 

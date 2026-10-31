@@ -42,3 +42,8 @@ output "authorizer_function_name" {
   description = "Authorizer Lambda function name (used for deployment in CI/CD)."
   value       = module.lambda_authorizer.function_name
 }
+
+output "ai_processor_function_name" {
+  description = "AI processor Lambda function name (used for deployment in CI/CD)."
+  value       = module.ai_processor.function_name
+}

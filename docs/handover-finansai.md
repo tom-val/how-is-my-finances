@@ -38,7 +38,7 @@ Reading Swedbank push notifications to suggest expenses needs Android's `Notific
 ## Store review notes for the notification listener (later)
 Not built yet; this is for when it is. Google's current wording on notification-listener access wasn't confirmed (Oct 2026), so check the Play Console restricted-permissions policy before submitting. Third-party guidance and other expense apps point the same way:
 - Notification access gets extra scrutiny. It must back a core, clearly described feature: suggesting expenses from bank notifications.
-- Show an in-app prominent disclosure before sending the user to the system "Notification access" screen. Say what is read (only the Swedbank app's notifications), what leaves the device (parsed amount, merchant and date, not the raw notification) and why.
-- Filter to the Swedbank package inside the service, drop everything else immediately, and declare it in the Data safety form ("Financial info", collected, not shared).
+- Show an in-app prominent disclosure before sending the user to the system "Notification access" screen (implemented in Settings → Transaction source). Say what is read (only the Swedbank app's notifications), that their text is sent to Finansai's server and OpenAI to extract the payment, and why.
+- Filter to the Swedbank package inside the service, drop everything else immediately, and declare it in the Data safety form ("Financial info", collected; shared with OpenAI as a processor for the extraction).
 - The first store release can ship without the listener (conversion + Enable Banking). Add it in a later release so a rejection doesn't block the app.
 - iOS has no equivalent API. The iOS build simply doesn't offer the feature.

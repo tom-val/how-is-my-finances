@@ -12,3 +12,8 @@ output "invoke_arn" {
   description = "Invoke ARN of the Lambda function (used by API Gateway)."
   value       = aws_lambda_function.api.invoke_arn
 }
+
+output "role_name" {
+  description = "Name of the Lambda execution role (the AI processor module grants it sqs:SendMessage)."
+  value       = aws_iam_role.lambda_execution.name
+}

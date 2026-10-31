@@ -42,6 +42,8 @@ function RootNavigator() {
         </Stack.Protected>
         {/* Reachable signed in or out: the recovery link signs the user in first. */}
         <Stack.Screen name="reset-password" />
+        {/* The bank redirect lands here; the native bounce must work without a session. */}
+        <Stack.Screen name="bank/callback" />
       </Stack>
       <ToastHost />
     </>

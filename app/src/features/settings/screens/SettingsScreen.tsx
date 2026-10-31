@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Platform, Pressable, View } from "react-native";
-import { Link } from "expo-router";
+import { Link, type Href } from "expo-router";
 import Constants from "expo-constants";
 import * as Updates from "expo-updates";
 import { useQueryClient } from "@tanstack/react-query";
@@ -104,6 +104,32 @@ export function SettingsScreen() {
         {t("settings.title")}
       </Text>
 
+      {/* Management links */}
+      <View className="gap-3">
+        <SettingsLink
+          href="/settings/categories"
+          title={t("settings.categories")}
+          description={t("settings.categoriesDescription")}
+        />
+        <SettingsLink
+          href="/settings/vendors"
+          title={t("settings.vendors.title")}
+          description={t("settings.vendors.description")}
+        />
+        <SettingsLink
+          href="/settings/bank"
+          title={t("settings.bankConnections")}
+          description={t("settings.bankConnectionsDescription")}
+        />
+        {Platform.OS === "android" && (
+          <SettingsLink
+            href="/settings/source"
+            title={t("settings.transactionSource")}
+            description={t("settings.transactionSourceDescription")}
+          />
+        )}
+      </View>
+
       {/* Appearance Section */}
       <Card className="py-0">
         <CardContent className="gap-5 px-4 py-4 sm:px-6 sm:py-5">
@@ -181,23 +207,6 @@ export function SettingsScreen() {
       {/* Profile Section — keyed by profile ID so form resets when profile data changes */}
       <ProfileForm key={profile.id} profile={profile} />
 
-      {/* Vendor Management Link */}
-      <Link href="/settings/vendors" asChild>
-        <Pressable accessibilityRole="link">
-          <Card className="py-0">
-            <CardContent className="flex-row items-center justify-between gap-4 px-4 py-4 sm:px-6 sm:py-5">
-              <View className="flex-1 gap-0.5">
-                <Text className="text-sm font-semibold">{t("settings.vendors.title")}</Text>
-                <Text className="text-xs text-muted-foreground">
-                  {t("settings.vendors.description")}
-                </Text>
-              </View>
-              <Icon as={ChevronRight} size={20} className="text-muted-foreground" />
-            </CardContent>
-          </Card>
-        </Pressable>
-      </Link>
-
       {/* Refresh App */}
       <Button variant="outline" className="w-full" onPress={() => void handleRefreshApp()}>
         {t("settings.refreshApp")}
@@ -207,6 +216,25 @@ export function SettingsScreen() {
         <Text className="text-center text-xs text-muted-foreground">{versionLabel}</Text>
       ) : null}
     </Screen>
+  );
+}
+
+/** A card that opens a Settings sub-page. */
+function SettingsLink({ href, title, description }: { href: Href; title: string; description: string }) {
+  return (
+    <Link href={href} asChild>
+      <Pressable accessibilityRole="link">
+        <Card className="py-0">
+          <CardContent className="flex-row items-center justify-between gap-4 px-4 py-4 sm:px-6 sm:py-5">
+            <View className="flex-1 gap-0.5">
+              <Text className="text-sm font-semibold">{title}</Text>
+              <Text className="text-xs text-muted-foreground">{description}</Text>
+            </View>
+            <Icon as={ChevronRight} size={20} className="text-muted-foreground" />
+          </CardContent>
+        </Card>
+      </Pressable>
+    </Link>
   );
 }
 
