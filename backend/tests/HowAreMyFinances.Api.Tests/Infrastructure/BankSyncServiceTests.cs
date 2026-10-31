@@ -99,30 +99,30 @@ public class BankSyncServiceTests
     public async Task Sync_UsesThreeDayOverlapFromSyncedUntil()
     {
         // Arrange
-        var account = _account with { SyncedUntil = new DateOnly(2026, 10, 20) };
+        var account = _account with { SyncedUntil = new DateOnly(2026, 10, 30) };
         _connectionRepository.GetEnabledAccountsAsync(_userId, _connection.Id).Returns(new List<BankAccountRecord> { account });
 
         // Act
         await CreateService().SyncAsync(_userId, null, new PsuContext("203.0.113.7", "UA"));
 
         // Assert
-        await _client.Received(1).GetTransactionsAsync("uid-1", new DateOnly(2026, 10, 17), null, EbTransactionStatus.Booked,
+        await _client.Received(1).GetTransactionsAsync("uid-1", new DateOnly(2026, 10, 27), null, EbTransactionStatus.Booked,
             null, new PsuContext("203.0.113.7", "UA"), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Sync_FirstSync_LooksBackAsFarAsTheBankAllows()
+    public async Task Sync_FirstSync_LooksSevenDaysBack()
     {
         // Act
         await CreateService().SyncAsync(_userId, null, PsuContext.None);
 
         // Assert
-        await _client.Received(1).GetTransactionsAsync("uid-1", Today.AddDays(-89), null, EbTransactionStatus.Booked,
+        await _client.Received(1).GetTransactionsAsync("uid-1", Today.AddDays(-7), null, EbTransactionStatus.Booked,
             null, Arg.Any<PsuContext>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Sync_LongUnsyncedAccount_NeverAsksForMoreThan89Days()
+    public async Task Sync_LongUnsyncedAccount_NeverAsksForMoreThanSevenDays()
     {
         // Arrange: the last complete read was long ago (or the first sync stopped at the page cap)
         var account = _account with { SyncedUntil = Today.AddDays(-120) };
@@ -132,18 +132,18 @@ public class BankSyncServiceTests
         await CreateService().SyncAsync(_userId, null, PsuContext.None);
 
         // Assert
-        await _client.Received(1).GetTransactionsAsync("uid-1", Today.AddDays(-89), null, EbTransactionStatus.Booked,
+        await _client.Received(1).GetTransactionsAsync("uid-1", Today.AddDays(-7), null, EbTransactionStatus.Booked,
             null, Arg.Any<PsuContext>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Sync_PendingUsesThirtyDayWindow()
+    public async Task Sync_PendingUsesSevenDayWindow()
     {
         // Act
         await CreateService().SyncAsync(_userId, null, PsuContext.None);
 
         // Assert
-        await _client.Received(1).GetTransactionsAsync("uid-1", Today.AddDays(-30), null, EbTransactionStatus.Pending,
+        await _client.Received(1).GetTransactionsAsync("uid-1", Today.AddDays(-7), null, EbTransactionStatus.Pending,
             null, Arg.Any<PsuContext>(), Arg.Any<CancellationToken>());
     }
 

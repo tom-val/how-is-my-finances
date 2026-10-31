@@ -14,19 +14,20 @@ public sealed class BankSyncService : IBankSyncService
     public static readonly TimeSpan Cooldown = TimeSpan.FromMinutes(5);
 
     /// <summary>
-    /// Furthest back a sync asks for. Without a fresh bank login (strong customer authentication) PSD2 banks
-    /// only serve the last 90 days and answer anything older with 422 WRONG_TRANSACTIONS_PERIOD. One day of margin covers
-    /// the bank counting days in local time while we count in UTC.
+    /// Furthest back a sync asks for, also on the first sync and after a long gap. Banks refuse anything over
+    /// 90 days once the bank login is older than a few minutes (422 WRONG_TRANSACTIONS_PERIOD), and Swedbank
+    /// pages through the range in mostly empty pages, so a short window keeps a sync to a handful of calls.
     /// </summary>
-    public const int MaxLookbackDays = 89;
+    public const int MaxLookbackDays = 7;
 
     public const int OverlapDays = 3;
 
-    /// <summary>Card reservations settle or lapse within a month, so pending rows only need a short window.</summary>
-    public const int PendingLookbackDays = 30;
+    /// <summary>
+    /// Keeps two accounts × booked + pending inside the 30-second API timeout (~0.35 s per call). The log line
+    /// after each fetch shows how many pages a bank actually needs.
+    /// </summary>
+    public const int MaxPagesPerStatus = 15;
 
-    /// <summary>Banks may page by date and return empty pages with a continuation key, so allow plenty.</summary>
-    public const int MaxPagesPerStatus = 30;
     public const int MinCategoriesForAi = 3;
     public const int MaxAiTransactions = 200;
     public const int MaxAiDescriptionLength = 140;
@@ -175,7 +176,7 @@ public sealed class BankSyncService : IBankSyncService
 
         // Pending (reserved) card payments. Some banks don't support the filter: that is not fatal,
         // unless the bank says the session expired or the rate limit was hit.
-        var pending = await FetchAsync(account.ExternalUid, today.AddDays(-PendingLookbackDays), EbTransactionStatus.Pending, psu, cancellationToken);
+        var pending = await FetchAsync(account.ExternalUid, today.AddDays(-MaxLookbackDays), EbTransactionStatus.Pending, psu, cancellationToken);
         if (pending.Error is EnableBankingErrors.Expired or EnableBankingErrors.RateLimited)
             return new AccountOutcome(0, 0, [], [], pending.Error);
 
@@ -244,9 +245,8 @@ public sealed class BankSyncService : IBankSyncService
     }
 
     /// <summary>
-    /// Start of the booked window: a few days before the last complete read (late bookings), or as far back as
-    /// the bank allows on the first sync. Never older than <see cref="MaxLookbackDays"/>, also when an account
-    /// hasn't been read completely for a while.
+    /// Start of the booked window: a few days before the last complete read (late bookings), never older than
+    /// <see cref="MaxLookbackDays"/>.
     /// </summary>
     public static DateOnly BookedDateFrom(DateOnly? syncedUntil, DateOnly today)
     {
@@ -273,10 +273,15 @@ public sealed class BankSyncService : IBankSyncService
             transactions.AddRange(result.Value!.Transactions);
             continuationKey = result.Value.ContinuationKey;
             if (continuationKey is null)
+            {
+                _logger.LogInformation("[BankSync] Read {Count} {Status} transactions from {DateFrom} in {Pages} pages",
+                    transactions.Count, status, dateFrom, page + 1);
                 return new FetchOutcome(transactions, true, null);
+            }
         }
 
-        _logger.LogWarning("[BankSync] Stopped after {Pages} pages of {Status} transactions", MaxPagesPerStatus, status);
+        _logger.LogWarning("[BankSync] Stopped after {Pages} pages of {Status} transactions from {DateFrom} ({Count} read)",
+            MaxPagesPerStatus, status, dateFrom, transactions.Count);
         return new FetchOutcome(transactions, false, null);
     }
 
