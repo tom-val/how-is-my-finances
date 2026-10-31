@@ -12,7 +12,9 @@ Personal finance tracking app. Monorepo with separate frontend, backend, infra, 
 - `supabase/migrations/` — PostgreSQL migrations (applied in order)
 - `database/migrations/` — Original migration files (reference copy)
 - `backend/src/authorizer/` — Node.js Lambda authorizer (JWT validation, ES256/jose)
-- `infra/modules/` — Terraform modules (api-gateway, lambda, lambda-authorizer, s3-frontend, cloudfront, supabase)
+- `backend/src/ai-processor/` — Node.js Lambda (SQS) for AI jobs: categorise bank transactions, parse bank notifications (OpenAI `gpt-6-luna`)
+- `app/modules/bank-notifications/` — local Expo module (Android `NotificationListenerService`) for the "Bank notifications" transaction source
+- `infra/modules/` — Terraform modules (api-gateway, lambda, lambda-authorizer, ai-processor, s3-frontend, cloudfront, supabase)
 - `infra/environments/dev/` — Dev environment Terraform composition
 - `shared/types/` — Shared TypeScript types (imported by frontend via `@shared` alias)
 - `docs/phases/` — Implementation phase plans
@@ -97,7 +99,7 @@ Progress tracker for feature development. Each phase has a detailed plan in `doc
 | 7 | Insights & Analytics | Done | Time period selector, category/vendor aggregation, monthly trend, income vs expenses charts |
 | 8 | [Notifications](docs/phases/phase-7-notifications.md) | Not Started | Spending threshold alerts |
 | 9 | [Receipt OCR](docs/phases/phase-8-receipt-ocr.md) | Not Started | Premium: scan receipts, auto-extract expenses |
-| 10 | [Bank Integration](docs/phases/phase-9-bank-integration.md) | Not Started | Enable Banking (PSD2): import transactions as reviewable expense suggestions |
+| 10 | [Bank Integration](docs/phases/phase-9-bank-integration.md) | In Progress | Enable Banking (PSD2) + Android notification source → reviewable suggestions inbox with AI categorisation |
 
 ### What's Already Done
 - Infrastructure: Terraform (API Gateway, Lambda, S3, CloudFront, Supabase)

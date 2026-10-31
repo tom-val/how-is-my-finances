@@ -99,4 +99,20 @@ module "lambda" {
   supabase_db_connection_string = module.supabase.db_connection_string
   api_gateway_execution_arn     = module.api_gateway.execution_arn
   cors_allowed_origins          = "https://${module.cloudfront.distribution_domain_name},https://finances.valiunas.dev"
+
+  enable_banking_application_id  = var.enable_banking_application_id
+  enable_banking_private_key_b64 = var.enable_banking_private_key_b64
+  sqs_ai_jobs_queue_url          = module.ai_processor.queue_url
+}
+
+# --- AI Processor (SQS + Node.js Lambda) ---
+
+module "ai_processor" {
+  source = "../../modules/ai-processor"
+
+  project_name         = local.project_name
+  environment          = local.environment
+  openai_api_key       = var.openai_api_key
+  db_connection_string = module.supabase.db_connection_string
+  api_lambda_role_name = module.lambda.role_name
 }

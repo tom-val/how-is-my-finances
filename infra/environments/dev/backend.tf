@@ -10,6 +10,10 @@ terraform {
       source  = "supabase/supabase"
       version = "~> 1.0"
     }
+    archive = {
+      source  = "hashicorp/archive"
+      version = "2.7.1"
+    }
   }
 
   backend "s3" {

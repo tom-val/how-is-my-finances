@@ -34,13 +34,19 @@ resource "aws_lambda_function" "api" {
   filename         = var.deployment_package_path
   source_code_hash = filebase64sha256(var.deployment_package_path)
 
+  # Lambda allows 4 KB of environment variables in total (keys + values). The base64 Enable Banking
+  # PEM is ~2.3 KB for an RSA-2048 key, which fits next to the rest; don't use a 4096-bit key.
   environment {
     variables = {
-      ASPNETCORE_ENVIRONMENT       = "Production"
-      Supabase__Url                = var.supabase_url
-      Supabase__ServiceKey         = var.supabase_service_key
-      Supabase__DbConnectionString = var.supabase_db_connection_string
-      Cors__AllowedOrigins__0      = var.cors_allowed_origins
+      ASPNETCORE_ENVIRONMENT          = "Production"
+      Supabase__Url                   = var.supabase_url
+      Supabase__ServiceKey            = var.supabase_service_key
+      Supabase__DbConnectionString    = var.supabase_db_connection_string
+      Cors__AllowedOrigins__0         = var.cors_allowed_origins
+      EnableBanking__ApplicationId    = var.enable_banking_application_id
+      EnableBanking__PrivateKeyBase64 = var.enable_banking_private_key_b64
+      EnableBanking__RedirectUrl      = var.enable_banking_redirect_url
+      Sqs__AiJobsQueueUrl             = var.sqs_ai_jobs_queue_url
     }
   }
 

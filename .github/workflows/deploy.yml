@@ -30,9 +30,13 @@ jobs:
       TF_VAR_supabase_access_token: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       TF_VAR_supabase_organization_id: ${{ secrets.SUPABASE_ORGANIZATION_ID }}
       TF_VAR_supabase_database_password: ${{ secrets.SUPABASE_DATABASE_PASSWORD }}
+      TF_VAR_enable_banking_application_id: ${{ secrets.ENABLE_BANKING_APPLICATION_ID }}
+      TF_VAR_enable_banking_private_key_b64: ${{ secrets.ENABLE_BANKING_PRIVATE_KEY_B64 }}
+      TF_VAR_openai_api_key: ${{ secrets.OPENAI_API_KEY }}
     outputs:
       lambda_function_name: ${{ steps.tf.outputs.lambda_function_name }}
       authorizer_function_name: ${{ steps.tf.outputs.authorizer_function_name }}
+      ai_processor_function_name: ${{ steps.tf.outputs.ai_processor_function_name }}
       s3_frontend_bucket: ${{ steps.tf.outputs.s3_frontend_bucket }}
       cloudfront_distribution_id: ${{ steps.tf.outputs.cloudfront_distribution_id }}
       api_endpoint: ${{ steps.tf.outputs.api_endpoint }}
@@ -69,6 +73,7 @@ jobs:
         run: |
           echo "lambda_function_name=$(terraform output -raw lambda_function_name)" >> "$GITHUB_OUTPUT"
           echo "authorizer_function_name=$(terraform output -raw authorizer_function_name)" >> "$GITHUB_OUTPUT"
+          echo "ai_processor_function_name=$(terraform output -raw ai_processor_function_name)" >> "$GITHUB_OUTPUT"
           echo "s3_frontend_bucket=$(terraform output -raw s3_frontend_bucket)" >> "$GITHUB_OUTPUT"
           echo "cloudfront_distribution_id=$(terraform output -raw cloudfront_distribution_id)" >> "$GITHUB_OUTPUT"
           echo "api_endpoint=$(terraform output -raw api_endpoint)" >> "$GITHUB_OUTPUT"
@@ -79,7 +84,7 @@ jobs:
       - name: Validate critical outputs
         run: |
           failed=false
-          for output in lambda_function_name s3_frontend_bucket cloudfront_distribution_id api_endpoint supabase_url supabase_anon_key supabase_project_ref; do
+          for output in lambda_function_name ai_processor_function_name s3_frontend_bucket cloudfront_distribution_id api_endpoint supabase_url supabase_anon_key supabase_project_ref; do
             value=$(terraform output -raw "$output" 2>/dev/null || true)
             if [ -z "$value" ]; then
               echo "::error::Terraform output '$output' is empty"
@@ -200,6 +205,49 @@ jobs:
           aws lambda update-function-code \
             --function-name ${{ needs.infra.outputs.authorizer_function_name }} \
             --zip-file fileb://backend/src/authorizer/deployment.zip
+
+  # --- AI processor (after infra + migrations): Node.js Lambda consuming the ai-jobs SQS queue ---
+  ai-processor:
+    needs: [infra, migrations]
+    runs-on: ubuntu-latest
+    environment: Prod
+    defaults:
+      run:
+        working-directory: backend/src/ai-processor
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: backend/src/ai-processor/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Package AI processor
+        run: zip -r deployment.zip index.mjs package.json node_modules/
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy AI processor
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ needs.infra.outputs.ai_processor_function_name }} \
+            --zip-file fileb://deployment.zip
+
+      - name: Wait for function update
+        run: |
+          aws lambda wait function-updated \
+            --function-name ${{ needs.infra.outputs.ai_processor_function_name }}
 
   # --- Web app (after infra): Expo web export of app/ -> S3 + CloudFront ---
   web:

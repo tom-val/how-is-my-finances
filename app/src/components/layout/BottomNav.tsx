@@ -7,7 +7,8 @@ import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 import { useIsWide } from "@/hooks/useIsWide";
 import { cn } from "@/lib/utils";
-import { NAV_ITEMS } from "./navItems";
+import { PendingBadge } from "@/features/bank/components/PendingBadge";
+import { INBOX_ROUTE, NAV_ITEMS } from "./navItems";
 
 /** The PWA's mobile bottom nav as the tab bar. Hidden from `md` up, where AppHeader shows links. */
 export function BottomNav({ state, navigateToTab }: BottomTabBarProps) {
@@ -39,11 +40,14 @@ export function BottomNav({ state, navigateToTab }: BottomTabBarProps) {
               }}
               className="min-h-11 flex-1 items-center justify-center gap-1 py-2"
             >
-              <Icon
-                as={item.icon}
-                size={20}
-                className={active ? "text-primary" : "text-muted-foreground"}
-              />
+              <View>
+                <Icon
+                  as={item.icon}
+                  size={20}
+                  className={active ? "text-primary" : "text-muted-foreground"}
+                />
+                {item.name === INBOX_ROUTE && <PendingBadge className="absolute -right-2.5 -top-1.5" />}
+              </View>
               <Text
                 numberOfLines={1}
                 className={cn("text-xs", active ? "font-medium text-primary" : "text-muted-foreground")}

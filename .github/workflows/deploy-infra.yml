@@ -26,6 +26,9 @@ jobs:
       TF_VAR_supabase_access_token: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       TF_VAR_supabase_organization_id: ${{ secrets.SUPABASE_ORGANIZATION_ID }}
       TF_VAR_supabase_database_password: ${{ secrets.SUPABASE_DATABASE_PASSWORD }}
+      TF_VAR_enable_banking_application_id: ${{ secrets.ENABLE_BANKING_APPLICATION_ID }}
+      TF_VAR_enable_banking_private_key_b64: ${{ secrets.ENABLE_BANKING_PRIVATE_KEY_B64 }}
+      TF_VAR_openai_api_key: ${{ secrets.OPENAI_API_KEY }}
     steps:
       - uses: actions/checkout@v4
 

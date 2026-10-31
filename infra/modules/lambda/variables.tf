@@ -41,3 +41,28 @@ variable "cors_allowed_origins" {
   type        = string
   default     = ""
 }
+
+variable "enable_banking_application_id" {
+  description = "Enable Banking application id (JWT kid). Empty disables the bank endpoints (503)."
+  type        = string
+  default     = ""
+}
+
+variable "enable_banking_private_key_b64" {
+  description = "Base64 of the Enable Banking application's RSA-2048 private key PEM (single line)."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "enable_banking_redirect_url" {
+  description = "Redirect URL registered with Enable Banking for the bank authorisation callback."
+  type        = string
+  default     = "https://finances.valiunas.dev/bank/callback"
+}
+
+variable "sqs_ai_jobs_queue_url" {
+  description = "URL of the AI jobs SQS queue. Empty means jobs are created but not queued."
+  type        = string
+  default     = ""
+}

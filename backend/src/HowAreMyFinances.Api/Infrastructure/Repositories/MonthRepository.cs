@@ -214,6 +214,62 @@ public sealed class MonthRepository : IMonthRepository
         return ReadMonth(reader);
     }
 
+    public async Task<Month?> GetByYearMonthAsync(Guid userId, int year, int month)
+    {
+        await using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        await using var command = new NpgsqlCommand(
+            """
+            SELECT id, user_id, year, month, salary, notes, created_at, updated_at
+            FROM public.months
+            WHERE user_id = @userId AND year = @year AND month = @month
+            """,
+            connection);
+
+        command.Parameters.AddWithValue("userId", userId);
+        command.Parameters.AddWithValue("year", year);
+        command.Parameters.AddWithValue("month", month);
+
+        await using var reader = await command.ExecuteReaderAsync();
+
+        if (!await reader.ReadAsync())
+        {
+            return null;
+        }
+
+        return ReadMonth(reader);
+    }
+
+    public async Task<Month?> CreateIfNotExistsAsync(Guid userId, CreateMonthRequest request)
+    {
+        await using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        await using var command = new NpgsqlCommand(
+            """
+            INSERT INTO public.months (user_id, year, month, salary)
+            VALUES (@userId, @year, @month, @salary)
+            ON CONFLICT (user_id, year, month) DO NOTHING
+            RETURNING id, user_id, year, month, salary, notes, created_at, updated_at
+            """,
+            connection);
+
+        command.Parameters.AddWithValue("userId", userId);
+        command.Parameters.AddWithValue("year", request.Year);
+        command.Parameters.AddWithValue("month", request.Month);
+        command.Parameters.AddWithValue("salary", request.Salary);
+
+        await using var reader = await command.ExecuteReaderAsync();
+
+        if (!await reader.ReadAsync())
+        {
+            return null;
+        }
+
+        return ReadMonth(reader);
+    }
+
     public async Task<Month?> UpdateAsync(Guid userId, Guid monthId, UpdateMonthRequest request)
     {
         await using var connection = new NpgsqlConnection(_connectionString);

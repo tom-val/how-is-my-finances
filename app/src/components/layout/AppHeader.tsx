@@ -8,7 +8,8 @@ import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
-import { NAV_ITEMS } from "./navItems";
+import { PendingBadge } from "@/features/bank/components/PendingBadge";
+import { INBOX_ROUTE, NAV_ITEMS } from "./navItems";
 import { OfflineIndicator } from "./OfflineIndicator";
 
 function isActive(pathname: string, href: string) {
@@ -34,18 +35,21 @@ export function AppHeader() {
             {isWide && (
               <View className="flex-row items-center gap-4">
                 {NAV_ITEMS.map((item) => (
-                  <Link key={item.href} href={item.href as never}>
-                    <Text
-                      className={cn(
-                        "text-sm",
-                        isActive(pathname, item.href)
-                          ? "font-medium text-foreground"
-                          : "text-muted-foreground web:hover:text-foreground",
-                      )}
-                    >
-                      {t(item.labelKey)}
-                    </Text>
-                  </Link>
+                  <View key={item.href} className="flex-row items-center gap-1">
+                    <Link href={item.href as never}>
+                      <Text
+                        className={cn(
+                          "text-sm",
+                          isActive(pathname, item.href)
+                            ? "font-medium text-foreground"
+                            : "text-muted-foreground web:hover:text-foreground",
+                        )}
+                      >
+                        {t(item.labelKey)}
+                      </Text>
+                    </Link>
+                    {item.name === INBOX_ROUTE && <PendingBadge />}
+                  </View>
                 ))}
               </View>
             )}
