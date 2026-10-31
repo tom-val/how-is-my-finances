@@ -21,7 +21,8 @@ resource "supabase_settings" "this" {
 
   auth = jsonencode({
     site_url                = var.site_url
-    additional_redirect_urls = [var.site_url, "${var.site_url}/reset-password"]
+    # finansai:// is the native app's scheme: password-reset emails sent from iOS/Android reopen the app.
+    additional_redirect_urls = [var.site_url, "${var.site_url}/reset-password", "finansai://reset-password"]
   })
 }
 

@@ -1,0 +1,59 @@
+name: EAS build (manual)
+
+# Native builds of the Finansai app (app/) on EAS. Deliberate and rare: run this when native
+# dependencies or app.json change, or to cut an internal / store build. JS-only changes ship with
+# eas-update.yml instead; the web build ships with deploy.yml.
+#
+# Needs an EXPO_TOKEN secret (expo.dev → smikis → Access tokens) in the Prod environment. Builds bundle
+# the EXPO_PUBLIC_* values from the EAS environment named by the profile (app/eas.json), which
+# deploy.yml keeps in step with Terraform.
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Target platform
+        required: true
+        default: all
+        type: choice
+        options: [ios, android, all]
+      profile:
+        description: EAS build profile (app/eas.json)
+        required: true
+        default: preview
+        type: choice
+        options: [development, preview, production]
+      submit:
+        description: Submit production builds to the stores when they finish
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: EAS build (${{ inputs.profile }} / ${{ inputs.platform }})
+    runs-on: ubuntu-latest
+    environment: Prod
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - working-directory: app
+        run: |
+          npm ci
+          SUBMIT=""
+          if [ "${{ inputs.submit }}" = "true" ] && [ "${{ inputs.profile }}" = "production" ]; then
+            SUBMIT="--auto-submit"
+          fi
+          eas build --platform ${{ inputs.platform }} --profile ${{ inputs.profile }} \
+            --non-interactive --no-wait $SUBMIT

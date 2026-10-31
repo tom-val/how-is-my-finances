@@ -7,6 +7,7 @@ on:
 env:
   DOTNET_VERSION: "10.0.x"
   NODE_VERSION: "20"
+  APP_NODE_VERSION: "22"
 
 jobs:
   backend:
@@ -55,3 +56,34 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    env:
+      # Placeholders: the export only needs them to be set (they're inlined, not called).
+      EXPO_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
+      EXPO_PUBLIC_API_URL: https://api.example.com
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.APP_NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Export web
+        run: npm run export:web

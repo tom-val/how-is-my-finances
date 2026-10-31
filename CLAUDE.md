@@ -4,7 +4,8 @@ Personal finance tracking app. Monorepo with separate frontend, backend, infra, 
 
 ## Project Structure
 
-- `frontend/` — Vite + React 19 + TypeScript + shadcn/ui + Tailwind CSS PWA
+- `app/` — **Finansai**: Expo SDK 58 + React Native + expo-router + NativeWind app (iOS, Android, Web). Serves `finances.valiunas.dev` (web export) and ships to the stores via EAS
+- `frontend/` — Legacy Vite + React PWA, kept as the reference until the app is verified at parity, then deleted. No longer deployed
 - `backend/src/HowAreMyFinances.Api/` — C# .NET 10 AWS Lambda, Minimal API
 - `backend/tests/HowAreMyFinances.Api.Tests/` — xUnit tests
 - `supabase/` — Supabase CLI config + migrations (local dev via `supabase start`)
@@ -18,7 +19,19 @@ Personal finance tracking app. Monorepo with separate frontend, backend, infra, 
 
 ## Key Commands
 
-### Frontend
+### App (Finansai)
+```bash
+cd app && npm run web               # Expo web at localhost:6173 (same port the backend CORS and Supabase redirects expect)
+cd app && npm run ios               # Native debug build in the iOS Simulator (no Expo Go: native modules)
+cd app && npm run android           # Native debug build in the Android emulator
+cd app && npm run lint              # ESLint (expo lint)
+cd app && npm run typecheck         # TypeScript check
+cd app && npm run export:web        # Production web export to app/dist
+cd app && eas build --profile preview --platform all   # Internal native builds (or the eas-build.yml workflow)
+cd app && eas update --branch preview --environment production   # OTA update (or eas-update.yml)
+```
+
+### Legacy frontend
 ```bash
 cd frontend && npm run dev          # Dev server at localhost:6173
 cd frontend && npm run build        # Production build
@@ -45,10 +58,13 @@ supabase stop                       # Stop local stack
 ## Conventions
 
 - **Language**: British English in code, comments, and UI (en translations). Lithuanian for lt translations.
-- **Frontend state**: TanStack Query for server state. React Context for auth only. No Redux/Zustand.
-- **API client**: `frontend/src/api/client.ts` — fetch wrapper with Supabase JWT injection.
-- **Feature structure**: `frontend/src/features/{name}/pages/`, `components/`, `hooks/`
-- **i18n**: `frontend/src/i18n/{en,lt}/translation.json` — use `useTranslation()` hook. Category names come from DB (`name_en`/`name_lt` for system, `name` for user-created).
+- **App state**: TanStack Query for server state. React Context for auth and theme only. No Redux/Zustand.
+- **API client**: `app/src/api/client.ts` — fetch wrapper with Supabase JWT injection. Config from `EXPO_PUBLIC_*` (`app/src/lib/config.ts`; `app/.env` locally, the EAS "production" environment for native builds/OTA, the deploy workflow for web).
+- **Feature structure**: `app/src/features/{name}/screens/`, `components/`, `hooks/`. Routes in `app/src/app/` (expo-router) are thin re-exports of screens.
+- **UI**: NativeWind classes + the shadcn-style kit in `app/src/components/ui/` (Button, Card, Input, Dialog, ConfirmDialog, Select, BottomSheet, DateInput, toast…). Every string goes in `<Text>`, icons via `<Icon as={…} />`. Colour tokens live in `app/src/theme/palette.ts` and are applied as CSS variables by `ThemeProvider` (light/dark/system + accent).
+- **Storage**: `app/src/lib/storage.ts` (localStorage; expo-sqlite polyfill on native). The Supabase session is stored there too.
+- **i18n**: `app/src/i18n/{en,lt}/translation.json` — use `useTranslation()` hook. Category names come from DB (`name_en`/`name_lt` for system, `name` for user-created).
+- **Native**: app id `com.tomval.finansai`, scheme `finansai://`, EAS project `@smikis/finansai`. `ios/` and `android/` are generated (CNG) and gitignored — configure via `app/app.json`.
 - **Database**: All tables have RLS enabled. Use `(SELECT auth.uid())` in policies for performance.
 - **Backend auth (production)**: Node.js Lambda authorizer validates Supabase JWT (ES256 via `jose`). User ID passed to .NET Lambda via API Gateway authorizer context. Read by `AuthorizerContextMiddleware`.
 - **Backend auth (local dev)**: `AuthMiddleware.cs` validates JWT directly via OIDC discovery. Switched by `ASPNETCORE_ENVIRONMENT` (Production vs Development).
@@ -64,7 +80,7 @@ supabase stop                       # Stop local stack
 - .NET Lambda reads `userId` from authorizer context, queries Supabase PostgreSQL via Npgsql
 - .NET Lambda runs on ARM64 (Graviton) with 512 MB memory
 - DB connection via Supabase Supavisor transaction-mode pooler (IPv4, port 6543) with `Pooling=false` (server-side pooling only)
-- Frontend served from S3 + CloudFront
+- Web app (Expo `web.output: "single"` export) served from S3 + CloudFront; native apps via EAS Build, JS updates via EAS Update (manual workflows)
 
 ## Implementation Phases
 
@@ -81,11 +97,11 @@ Progress tracker for feature development. Each phase has a detailed plan in `doc
 | 7 | Insights & Analytics | Done | Time period selector, category/vendor aggregation, monthly trend, income vs expenses charts |
 | 8 | [Notifications](docs/phases/phase-7-notifications.md) | Not Started | Spending threshold alerts |
 | 9 | [Receipt OCR](docs/phases/phase-8-receipt-ocr.md) | Not Started | Premium: scan receipts, auto-extract expenses |
-| 10 | [Bank Integration](docs/phases/phase-9-bank-integration.md) | Not Started | Premium: OpenBanking auto-import transactions |
+| 10 | [Bank Integration](docs/phases/phase-9-bank-integration.md) | Not Started | Enable Banking (PSD2): import transactions as reviewable expense suggestions |
 
 ### What's Already Done
 - Infrastructure: Terraform (API Gateway, Lambda, S3, CloudFront, Supabase)
-- CI/CD: GitHub Actions pipeline (infra → DB migrations → backend → authorizer → frontend)
+- CI/CD: GitHub Actions pipeline (infra → DB migrations → backend → authorizer → web app + EAS env sync); manual `eas-build.yml` / `eas-update.yml`
 - Auth: Supabase Auth + Lambda authorizer + JWT middleware
 - Database: Full schema with RLS (all tables created, including future ones)
 - Backend: Months CRUD + Expenses CRUD + Categories CRUD + Recurring Expenses CRUD + Profile GET/PUT + Analytics GET + health endpoint

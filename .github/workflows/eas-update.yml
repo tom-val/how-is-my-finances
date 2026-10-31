@@ -1,0 +1,62 @@
+name: EAS Update (manual OTA)
+
+# Ships a JS-only over-the-air update to installed Finansai builds on the chosen channel — no native
+# rebuild. Only builds whose runtimeVersion (= app version in app/app.json) matches receive it.
+# Installed apps pick it up on their next cold start (app/src/lib/startupUpdate.ts).
+#
+# The bundle always uses the PRODUCTION EXPO_PUBLIC_* values (EAS "production" environment, synced by
+# deploy.yml); the channel only picks the audience: preview = internal builds, production = stores.
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: Channel to publish to
+        required: true
+        default: preview
+        type: choice
+        options: [preview, production]
+      platform:
+        description: Platform(s) to publish to
+        required: true
+        default: all
+        type: choice
+        options: [all, android, ios]
+      message:
+        description: Update message (shown in the EAS dashboard)
+        required: true
+        default: Manual OTA update
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: eas-update-${{ inputs.channel }}
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: EAS Update (${{ inputs.channel }} / ${{ inputs.platform }})
+    runs-on: ubuntu-latest
+    environment: Prod
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - working-directory: app
+        run: |
+          npm ci
+          eas update \
+            --branch "${{ inputs.channel }}" \
+            --platform "${{ inputs.platform }}" \
+            --environment production \
+            --message "${{ inputs.message }}" \
+            --non-interactive
