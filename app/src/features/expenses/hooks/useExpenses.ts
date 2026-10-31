@@ -1,0 +1,98 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  getExpenses,
+  getExpensesByCategory,
+  createExpense,
+  updateExpense,
+  toggleExpenseComplete,
+  deleteExpense,
+} from "@/api/expenses";
+import { getVisibleVendors } from "@/api/vendors";
+import type {
+  CreateExpenseRequest,
+  UpdateExpenseRequest,
+} from "@shared/types/expense";
+
+export function useExpenses(monthId: string) {
+  return useQuery({
+    queryKey: ["expenses", monthId],
+    queryFn: () => getExpenses(monthId),
+    enabled: !!monthId,
+  });
+}
+
+export function useExpensesByCategory(categoryId: string | null) {
+  return useQuery({
+    queryKey: ["expenses", "category", categoryId],
+    queryFn: () => getExpensesByCategory(categoryId!),
+    enabled: !!categoryId,
+  });
+}
+
+export function useVendors() {
+  return useQuery({
+    queryKey: ["visibleVendors"],
+    queryFn: async () => {
+      const vendors = await getVisibleVendors();
+      return vendors.map((v) => v.name);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useCreateExpense(monthId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (request: CreateExpenseRequest) =>
+      createExpense(monthId, request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["expenses", monthId] });
+      // Prefix match: the month detail, the month list (Insights trend) and analytics totals all change.
+      queryClient.invalidateQueries({ queryKey: ["months"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["visibleVendors"] });
+      queryClient.invalidateQueries({ queryKey: ["vendors"] });
+    },
+  });
+}
+
+export function useUpdateExpense(monthId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, request }: { id: string; request: UpdateExpenseRequest }) =>
+      updateExpense(id, request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["expenses", monthId] });
+      queryClient.invalidateQueries({ queryKey: ["months"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["visibleVendors"] });
+      queryClient.invalidateQueries({ queryKey: ["vendors"] });
+    },
+  });
+}
+
+export function useToggleExpenseComplete(monthId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => toggleExpenseComplete(id),
+    // Return the refetch so isPending stays true until the new state is shown
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["expenses", monthId] }),
+        queryClient.invalidateQueries({ queryKey: ["months"] }),
+        queryClient.invalidateQueries({ queryKey: ["analytics"] }),
+      ]),
+  });
+}
+
+export function useDeleteExpense(monthId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deleteExpense(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["expenses", monthId] });
+      queryClient.invalidateQueries({ queryKey: ["months"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
+    },
+  });
+}
