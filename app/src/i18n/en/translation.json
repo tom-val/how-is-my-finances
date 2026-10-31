@@ -350,5 +350,11 @@
       "IE": "Ireland",
       "PT": "Portugal"
     }
+  },
+  "legal": {
+    "privacy": "Privacy policy",
+    "terms": "Terms of use",
+    "updated": "Last updated {{date}}",
+    "contact": "Questions or requests about your data?"
   }
 }

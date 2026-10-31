@@ -20,6 +20,7 @@ import { LoadingScreen } from "@/components/ui/spinner";
 import { getItem, setItem } from "@/lib/storage";
 import { ACCENT_PRESETS } from "@/theme/palette";
 import { useTheme, type ThemePreference } from "@/theme/ThemeProvider";
+import { LegalLinks } from "@/features/legal/LegalLinks";
 import type { Profile } from "@shared/types/profile";
 import { useProfile, useUpdateProfile } from "../hooks/useProfile";
 
@@ -215,6 +216,8 @@ export function SettingsScreen() {
       {versionLabel ? (
         <Text className="text-center text-xs text-muted-foreground">{versionLabel}</Text>
       ) : null}
+
+      <LegalLinks />
     </Screen>
   );
 }

@@ -360,5 +360,11 @@
       "IE": "Airija",
       "PT": "Portugalija"
     }
+  },
+  "legal": {
+    "privacy": "Privatumo politika",
+    "terms": "Naudojimo sąlygos",
+    "updated": "Atnaujinta {{date}}",
+    "contact": "Klausimai ar prašymai dėl jūsų duomenų?"
   }
 }

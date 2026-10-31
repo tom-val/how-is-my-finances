@@ -44,6 +44,9 @@ function RootNavigator() {
         <Stack.Screen name="reset-password" />
         {/* The bank redirect lands here; the native bounce must work without a session. */}
         <Stack.Screen name="bank/callback" />
+        {/* Public legal pages: linked from the stores, Enable Banking and the sign-in screens. */}
+        <Stack.Screen name="privacy" />
+        <Stack.Screen name="terms" />
       </Stack>
       <ToastHost />
     </>

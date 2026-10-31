@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
+import { LegalLinks } from "@/features/legal/LegalLinks";
 
 /** Centred column for the signed-out screens, with the language switcher top-right. */
 export function AuthScreenLayout({ children }: { children: ReactNode }) {
@@ -20,6 +21,7 @@ export function AuthScreenLayout({ children }: { children: ReactNode }) {
         contentContainerStyle={{ paddingTop: insets.top + 64, paddingBottom: insets.bottom + 24 }}
       >
         {children}
+        <LegalLinks />
       </ScrollView>
     </KeyboardAvoidingView>
   );
