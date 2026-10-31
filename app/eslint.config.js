@@ -7,10 +7,4 @@ module.exports = defineConfig([
   {
     ignores: ["dist/*", "ios/*", "android/*", ".expo/*"],
   },
-  {
-    rules: {
-      // xlsx ships from the SheetJS CDN with an `exports` map the import plugin can't follow.
-      "import/no-unresolved": ["error", { ignore: ["^xlsx$"] }],
-    },
-  },
 ]);
