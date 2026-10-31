@@ -3,6 +3,7 @@ import { View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
+import { LoadingScreen } from "@/components/ui/spinner";
 import { useRecurringExpenses } from "../hooks/useRecurringExpenses";
 import { RecurringExpenseCard } from "../components/RecurringExpenseCard";
 import { CreateRecurringExpenseDialog } from "../components/CreateRecurringExpenseDialog";
@@ -18,9 +19,7 @@ export function RecurringExpensesScreen() {
 
   if (isLoading) {
     return (
-      <Screen>
-        <Text className="text-muted-foreground">{t("common.loading")}</Text>
-      </Screen>
+      <LoadingScreen />
     );
   }
 

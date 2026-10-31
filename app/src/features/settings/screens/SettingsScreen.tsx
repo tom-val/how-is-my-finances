@@ -16,6 +16,7 @@ import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Text } from "@/components/ui/text";
 import { toast } from "@/components/ui/toast";
+import { LoadingScreen } from "@/components/ui/spinner";
 import { getItem, setItem } from "@/lib/storage";
 import { ACCENT_PRESETS } from "@/theme/palette";
 import { useTheme, type ThemePreference } from "@/theme/ThemeProvider";
@@ -85,9 +86,7 @@ export function SettingsScreen() {
 
   if (isLoading) {
     return (
-      <Screen>
-        <Text className="text-muted-foreground">{t("common.loading")}</Text>
-      </Screen>
+      <LoadingScreen />
     );
   }
 

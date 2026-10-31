@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
 import { toast } from "@/components/ui/toast";
+import { LoadingScreen } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import { getVendors, toggleVendorHidden } from "@/api/vendors";
 import type { UserVendor } from "@shared/types/vendor";
@@ -64,9 +65,7 @@ export function VendorSettingsScreen() {
 
   if (isLoading) {
     return (
-      <Screen>
-        <Text className="text-muted-foreground">{t("common.loading")}</Text>
-      </Screen>
+      <LoadingScreen />
     );
   }
 

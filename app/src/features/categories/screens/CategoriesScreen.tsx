@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
+import { LoadingScreen } from "@/components/ui/spinner";
 import { useCategories } from "../hooks/useCategories";
 import { CategoryCard } from "../components/CategoryCard";
 import { CreateCategoryDialog } from "../components/CreateCategoryDialog";
@@ -25,9 +26,7 @@ export function CategoriesScreen() {
 
   if (isLoading) {
     return (
-      <Screen>
-        <Text className="text-muted-foreground">{t("common.loading")}</Text>
-      </Screen>
+      <LoadingScreen />
     );
   }
 

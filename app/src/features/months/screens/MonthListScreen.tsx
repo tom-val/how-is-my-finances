@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
+import { LoadingScreen } from "@/components/ui/spinner";
 import { getItem } from "@/lib/storage";
 import { useMonths } from "../hooks/useMonths";
 import { MonthCard } from "../components/MonthCard";
@@ -37,9 +38,7 @@ export function MonthListScreen() {
 
   if (isLoading) {
     return (
-      <Screen>
-        <Text className="text-muted-foreground">{t("common.loading")}</Text>
-      </Screen>
+      <LoadingScreen />
     );
   }
 
