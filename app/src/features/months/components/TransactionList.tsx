@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
+import { Spinner } from "@/components/ui/spinner";
 import { useExpenses } from "@/features/expenses/hooks/useExpenses";
 import { useIncomes } from "@/features/incomes/hooks/useIncomes";
 import { ExpenseCard } from "@/features/expenses/components/ExpenseCard";
@@ -59,7 +60,7 @@ export function TransactionList({ monthId }: TransactionListProps) {
         </View>
       </View>
 
-      {isLoading && <Text className="text-muted-foreground">{t("common.loading")}</Text>}
+      {isLoading && <Spinner />}
 
       {hasError && <Text className="text-destructive">{t("common.error")}</Text>}
 

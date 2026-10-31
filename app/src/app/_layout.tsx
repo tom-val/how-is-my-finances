@@ -2,10 +2,10 @@ import "@/lib/installStorage";
 import "@/global.css";
 import "@/i18n";
 import { useEffect } from "react";
-import { View } from "react-native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
+import { LoadingScreen } from "@/components/ui/spinner";
 import { ToastHost } from "@/components/ui/toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useStartupUpdate } from "@/lib/startupUpdate";
@@ -25,7 +25,8 @@ function RootNavigator() {
     if (ready) void SplashScreen.hideAsync().catch(() => undefined);
   }, [ready]);
 
-  if (!ready) return <View className="flex-1 bg-background" />;
+  // Native shows the splash screen until ready; web shows this spinner.
+  if (!ready) return <LoadingScreen />;
 
   return (
     <>

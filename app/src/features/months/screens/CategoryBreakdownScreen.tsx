@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Screen } from "@/components/ui/screen";
 import { Switch } from "@/components/ui/switch";
 import { Text } from "@/components/ui/text";
+import { LoadingScreen } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import { useMonth } from "../hooks/useMonths";
 import { useExpenses } from "@/features/expenses/hooks/useExpenses";
@@ -130,9 +131,7 @@ export function CategoryBreakdownScreen() {
 
   if (isLoading) {
     return (
-      <Screen>
-        <Text className="text-muted-foreground">{t("common.loading")}</Text>
-      </Screen>
+      <LoadingScreen />
     );
   }
 

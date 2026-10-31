@@ -2,6 +2,7 @@ import { View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Dialog } from "@/components/ui/dialog";
 import { Text } from "@/components/ui/text";
+import { Spinner } from "@/components/ui/spinner";
 import { useExpensesByCategory } from "@/features/expenses/hooks/useExpenses";
 import type { Category } from "@shared/types/category";
 
@@ -24,7 +25,7 @@ export function CategoryExpensesDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange} title={category.name}>
       <View className="gap-3">
-        {isLoading && <Text className="text-sm text-muted-foreground">{t("common.loading")}</Text>}
+        {isLoading && <Spinner />}
         {expenses && expenses.length === 0 && (
           <Text className="text-sm text-muted-foreground">{t("categories.noExpenses")}</Text>
         )}

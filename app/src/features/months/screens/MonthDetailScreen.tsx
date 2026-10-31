@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
+import { LoadingScreen } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import { TransactionList } from "../components/TransactionList";
 import { SpendingProgressBar } from "../components/SpendingProgressBar";
@@ -40,9 +41,7 @@ export function MonthDetailScreen() {
 
   if (isLoading) {
     return (
-      <Screen>
-        <Text className="text-muted-foreground">{t("common.loading")}</Text>
-      </Screen>
+      <LoadingScreen />
     );
   }
 
