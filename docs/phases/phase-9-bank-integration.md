@@ -26,8 +26,8 @@ Out of scope: scheduled/background sync, auto-accept, payment initiation, multi-
 
 1. Sign up at the Enable Banking Control Panel, create an application with environment **Production**.
 2. Generate the key pair in the browser; download the private key (`<application-id>.pem`). The application ID is the JWT `kid`.
-3. Allowed redirect URLs: `https://finances.valiunas.dev/bank/callback` and `https://localhost:6173/bank/callback` (only `https` is accepted; `http://localhost` is rejected). For the local one, the Vite dev server must run on HTTPS (`@vitejs/plugin-basic-ssl`, pinned, enabled only in dev, or `mkcert` certs via `server.https`). The local backend's CORS `AllowedOrigins` must then use `https://localhost:6173`.
-   Fallback without local HTTPS: register only the production URL. When testing locally, after the bank redirects to `https://finances.valiunas.dev/bank/callback?code=…&state=…`, change the host in the address bar to `http://localhost:6173` and keep the query string. The code is exchanged by whichever backend the callback page talks to. Codes are short-lived, so do it promptly.
+3. Allowed redirect URLs: `https://finances.valiunas.dev/bank/callback` (only `https` is accepted; `http://localhost` and custom schemes like `finansai://` are rejected). The native app reuses this URL through a bounce page (see **Redirect round-trip** below), so it needs no URL of its own.
+   Local web dev (Expo web on `http://localhost:6173`) can't receive the redirect directly. Either register `https://localhost:6173/bank/callback` and serve the dev server over HTTPS (e.g. a local TLS proxy with `mkcert` certs; backend CORS `AllowedOrigins` then needs `https://localhost:6173`), or use the fallback: after the bank redirects to `https://finances.valiunas.dev/bank/callback?code=…&state=…`, change the host in the address bar to `http://localhost:6173` and keep the query string. Codes are short-lived, so do it promptly. Native dev builds need neither: the production bounce page hands the code to whichever build owns the `finansai://` scheme on the device.
 4. **Activate by linking accounts**: in the Control Panel, link your own Swedbank LT account(s). Only these accounts are visible in restricted mode.
 5. Swedbank LT is supported (confirmed on Enable Banking's Open Banking APIs list: "Swedbank", BIC `HABALT22`, AISP + PISP, Production + Sandbox). Use connector `aspsp = { name: "Swedbank", country: "LT" }` with `psu_type: "personal"`; `SwedbankBusiness` is the business-account connector. Read `maximum_consent_validity` from `GET /aspsps?country=LT` once the app is registered.
 6. Base64-encode the private key (`base64 -i <application-id>.pem | tr -d '\n'`) and store it as GitHub secret `ENABLE_BANKING_PRIVATE_KEY_B64`, with the application ID as `ENABLE_BANKING_APPLICATION_ID` (see Infrastructure).
@@ -368,21 +368,21 @@ Tests: `node --test` for `readCategoriseRequest`, `parseAssignments` (out-of-ran
 
 ## Frontend
 
-### API (`frontend/src/api/bank.ts`)
+### API (`app/src/api/bank.ts`)
 Thin wrappers over `apiGet`/`apiPost`/`apiPatch`/`apiDelete`, one per endpoint.
 
-### Feature (`frontend/src/features/bank/`)
+### Feature (`app/src/features/bank/`)
 - `hooks/`
   - `useBankConnections`, `useStartBankConnection`, `useCompleteBankConnection`, `useDeleteBankConnection`
   - `useBankTransactions`, `usePendingCount`, `useAcceptBankTransaction`, `useDismissBankTransaction`, `useLinkBankTransaction`
   - `useBankSync` — same shape as food app's `useAiSort`: a mutation with a fixed `mutationKey` that (1) calls `POST /v1/bank/sync`, (2) invalidates the inbox right away (transactions appear uncategorised), (3) if `jobId`, polls `GET /v1/bank/ai-jobs/{jobId}` every 2 s for up to 2 min (keep polling through 5xx/network errors, stop on 4xx), (4) invalidates the inbox + pending count again. `useIsMutating` keeps the busy state across page switches, and `queryClient.isMutating` guards double clicks. Phases exposed to the UI: `syncing` → `categorising` → done.
-- `pages/`
-  - `BankConnectionsPage` (`/settings/bank`) — list connections, status chip, consent expiry, last sync, per-account toggle, Connect / Reconnect / Disconnect
-  - `BankCallbackPage` (`/bank/callback`) — reads `code`, `state` (or `error`), calls complete, then navigates to `/bank/inbox` with a "Sync now" prompt (handles errors + already-completed state on refresh)
-  - `BankInboxPage` (`/bank/inbox`) — **Sync button** in the header (shows "Syncing…" / "Categorising…" and "Last synced …"), pending suggestions grouped by date
+- `screens/` (route files in `app/src/app/` re-export these)
+  - `BankConnectionsScreen` (`/settings/bank`) — list connections, status chip, consent expiry, last sync, per-account toggle, Connect / Reconnect / Disconnect
+  - `BankCallbackScreen` (`/bank/callback`) — reads `code`, `state` (or `error`). If `state` starts with `n.` and this is the web build, it is the native bounce: `location.replace("finansai://bank/callback" + location.search)` and show "Return to the app" (no session needed). Otherwise calls complete, then navigates to `/bank/inbox` with a "Sync now" prompt (handles errors + already-completed state on refresh). The same route handles the `finansai://bank/callback` deep link in the native app.
+  - `BankInboxScreen` (`/bank/inbox`) — **Sync button** in the header (shows "Syncing…" / "Categorising…" and "Last synced …"), pending suggestions grouped by date
 - `components/`
   - `SyncButton` — wraps `useBankSync`; disabled while running; toast on result ("12 new transactions", "Nothing new", rate-limited, consent expired)
-  - `ConnectBankDialog` — bank picker (from `/v1/bank/aspsps?country=LT`), then `window.location.assign(redirectUrl)`
+  - `ConnectBankDialog` — bank picker (from `/v1/bank/aspsps?country=LT`). Web: `window.location.assign(redirectUrl)`. Native: `WebBrowser.openAuthSessionAsync(redirectUrl, "finansai://bank/callback")`, then complete with the returned URL's `code`/`state`
   - `BankTransactionCard` — amount, counterparty, date; prefilled category select + item name + vendor; small "AI" badge when `suggestionSource = 'ai'`; skeleton shimmer on the category while the job is running; actions: Accept, Dismiss, and "Already added" (if duplicate flagged)
   - `BulkAcceptBar` — "Accept N with suggested category"
   - `ConsentExpiryBanner` — shown when < 14 days left
@@ -391,8 +391,13 @@ Thin wrappers over `apiGet`/`apiPost`/`apiPatch`/`apiDelete`, one per endpoint.
 - Badge with pending count on the Months tab (or a new Inbox entry), linking to `/bank/inbox`
 - Settings → "Bank connections" row
 
-### PWA caveat
-In an installed iOS PWA the bank redirect opens in Safari, not in the standalone app. The callback page must therefore work in a plain browser tab: the Supabase session is shared per origin in Safari, but verify this on iOS. Show a "Return to the app" hint after completion. On Android, the installed PWA captures in-scope URLs, so it should return to the app.
+### Redirect round-trip (web + native)
+Enable Banking only redirects to registered `https` URLs, so both clients come back through `https://finances.valiunas.dev/bank/callback`:
+
+- **Web**: the page is the callback. The user's Supabase session is in this origin's localStorage, so it calls `POST /v1/bank/connections/complete` directly.
+- **Native (iOS/Android app)**: `POST /v1/bank/connections` takes `client: "web" | "native"`; for native the backend prefixes the random `state` with `n.`. The app opens the bank URL with `expo-web-browser`'s `openAuthSessionAsync(url, "finansai://bank/callback")` (ASWebAuthenticationSession on iOS, Custom Tabs on Android). The bank redirects to the web callback page, which sees the `n.` state and immediately redirects to `finansai://bank/callback?code=…&state=…`. The auth session catches that URL and returns it to the app; on Android the deep link may instead open the app's `/bank/callback` route, which completes the same way. The app then calls `complete` with its own JWT. The page never needs a session in the browser.
+- Why it's safe: `code` alone is useless. `complete` requires the user's JWT and a `state` that the backend bound to that user and connection, and that it accepts once.
+- Later (optional): Universal Links / Android App Links for `https://finances.valiunas.dev/bank/callback` (AASA + `assetlinks.json` served from the S3 bucket, `associatedDomains` / `intentFilters` in `app.json`) open the app directly and remove the bounce. The bounce page stays as the fallback.
 
 ### i18n (`en` + `lt`)
 `bank.title`, `bank.connect`, `bank.reconnect`, `bank.disconnect`, `bank.lastSynced`, `bank.sync`, `bank.syncing`, `bank.categorising`, `bank.syncDone`, `bank.syncNothingNew`, `bank.syncCooldown`, `bank.consentExpires`, `bank.inbox`, `bank.accept`, `bank.dismiss`, `bank.alreadyAdded`, `bank.acceptAll`, `bank.noPending`, `bank.aiSuggested`, `bank.aiFailed`, `bank.rateLimited`, `bank.connectionExpired`, `bank.callback.success`, `bank.callback.error`
@@ -436,4 +441,4 @@ Copy of the food app module, renamed for this project:
 - Expired consent shows a banner and can be renewed via Reconnect
 - Disconnect revokes the Enable Banking session
 - Backend tests + AI processor tests pass
-- Manual verification on Android + iOS installed PWA (redirect round-trip)
+- Manual verification of the redirect round-trip on web, the iOS app and the Android app
