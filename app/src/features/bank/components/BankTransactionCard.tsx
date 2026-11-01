@@ -233,33 +233,40 @@ export function BankTransactionCard({
         {error && <Text className="text-sm text-destructive">{error}</Text>}
 
         {/* Date + actions */}
-        <View className="flex-row flex-wrap items-center justify-between gap-2">
-          <View className="min-w-32">
+        <View className="flex-row items-center gap-2">
+          <View className="min-w-0 flex-1">
             <DateInput value={date} onChange={setDate} accessibilityLabel={t("expenses.date")} />
           </View>
-          <View className="flex-row flex-wrap items-center justify-end gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onPress={handleDismiss}
+            disabled={isBusy}
+            loading={dismiss.isPending}
+            accessibilityLabel={t("bank.dismiss")}
+          >
+            <Icon as={X} size={18} />
+          </Button>
+          {transaction.possibleDuplicate && (
             <Button
-              variant="ghost"
-              size="sm"
-              onPress={handleDismiss}
+              variant="outline"
+              size="icon"
+              onPress={() => setIsLinkOpen(true)}
               disabled={isBusy}
-              loading={dismiss.isPending}
-              accessibilityLabel={t("bank.dismiss")}
+              accessibilityLabel={t("bank.alreadyAdded")}
             >
-              <Icon as={X} size={14} />
-              <Text>{t("bank.dismiss")}</Text>
+              <Icon as={Link2} size={18} />
             </Button>
-            {transaction.possibleDuplicate && (
-              <Button variant="outline" size="sm" onPress={() => setIsLinkOpen(true)} disabled={isBusy}>
-                <Icon as={Link2} size={14} />
-                <Text>{t("bank.alreadyAdded")}</Text>
-              </Button>
-            )}
-            <Button size="sm" onPress={handleAccept} disabled={isBusy} loading={accept.isPending}>
-              <Icon as={Check} size={14} />
-              <Text>{t("bank.accept")}</Text>
-            </Button>
-          </View>
+          )}
+          <Button
+            size="icon"
+            onPress={handleAccept}
+            disabled={isBusy}
+            loading={accept.isPending}
+            accessibilityLabel={t("bank.accept")}
+          >
+            <Icon as={Check} size={18} />
+          </Button>
         </View>
       </CardContent>
 
