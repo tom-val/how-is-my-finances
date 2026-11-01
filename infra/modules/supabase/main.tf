@@ -19,10 +19,13 @@ resource "supabase_project" "this" {
 resource "supabase_settings" "this" {
   project_ref = supabase_project.this.id
 
+  # Management API field names (not config.toml's): the redirect allow list is `uri_allow_list`, one
+  # comma-separated string, sent whole. A redirect_to that isn't on it silently falls back to site_url,
+  # so the password-reset link signed people in on the home page without asking for a new password.
   auth = jsonencode({
-    site_url                = var.site_url
+    site_url = var.site_url
     # finansai:// is the native app's scheme: password-reset emails sent from iOS/Android reopen the app.
-    additional_redirect_urls = [var.site_url, "${var.site_url}/reset-password", "finansai://reset-password"]
+    uri_allow_list = join(",", [var.site_url, "${var.site_url}/reset-password", "finansai://reset-password"])
   })
 }
 

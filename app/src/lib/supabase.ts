@@ -4,6 +4,17 @@ import { createClient } from "@supabase/supabase-js";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./config";
 
 /**
+ * Web: this page load came from a password-recovery link (`#access_token=…&type=recovery`). Read before
+ * the client is created: detectSessionInUrl consumes and clears the fragment, and its PASSWORD_RECOVERY
+ * event fires before any component has subscribed. RootNavigator uses it to open /reset-password even
+ * when the link landed elsewhere (Supabase falls back to the site URL for a redirect it doesn't allow).
+ */
+export const openedFromRecoveryLink =
+  Platform.OS === "web" &&
+  typeof window !== "undefined" &&
+  new URLSearchParams(window.location.hash.slice(1)).get("type") === "recovery";
+
+/**
  * The session is persisted in `localStorage` — the browser's on web, the expo-sqlite polyfill on
  * native (./installStorage). Supabase sessions exceed SecureStore's 2 KB value limit,
  * which is why the Keychain/Keystore isn't used here.
