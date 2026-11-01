@@ -49,6 +49,13 @@ builder.Services.AddScoped<IIncomeRepository, IncomeRepository>();
 builder.Services.AddScoped<IRecurringExpenseRepository, RecurringExpenseRepository>();
 builder.Services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
 builder.Services.AddScoped<IVendorRepository, VendorRepository>();
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddHttpClient<IAuthAdminClient, SupabaseAuthAdminClient>((services, client) =>
+{
+    var supabase = services.GetRequiredService<IOptions<SupabaseSettings>>().Value;
+    client.BaseAddress = new Uri(supabase.Url.TrimEnd('/') + "/");
+    client.Timeout = TimeSpan.FromSeconds(15);
+});
 builder.Services.AddScoped<IBankConnectionRepository, BankConnectionRepository>();
 builder.Services.AddScoped<IBankTransactionRepository, BankTransactionRepository>();
 builder.Services.AddScoped<IAiJobRepository, AiJobRepository>();
@@ -104,6 +111,9 @@ app.MapPatch("/v1/expenses/{id:guid}/toggle-complete", ExpenseFunctions.ToggleCo
 app.MapDelete("/v1/expenses/{id:guid}", ExpenseFunctions.Delete);
 
 // Vendor endpoints
+// Account endpoints
+app.MapDelete("/v1/account", AccountFunctions.Delete);
+
 app.MapGet("/v1/vendors", VendorFunctions.GetAll);
 app.MapGet("/v1/vendors/visible", VendorFunctions.GetVisible);
 app.MapPatch("/v1/vendors/{id:guid}", VendorFunctions.ToggleHidden);

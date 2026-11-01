@@ -97,7 +97,7 @@ const EN: LegalDoc = {
       heading: "7. Your rights",
       blocks: [
         {
-          p: `You can ask for access to your data, a copy in a portable format, correction, erasure (including deleting your account), restriction, or object to processing based on legitimate interests, and you can withdraw consent at any time. Write to ${LEGAL_CONTACT}; we reply within one month. You can also complain to the Lithuanian State Data Protection Inspectorate (vdai.lrv.lt) or the authority where you live.`,
+          p: `You can ask for access to your data, a copy in a portable format, correction, erasure, restriction, or object to processing based on legitimate interests, and you can withdraw consent at any time. You can delete your account and all its data yourself in Settings → Account → Delete account (or at finances.valiunas.dev/delete-account). For anything else write to ${LEGAL_CONTACT}; we reply within one month. You can also complain to the Lithuanian State Data Protection Inspectorate (vdai.lrv.lt) or the authority where you live.`,
         },
       ],
     },
@@ -213,7 +213,7 @@ const LT: LegalDoc = {
       heading: "7. Jūsų teisės",
       blocks: [
         {
-          p: `Galite prašyti susipažinti su savo duomenimis, gauti jų kopiją perkeliamu formatu, juos ištaisyti, ištrinti (įskaitant paskyrą), apriboti tvarkymą ar nesutikti su tvarkymu teisėto intereso pagrindu, taip pat bet kada atšaukti sutikimą. Rašykite ${LEGAL_CONTACT}; atsakome per vieną mėnesį. Taip pat galite pateikti skundą Valstybinei duomenų apsaugos inspekcijai (vdai.lrv.lt) arba savo gyvenamosios vietos priežiūros institucijai.`,
+          p: `Galite prašyti susipažinti su savo duomenimis, gauti jų kopiją perkeliamu formatu, juos ištaisyti, ištrinti, apriboti tvarkymą ar nesutikti su tvarkymu teisėto intereso pagrindu, taip pat bet kada atšaukti sutikimą. Paskyrą ir visus jos duomenis galite ištrinti patys: Nustatymai → Paskyra → Ištrinti paskyrą (arba finances.valiunas.dev/delete-account). Kitais klausimais rašykite ${LEGAL_CONTACT}; atsakome per vieną mėnesį. Taip pat galite pateikti skundą Valstybinei duomenų apsaugos inspekcijai (vdai.lrv.lt) arba savo gyvenamosios vietos priežiūros institucijai.`,
         },
       ],
     },

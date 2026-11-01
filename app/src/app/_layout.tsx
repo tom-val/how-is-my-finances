@@ -47,6 +47,7 @@ function RootNavigator() {
         {/* Public legal pages: linked from the stores, Enable Banking and the sign-in screens. */}
         <Stack.Screen name="privacy" />
         <Stack.Screen name="terms" />
+        <Stack.Screen name="delete-account" />
       </Stack>
       <ToastHost />
     </>

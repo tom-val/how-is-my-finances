@@ -366,6 +366,19 @@
     "privacy": "Privatumo politika",
     "terms": "Naudojimo sąlygos",
     "updated": "Atnaujinta {{date}}",
-    "contact": "Klausimai ar prašymai dėl jūsų duomenų?"
+    "contact": "Klausimai ar prašymai dėl jūsų duomenų?",
+    "deleteAccount": "Paskyros ištrynimas"
+  },
+  "account": {
+    "title": "Paskyra",
+    "delete": "Ištrinti paskyrą",
+    "deleteHint": "Visam laikui ištrinkite paskyrą ir visus duomenis, įskaitant banko ryšius ir importuotas operacijas.",
+    "deleteTitle": "Ištrinti paskyrą?",
+    "deleteDescription": "Bus visam laikui ištrinta jūsų paskyra, visi mėnesiai, išlaidos, pajamos ir kategorijos, o banko ryšiai atšaukti. To atšaukti negalima.",
+    "deleteConfirm": "Ištrinti visam laikui",
+    "deleted": "Jūsų paskyra ištrinta",
+    "deleteFailed": "Nepavyko ištrinti paskyros. Bandykite dar kartą.",
+    "signedInAs": "Prisijungta kaip {{email}}",
+    "signInToDelete": "Prisijunkite, kad ištrintumėte paskyrą čia."
   }
 }

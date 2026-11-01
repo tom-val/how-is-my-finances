@@ -4,15 +4,16 @@ import { Link } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 
-type LegalPage = "privacy" | "terms";
+export type LegalPage = "privacy" | "terms" | "delete-account";
 
-const PAGES: { page: LegalPage; href: "/privacy" | "/terms"; label: string }[] = [
+const PAGES: { page: LegalPage; href: "/privacy" | "/terms" | "/delete-account"; label: string }[] = [
   { page: "privacy", href: "/privacy", label: "legal.privacy" },
   { page: "terms", href: "/terms", label: "legal.terms" },
+  { page: "delete-account", href: "/delete-account", label: "legal.deleteAccount" },
 ];
 
 /**
- * "Privacy policy · Terms" — the small muted row under the sign-in forms, in Settings and at the
+ * "Privacy policy · Terms · Delete account" — the small muted row under the sign-in forms, in Settings and at the
  * foot of each legal page. Store review and Enable Banking need these reachable without an account.
  * `current` leaves out the page the row sits on.
  */

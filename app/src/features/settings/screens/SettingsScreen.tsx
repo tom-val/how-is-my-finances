@@ -21,6 +21,7 @@ import { getItem, setItem } from "@/lib/storage";
 import { ACCENT_PRESETS } from "@/theme/palette";
 import { useTheme, type ThemePreference } from "@/theme/ThemeProvider";
 import { LegalLinks } from "@/features/legal/LegalLinks";
+import { DeleteAccountButton } from "@/features/account/DeleteAccountButton";
 import type { Profile } from "@shared/types/profile";
 import { useProfile, useUpdateProfile } from "../hooks/useProfile";
 
@@ -212,6 +213,17 @@ export function SettingsScreen() {
       <Button variant="outline" className="w-full" onPress={() => void handleRefreshApp()}>
         {t("settings.refreshApp")}
       </Button>
+
+      {/* Account deletion: required by both app stores for apps with sign-up. */}
+      <Card className="py-0">
+        <CardContent className="gap-3 px-4 py-4 sm:px-6 sm:py-5">
+          <Text role="heading" className="text-sm font-semibold">
+            {t("account.title")}
+          </Text>
+          <Text className="text-xs text-muted-foreground">{t("account.deleteHint")}</Text>
+          <DeleteAccountButton className="self-start" />
+        </CardContent>
+      </Card>
 
       {versionLabel ? (
         <Text className="text-center text-xs text-muted-foreground">{versionLabel}</Text>
