@@ -1,8 +1,9 @@
 import { useState, type ReactNode } from "react";
-import { RefreshControl, ScrollView } from "react-native";
+import { RefreshControl } from "react-native";
 import { useIsWide } from "@/hooks/useIsWide";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/theme/ThemeProvider";
+import { KeyboardAwareScrollView } from "./keyboard-aware-scroll-view";
 
 interface ScreenProps {
   children: ReactNode;
@@ -18,6 +19,7 @@ interface ScreenProps {
 /**
  * Scrollable page body: the PWA's `<main className="mx-auto max-w-5xl px-4 py-6">`. On phones the
  * bottom padding clears the tab bar, which is laid out below the screen by the tab navigator.
+ * Keyboard-aware, so inline fields (inbox cards, settings) scroll above the keyboard.
  */
 export function Screen({ children, onRefresh, className }: ScreenProps) {
   const { colours } = useTheme();
@@ -33,9 +35,8 @@ export function Screen({ children, onRefresh, className }: ScreenProps) {
     }
   }
   return (
-    <ScrollView
+    <KeyboardAwareScrollView
       className="flex-1 bg-background"
-      keyboardShouldPersistTaps="handled"
       contentContainerClassName={cn(
         "mx-auto w-full max-w-5xl gap-6 px-4 py-6",
         isWide ? "pb-6" : "pb-10",
@@ -52,6 +53,6 @@ export function Screen({ children, onRefresh, className }: ScreenProps) {
       }
     >
       {children}
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }
