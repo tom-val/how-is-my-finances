@@ -224,6 +224,7 @@ CREATE POLICY "Users can view own counterparty rules"
 Notes:
 - `session_id` alone is useless without the app's private key, so it is stored as plain text. No token encryption is needed (unlike the GoCardless draft).
 - The external id is `entry_reference ?? transaction_id ?? sha256(booking_date|amount|direction|counterparty|description)`.
+- `booking_date` holds the date the money was spent: `transaction_date` when the bank sends one, else the purchase date in a card payment's text (`PIRKINYS 516793******4160 2026.10.28 …`, 0–14 days before the bank's date; Swedbank books cards 2–3 days later), else the bank's booking date. The hash id keeps using the bank's own date so ids stay stable. Re-syncs update the date of suggestions not yet reviewed.
 - Also copy the migration into `database/migrations/` (reference copy).
 
 ### Counterparty key

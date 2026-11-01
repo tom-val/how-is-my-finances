@@ -45,8 +45,12 @@ public sealed class BankTransactionRepository : IBankTransactionRepository
                 FROM public.bank_accounts a
                 WHERE a.id = @accountId AND a.user_id = @userId
                 ON CONFLICT (bank_account_id, external_id) WHERE source = 'enable_banking'
-                DO UPDATE SET booking_status = 'booked', booking_date = EXCLUDED.booking_date, raw_data = EXCLUDED.raw_data
-                WHERE public.bank_transactions.booking_status = 'pending' AND EXCLUDED.booking_status = 'booked'
+                DO UPDATE SET booking_status = EXCLUDED.booking_status, booking_date = EXCLUDED.booking_date, raw_data = EXCLUDED.raw_data
+                WHERE (public.bank_transactions.booking_status = 'pending' AND EXCLUDED.booking_status = 'booked')
+                   -- Un-reviewed suggestions follow date fixes in the mapper (e.g. purchase date instead of booking date)
+                   OR (public.bank_transactions.review_status = 'pending'
+                       AND public.bank_transactions.booking_status = EXCLUDED.booking_status
+                       AND public.bank_transactions.booking_date <> EXCLUDED.booking_date)
                 RETURNING id, (xmax = 0) AS inserted
                 """,
                 connection, transaction);

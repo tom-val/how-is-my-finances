@@ -1,15 +1,27 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using HowAreMyFinances.Api.Domain;
 
 namespace HowAreMyFinances.Api.Infrastructure.EnableBanking;
 
 /// <summary>Maps Enable Banking transactions to bank_transactions rows.</summary>
-public static class TransactionMapper
+public static partial class TransactionMapper
 {
     public const int MaxCounterpartyLength = 200;
     public const int MaxDescriptionLength = 1000;
+
+    /// <summary>Card payments are booked a few days after the purchase; older dates in the text are something else.</summary>
+    public const int MaxPurchaseDateLagDays = 14;
+
+    // A masked card number, e.g. 516793******4160 or ****4160: marks the text as a card payment.
+    [GeneratedRegex(@"\d*\*{2,}\d{4}")]
+    private static partial Regex CardMaskRegex();
+
+    // Purchase dates in card-payment texts: 2026.10.28, 2026-10-28 or 28.10.2026.
+    [GeneratedRegex(@"\b(?:(?<y>\d{4})[.\-/](?<m>\d{2})[.\-/](?<d>\d{2})|(?<d>\d{2})[.\-/](?<m>\d{2})[.\-/](?<y>\d{4}))\b")]
+    private static partial Regex DateRegex();
 
     /// <summary>
     /// Returns null for transactions that can't become a suggestion: zero amount, unknown direction,
@@ -44,8 +56,9 @@ public static class TransactionMapper
         if (direction is null)
             return null;
 
-        // Booked rows use the booking date; pending rows the transaction or value date.
-        var bookingDate = bookingStatus == BankBookingStatus.Booked
+        // The bank's own date for the row: booked rows the booking date, pending rows the transaction or value date.
+        // It keys the hash id below, so it must stay as it was when earlier syncs stored the row.
+        var bankDate = bookingStatus == BankBookingStatus.Booked
             ? transaction.BookingDate ?? transaction.ValueDate ?? transaction.TransactionDate
             : transaction.TransactionDate ?? transaction.ValueDate ?? transaction.BookingDate;
 
@@ -54,6 +67,10 @@ public static class TransactionMapper
         var partyAccount = isDebit ? transaction.CreditorAccount : transaction.DebtorAccount;
 
         var description = JoinRemittance(transaction.RemittanceInformation);
+
+        // The date the money was spent, which is what the expense should carry: the transaction date when the
+        // bank sends one, else the purchase date in a card payment's text (Swedbank books cards 2-3 days later).
+        var spentDate = transaction.TransactionDate ?? PurchaseDate(description, bankDate) ?? bankDate;
 
         var counterpartyName = Clean(party?.Name);
         if (counterpartyName is null && isDebit)
@@ -69,7 +86,7 @@ public static class TransactionMapper
 
         var externalId = Clean(transaction.EntryReference)
             ?? Clean(transaction.TransactionId)
-            ?? HashId(bookingDate, amount, direction, counterpartyName, description);
+            ?? HashId(bankDate, amount, direction, counterpartyName, description);
 
         return new NewBankTransaction(
             ExternalId: externalId,
@@ -77,13 +94,37 @@ public static class TransactionMapper
             Direction: direction,
             Amount: amount,
             Currency: currency,
-            BookingDate: bookingDate ?? today,
+            BookingDate: spentDate ?? today,
             CounterpartyName: counterpartyName,
             CounterpartyKey: CounterpartyKey.Normalise(counterpartyName ?? description),
             CounterpartyIbanHash: Iban.Hash(partyAccount?.Iban),
             Description: Truncate(description, MaxDescriptionLength),
             MerchantCategoryCode: Clean(transaction.MerchantCategoryCode),
             RawJson: transaction.RawJson);
+    }
+
+    /// <summary>
+    /// The purchase date in a card payment's remittance text, e.g. <c>PIRKINYS 516793******4160 2026.10.28 12.38 EUR</c>.
+    /// Only for texts with a masked card number, and only up to <see cref="MaxPurchaseDateLagDays"/> days before the
+    /// bank's date (never after it), so other dates in a text (invoice periods, due dates) are ignored.
+    /// </summary>
+    public static DateOnly? PurchaseDate(string? remittance, DateOnly? bankDate)
+    {
+        if (remittance is null || bankDate is not { } latest || !CardMaskRegex().IsMatch(remittance))
+            return null;
+
+        foreach (Match match in DateRegex().Matches(remittance))
+        {
+            if (!DateOnly.TryParseExact(
+                    $"{match.Groups["y"].Value}-{match.Groups["m"].Value}-{match.Groups["d"].Value}",
+                    "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+                continue;
+
+            if (date <= latest && date >= latest.AddDays(-MaxPurchaseDateLagDays))
+                return date;
+        }
+
+        return null;
     }
 
     /// <summary>sha256(booking_date|amount|direction|counterparty|description), used when the bank gives no id.</summary>
