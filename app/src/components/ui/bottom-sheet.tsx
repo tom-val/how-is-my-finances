@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, View } from "react-native";
+import { Modal, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Check, Search } from "lucide-react-native";
 import { useIsWide } from "@/hooks/useIsWide";
 import { cn } from "@/lib/utils";
 import { Icon } from "./icon";
 import { Input } from "./input";
+import { KeyboardAwareScrollView } from "./keyboard-aware-scroll-view";
 import { Text } from "./text";
 
 interface BottomSheetProps {
@@ -33,10 +34,7 @@ export function BottomSheet({ open, onOpenChange, title, search, children }: Bot
       animationType={isWide ? "fade" : "slide"}
       onRequestClose={close}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        className={cn("flex-1", isWide ? "items-center justify-center p-4" : "justify-end")}
-      >
+      <View className={cn("flex-1", isWide ? "items-center justify-center p-4" : "justify-end")}>
         <Pressable accessibilityLabel="Close" onPress={close} className="absolute inset-0 bg-black/50" />
         <View
           className={cn(
@@ -70,11 +68,12 @@ export function BottomSheet({ open, onOpenChange, title, search, children }: Bot
               />
             </View>
           )}
-          <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="p-1">
+          {/* The sheet keeps its height; the list's keyboard inset lets the last results scroll up above the keyboard. */}
+          <KeyboardAwareScrollView contentContainerClassName="p-1">
             {children}
-          </ScrollView>
+          </KeyboardAwareScrollView>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }

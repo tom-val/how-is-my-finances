@@ -4,6 +4,7 @@ import "@/i18n";
 import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import * as SplashScreen from "expo-splash-screen";
 import { LoadingScreen } from "@/components/ui/spinner";
 import { ToastHost } from "@/components/ui/toast";
@@ -56,12 +57,15 @@ function RootNavigator() {
 
 export default function RootLayout() {
   return (
-    <ThemeProvider>
-      <QueryProvider>
-        <AuthProvider>
-          <RootNavigator />
-        </AuthProvider>
-      </QueryProvider>
-    </ThemeProvider>
+    // One KeyboardProvider for the whole app, Modals included (KeyboardAwareScrollView needs it).
+    <KeyboardProvider>
+      <ThemeProvider>
+        <QueryProvider>
+          <AuthProvider>
+            <RootNavigator />
+          </AuthProvider>
+        </QueryProvider>
+      </ThemeProvider>
+    </KeyboardProvider>
   );
 }

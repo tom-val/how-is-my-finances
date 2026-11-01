@@ -1,11 +1,13 @@
 import type { ReactNode } from "react";
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, View } from "react-native";
+import { Modal, Platform, Pressable, View } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { X } from "lucide-react-native";
 import { useIsWide } from "@/hooks/useIsWide";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 import { Icon } from "./icon";
+import { KeyboardAwareScrollView } from "./keyboard-aware-scroll-view";
 import { Text } from "./text";
 
 interface DialogProps {
@@ -49,29 +51,26 @@ export function Dialog({ open, onOpenChange, title, children, variant = "sheet",
   if (variant === "alert" || isWide) {
     return (
       <Modal visible={open} transparent animationType="fade" onRequestClose={close}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          className="flex-1 items-center justify-center p-4"
-        >
-          <Pressable
-            accessibilityLabel="Close"
-            onPress={close}
-            className="absolute inset-0 bg-black/50"
-          />
-          <View
-            className={cn(
-              "max-h-[90%] w-full rounded-lg border border-border bg-background shadow-lg",
-              variant === "alert" ? "max-w-sm" : "max-w-lg",
-              className,
-            )}
-          >
-            <ScrollView
-              keyboardShouldPersistTaps="handled"
-              contentContainerClassName="gap-4 p-6"
+        {/* A floating card: lift the whole card above the keyboard (keyboard-controller's version works on Android too). */}
+        <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
+          <View className="flex-1 items-center justify-center p-4">
+            <Pressable
+              accessibilityLabel="Close"
+              onPress={close}
+              className="absolute inset-0 bg-black/50"
+            />
+            <View
+              className={cn(
+                "max-h-[90%] w-full rounded-lg border border-border bg-background shadow-lg",
+                variant === "alert" ? "max-w-sm" : "max-w-lg",
+                className,
+              )}
             >
-              <DialogHeader title={title} onClose={close} />
-              {children}
-            </ScrollView>
+              <KeyboardAwareScrollView contentContainerClassName="gap-4 p-6">
+                <DialogHeader title={title} onClose={close} />
+                {children}
+              </KeyboardAwareScrollView>
+            </View>
           </View>
         </KeyboardAvoidingView>
       </Modal>
@@ -88,21 +87,18 @@ export function Dialog({ open, onOpenChange, title, children, variant = "sheet",
       presentationStyle={Platform.OS === "ios" ? "pageSheet" : "fullScreen"}
       onRequestClose={close}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        className="flex-1 bg-background"
-      >
+      <View className="flex-1 bg-background">
         <View className="px-4 pb-2" style={{ paddingTop: topInset }}>
           <DialogHeader title={title} onClose={close} />
         </View>
-        <ScrollView
-          keyboardShouldPersistTaps="handled"
+        <KeyboardAwareScrollView
+          className="flex-1"
           contentContainerClassName={cn("gap-4 px-4 pt-2", className)}
           contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
         >
           {children}
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
+      </View>
     </Modal>
   );
 }
