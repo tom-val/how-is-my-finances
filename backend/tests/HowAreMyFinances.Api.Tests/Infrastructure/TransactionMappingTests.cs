@@ -150,6 +150,72 @@ public class TransactionMappingTests
     }
 
     [Fact]
+    public void Map_BookedCardPayment_UsesPurchaseDateFromRemittance_ButKeepsHashOnBookingDate()
+    {
+        // Arrange: Swedbank LT books card payments a few days after the purchase
+        var transaction = Parse("""
+            {
+              "transaction_amount": { "amount": "12.38", "currency": "EUR" },
+              "credit_debit_indicator": "DBIT",
+              "status": "BOOK",
+              "booking_date": "2026-10-31",
+              "value_date": "2026-10-31",
+              "creditor": { "name": "SIMONAS KEPEJAS 46385 KAUNAS" },
+              "remittance_information": ["PIRKINYS 516793******4160 2026.10.28 12.38 EUR (717565) SIMONAS KEPEJAS 46385 KAUNAS"]
+            }
+            """);
+
+        // Act
+        var row = TransactionMapper.Map(transaction, EbTransactionStatus.Booked, Today)!;
+
+        // Assert
+        Assert.Equal(new DateOnly(2026, 10, 28), row.BookingDate);
+        Assert.Equal(
+            TransactionMapper.HashId(new DateOnly(2026, 10, 31), 12.38m, BankDirection.Debit,
+                "SIMONAS KEPEJAS 46385 KAUNAS", "PIRKINYS 516793******4160 2026.10.28 12.38 EUR (717565) SIMONAS KEPEJAS 46385 KAUNAS"),
+            row.ExternalId);
+    }
+
+    [Fact]
+    public void Map_Booked_PrefersTransactionDate()
+    {
+        // Arrange
+        var transaction = Parse("""
+            {
+              "entry_reference": "ref-1",
+              "transaction_amount": { "amount": "9.40", "currency": "EUR" },
+              "credit_debit_indicator": "DBIT",
+              "status": "BOOK",
+              "booking_date": "2026-10-29",
+              "transaction_date": "2026-10-27",
+              "creditor": { "name": "Vinted" }
+            }
+            """);
+
+        // Act
+        var row = TransactionMapper.Map(transaction, EbTransactionStatus.Booked, Today)!;
+
+        // Assert
+        Assert.Equal(new DateOnly(2026, 10, 27), row.BookingDate);
+    }
+
+    [Theory]
+    [InlineData("PIRKINYS 516793******4160 2026.10.28 12.38 EUR MAXIMA", "2026-10-28")]
+    [InlineData("CARD PAYMENT ****4160 28.10.2026 MAXIMA", "2026-10-28")]
+    [InlineData("Saskaita 2026-10-28 UAB Telia", null)] // no card mask: not a card payment
+    [InlineData("PIRKINYS 516793******4160 2026.11.02 MAXIMA", null)] // after the booking date
+    [InlineData("PIRKINYS 516793******4160 2026.09.01 MAXIMA", null)] // too long before it
+    [InlineData("PIRKINYS 516793******4160 2026.13.45 MAXIMA", null)] // not a date
+    public void PurchaseDate_OnlyForRecentCardPurchaseDates(string remittance, string? expected)
+    {
+        // Act
+        var date = TransactionMapper.PurchaseDate(remittance, new DateOnly(2026, 10, 31));
+
+        // Assert
+        Assert.Equal(expected is null ? null : DateOnly.Parse(expected), date);
+    }
+
+    [Fact]
     public void Map_CardPaymentWithoutCreditor_TakesMerchantFromRemittance()
     {
         // Arrange
