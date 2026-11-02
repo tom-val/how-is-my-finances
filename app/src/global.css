@@ -1,3 +1,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* iOS Safari gives <input type="date"> a native intrinsic width/height that ignores width,
+   min-width and height (it overflowed the buttons next to it in the inbox). Dropping the native
+   appearance makes it size like any other input; the value is left-aligned like Input's text. */
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  min-width: 0;
+}
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+  margin: 0;
+}
+input[type="date"]::-webkit-date-and-time-value,
+input[type="date"]::-webkit-datetime-edit {
+  padding: 0;
+}
