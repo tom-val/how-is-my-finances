@@ -44,6 +44,24 @@ public static partial class CounterpartyKey
     [GeneratedRegex(@"^(PIRKINYS|PIRKIMAS|MOKĖJIMAS KORTELE|KORTELĖS OPERACIJA|CARD PAYMENT|CARD PURCHASE|PURCHASE|POS)\b[:\s]*", RegexOptions.IgnoreCase)]
     private static partial Regex CardPrefixRegex();
 
+    // What ExtractMerchant leaves of a two-digit-year date: 02.11.26 reads as the amount 02.11 plus ".26".
+    [GeneratedRegex(@"(^|\s)\.\d{2}(?=\s|$)")]
+    private static partial Regex DateRemainderRegex();
+
+    /// <summary>
+    /// Removes the date remainder from an extracted merchant (<c>.26 AWS EMEA</c> → <c>AWS EMEA</c>). Separate
+    /// from <see cref="ExtractMerchant"/> because its output feeds the hash ids of rows the bank gives no id,
+    /// which must not change.
+    /// </summary>
+    public static string? WithoutDateRemainder(string? merchant)
+    {
+        if (merchant is null)
+            return null;
+
+        var cleaned = WhitespaceRegex().Replace(DateRemainderRegex().Replace(merchant, " "), " ").Trim();
+        return cleaned.Length == 0 ? null : cleaned;
+    }
+
     /// <summary>Normalises a counterparty name; returns null when nothing meaningful is left.</summary>
     public static string? Normalise(string? value)
     {

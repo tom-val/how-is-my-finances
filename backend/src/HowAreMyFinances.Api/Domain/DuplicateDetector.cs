@@ -7,12 +7,15 @@ public sealed record DuplicateCandidate(
     decimal Amount,
     string? Vendor,
     DateOnly ExpenseDate,
-    bool IsRecurringInstance
+    bool IsRecurringInstance,
+    bool IsFromReservation = false,
+    string? ReservationCardCode = null
 );
 
 /// <summary>
 /// Flags a bank debit as a possible duplicate of an expense with the same amount, an expense date
-/// within ±3 days and a similar vendor (or one generated from a recurring template).
+/// within ±3 days and a similar vendor (or one generated from a recurring template, or created by
+/// accepting a card reservation, which a booked payment of the same amount has probably settled).
 /// </summary>
 public static class DuplicateDetector
 {
@@ -30,6 +33,7 @@ public static class DuplicateDetector
             .Where(c => Math.Abs(c.ExpenseDate.DayNumber - bookingDate.DayNumber) <= DayWindow)
             .Where(c => alreadyClaimed is null || !alreadyClaimed.Contains(c.ExpenseId))
             .Where(c => c.IsRecurringInstance
+                        || c.IsFromReservation
                         || IsSimilar(counterpartyKey, c.Vendor)
                         || IsSimilar(counterpartyKey, c.ItemName))
             .OrderBy(c => Math.Abs(c.ExpenseDate.DayNumber - bookingDate.DayNumber))

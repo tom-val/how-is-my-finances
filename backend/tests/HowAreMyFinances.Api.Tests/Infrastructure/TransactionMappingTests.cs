@@ -216,6 +216,32 @@ public class TransactionMappingTests
     }
 
     [Fact]
+    public void Map_PendingCardPayment_DropsDateRemainder_ButKeepsHashOnFirstStoredName()
+    {
+        // Arrange: reservations have no bank id, no creditor, and a two-digit-year date
+        const string text = "PIRKINYS 516793******4160 02.11.26 02:53 3.35 EUR (226202) AWS EMEA LUXEMBOURG LU";
+        var transaction = Parse($$"""
+            {
+              "transaction_amount": { "amount": "3.35", "currency": "EUR" },
+              "credit_debit_indicator": "DBIT",
+              "status": "PDNG",
+              "transaction_date": "2026-11-02",
+              "remittance_information": ["{{text}}"]
+            }
+            """);
+
+        // Act
+        var row = TransactionMapper.Map(transaction, EbTransactionStatus.Pending, Today)!;
+
+        // Assert
+        Assert.Equal("AWS EMEA LUXEMBOURG LU", row.CounterpartyName);
+        Assert.Equal("aws emea luxembourg lu", row.CounterpartyKey);
+        Assert.Equal(
+            TransactionMapper.HashId(new DateOnly(2026, 11, 2), 3.35m, BankDirection.Debit, ".26 AWS EMEA LUXEMBOURG LU", text),
+            row.ExternalId);
+    }
+
+    [Fact]
     public void Map_CardPaymentWithoutCreditor_TakesMerchantFromRemittance()
     {
         // Arrange
