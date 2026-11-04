@@ -109,9 +109,11 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
+      # Pinned: CLI v3 rejects [inbucket] in supabase/config.toml (renamed to [local_smtp]). Migrate that
+      # section before upgrading.
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.122.0
 
       - name: Link Supabase project
         run: supabase link --project-ref ${{ needs.infra.outputs.supabase_project_ref }}
