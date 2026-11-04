@@ -88,6 +88,9 @@ public static partial class TransactionMapper
             ?? Clean(transaction.TransactionId)
             ?? HashId(bankDate, amount, direction, counterpartyName, description);
 
+        // After the id: the hash keeps using the name as first stored.
+        counterpartyName = CounterpartyKey.WithoutDateRemainder(counterpartyName);
+
         return new NewBankTransaction(
             ExternalId: externalId,
             BookingStatus: bookingStatus,

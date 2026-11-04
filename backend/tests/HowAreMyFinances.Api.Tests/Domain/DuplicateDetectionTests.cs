@@ -25,6 +25,19 @@ public class DuplicateDetectionTests
     }
 
     [Fact]
+    public void FindDuplicate_ReservationWithDifferentMerchant_Matches()
+    {
+        // Arrange
+        var candidate = new DuplicateCandidate(Guid.NewGuid(), "Coffee", 3.35m, "Pupele", BookingDate, false, IsFromReservation: true);
+
+        // Act
+        var match = DuplicateDetector.FindDuplicate(3.35m, BookingDate, "something else", [candidate]);
+
+        // Assert
+        Assert.Equal(candidate.ExpenseId, match);
+    }
+
+    [Fact]
     public void FindDuplicate_OutsideThreeDays_DoesNotMatch()
     {
         // Arrange

@@ -16,8 +16,14 @@ public interface IBankTransactionRepository
     Task<int> DeleteStalePendingAsync(Guid userId, Guid accountId, IReadOnlyCollection<string> currentPendingExternalIds);
 
     /// <summary>
-    /// Links new booked rows to an accepted pending-booking row (same account, direction, amount and
-    /// counterparty key, ±3 days) so the same payment is never suggested twice.
+    /// Deletes un-reviewed pending-booking rows of the account that a booked row has settled (see
+    /// <see cref="PendingBookedMatcher.FindSettledReservations"/>) and returns their ids.
+    /// </summary>
+    Task<IReadOnlyList<Guid>> DeleteSettledPendingAsync(Guid userId, Guid accountId);
+
+    /// <summary>
+    /// Links new booked rows to an accepted pending-booking row (see <see cref="PendingBookedMatcher"/>)
+    /// so the same payment is never suggested twice.
     /// </summary>
     Task<int> AutoLinkBookedAsync(Guid userId, IReadOnlyCollection<Guid> transactionIds);
 

@@ -37,6 +37,7 @@ public class BankSyncServiceTests
                 .Select(t => new InsertedBankTransaction(Guid.NewGuid(), t.ExternalId, true)).ToList());
         _transactionRepository.GetUncategorisedPendingDebitsAsync(_userId, Arg.Any<int>())
             .Returns(new List<UncategorisedBankTransaction>());
+        _transactionRepository.DeleteSettledPendingAsync(_userId, _account.Id).Returns(new List<Guid>());
         _categoryRepository.GetAllAsync(_userId).Returns(Categories(3));
         SetTransactions(EbTransactionStatus.Booked);
         SetTransactions(EbTransactionStatus.Pending);
@@ -199,6 +200,28 @@ public class BankSyncServiceTests
         await _transactionRepository.Received(1).DeleteStalePendingAsync(_userId, _account.Id,
             Arg.Is<IReadOnlyCollection<string>>(ids => ids.Count == 1 && ids.Contains("p1")));
         await _transactionRepository.Received(1).AutoLinkBookedAsync(_userId, Arg.Any<IReadOnlyCollection<Guid>>());
+    }
+
+    [Fact]
+    public async Task Sync_ReservationAlreadyBooked_IsRemovedAndNotCountedAsNew()
+    {
+        // Arrange: the bank lists the same payment as booked and pending, under different ids
+        var bookedId = Guid.NewGuid();
+        var pendingId = Guid.NewGuid();
+        SetTransactions(EbTransactionStatus.Booked, Transaction("b1"));
+        SetTransactions(EbTransactionStatus.Pending, Transaction("p1", status: "PDNG"));
+        _transactionRepository.InsertAsync(_userId, _account.Id, Arg.Any<IReadOnlyList<NewBankTransaction>>())
+            .Returns(new List<InsertedBankTransaction> { new(bookedId, "b1", true), new(pendingId, "p1", true) });
+        _transactionRepository.DeleteSettledPendingAsync(_userId, _account.Id).Returns(new List<Guid> { pendingId });
+
+        // Act
+        var result = await CreateService().SyncAsync(_userId, null, PsuContext.None);
+
+        // Assert
+        Assert.Equal(1, result.Imported);
+        Assert.Equal(1, result.Skipped);
+        await _transactionRepository.Received(1).FlagDuplicatesAsync(_userId,
+            Arg.Is<IReadOnlyCollection<Guid>>(ids => ids.Count == 1 && ids.Contains(bookedId)));
     }
 
     [Fact]

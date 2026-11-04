@@ -101,6 +101,73 @@ public sealed class BankTransactionRepository : IBankTransactionRepository
         return await command.ExecuteNonQueryAsync();
     }
 
+    public async Task<IReadOnlyList<Guid>> DeleteSettledPendingAsync(Guid userId, Guid accountId)
+    {
+        await using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        var reservations = await ReadCardPaymentsAsync(connection, userId, accountId,
+            "booking_status = 'pending' AND review_status = 'pending'", null);
+        if (reservations.Count == 0)
+            return [];
+
+        var booked = await ReadCardPaymentsAsync(connection, userId, accountId, "booking_status = 'booked'",
+            (reservations.Min(r => r.Date).AddDays(-PendingBookedMatcher.CardCodeDayWindow),
+             reservations.Max(r => r.Date).AddDays(PendingBookedMatcher.CardCodeDayWindow)));
+
+        var settled = PendingBookedMatcher.FindSettledReservations(reservations, booked);
+        if (settled.Count == 0)
+            return settled;
+
+        await using var delete = new NpgsqlCommand(
+            """
+            DELETE FROM public.bank_transactions
+            WHERE user_id = @userId AND bank_account_id = @accountId AND source = 'enable_banking'
+              AND booking_status = 'pending' AND review_status = 'pending'
+              AND id = ANY(@ids)
+            """,
+            connection);
+        delete.Parameters.AddWithValue("userId", userId);
+        delete.Parameters.AddWithValue("accountId", accountId);
+        delete.Parameters.AddWithValue("ids", settled.ToArray());
+        await delete.ExecuteNonQueryAsync();
+
+        return settled;
+    }
+
+    /// <summary>The account's parsed rows matching <paramref name="filter"/> (a constant SQL condition) that have a card code.</summary>
+    private static async Task<List<CardPaymentRow>> ReadCardPaymentsAsync(
+        NpgsqlConnection connection, Guid userId, Guid accountId, string filter, (DateOnly From, DateOnly To)? dates)
+    {
+        await using var command = new NpgsqlCommand(
+            $"""
+            SELECT id, direction, amount, booking_date, description
+            FROM public.bank_transactions
+            WHERE user_id = @userId AND bank_account_id = @accountId AND source = 'enable_banking'
+              AND parse_status = 'parsed' AND {filter}
+              {(dates is null ? "" : "AND booking_date BETWEEN @from AND @to")}
+            """,
+            connection);
+        command.Parameters.AddWithValue("userId", userId);
+        command.Parameters.AddWithValue("accountId", accountId);
+        if (dates is { } range)
+        {
+            command.Parameters.AddWithValue("from", range.From);
+            command.Parameters.AddWithValue("to", range.To);
+        }
+
+        var rows = new List<CardPaymentRow>();
+        await using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            var code = PendingBookedMatcher.ExtractCardCode(reader.IsDBNull(4) ? null : reader.GetString(4));
+            if (code is not null)
+                rows.Add(new CardPaymentRow(reader.GetGuid(0), reader.GetString(1), reader.GetDecimal(2), reader.GetFieldValue<DateOnly>(3), code));
+        }
+
+        return rows;
+    }
+
     public async Task<int> AutoLinkBookedAsync(Guid userId, IReadOnlyCollection<Guid> transactionIds)
     {
         if (transactionIds.Count == 0)
@@ -109,54 +176,93 @@ public sealed class BankTransactionRepository : IBankTransactionRepository
         await using var connection = new NpgsqlConnection(_connectionString);
         await connection.OpenAsync();
 
-        // Each accepted pending row links at most one booked row and vice versa (two DISTINCT ON passes),
-        // and a pending row whose expense/income is already linked to a booked row is not reused.
-        await using var command = new NpgsqlCommand(
+        var booked = new List<BookedBankRow>();
+        await using (var command = new NpgsqlCommand(
             """
-            WITH target AS (
-                SELECT id, bank_account_id, direction, amount, booking_date, counterparty_key
-                FROM public.bank_transactions
-                WHERE user_id = @userId AND id = ANY(@ids)
-                  AND source = 'enable_banking' AND booking_status = 'booked' AND review_status = 'pending'
-            ), candidate AS (
-                SELECT DISTINCT ON (p.id)
-                       t.id AS target_id, p.expense_id, p.income_id,
-                       abs(p.booking_date - t.booking_date) AS distance
-                FROM target t
-                JOIN public.bank_transactions p
-                  ON p.user_id = @userId
-                 AND p.bank_account_id = t.bank_account_id
-                 AND p.source = 'enable_banking'
-                 AND p.booking_status = 'pending'
-                 AND p.review_status = 'accepted'
-                 AND (p.expense_id IS NOT NULL OR p.income_id IS NOT NULL)
-                 AND p.direction = t.direction
-                 AND p.amount = t.amount
-                 AND abs(p.booking_date - t.booking_date) <= 3
-                 AND p.counterparty_key IS NOT DISTINCT FROM t.counterparty_key
-                WHERE NOT EXISTS (
-                    SELECT 1 FROM public.bank_transactions l
-                    WHERE l.user_id = @userId AND l.booking_status = 'booked'
-                      AND l.review_status IN ('accepted', 'linked')
-                      AND ((p.expense_id IS NOT NULL AND l.expense_id = p.expense_id)
-                        OR (p.income_id IS NOT NULL AND l.income_id = p.income_id)))
-                ORDER BY p.id, distance
-            ), chosen AS (
-                SELECT DISTINCT ON (target_id) target_id, expense_id, income_id
-                FROM candidate
-                ORDER BY target_id, distance
-            )
-            UPDATE public.bank_transactions b
-            SET review_status = 'linked', expense_id = c.expense_id, income_id = c.income_id, reviewed_at = now()
-            FROM chosen c
-            WHERE b.id = c.target_id AND b.user_id = @userId
+            SELECT id, bank_account_id, direction, amount, booking_date, counterparty_key, description
+            FROM public.bank_transactions
+            WHERE user_id = @userId AND id = ANY(@ids)
+              AND source = 'enable_banking' AND booking_status = 'booked' AND review_status = 'pending'
             """,
-            connection);
+            connection))
+        {
+            command.Parameters.AddWithValue("userId", userId);
+            command.Parameters.AddWithValue("ids", transactionIds.ToArray());
 
-        command.Parameters.AddWithValue("userId", userId);
-        command.Parameters.AddWithValue("ids", transactionIds.ToArray());
+            await using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                booked.Add(new BookedBankRow(
+                    Id: reader.GetGuid(0),
+                    AccountId: reader.GetGuid(1),
+                    Direction: reader.GetString(2),
+                    Amount: reader.GetDecimal(3),
+                    Date: reader.GetFieldValue<DateOnly>(4),
+                    CounterpartyKey: reader.IsDBNull(5) ? null : reader.GetString(5),
+                    CardCode: PendingBookedMatcher.ExtractCardCode(reader.IsDBNull(6) ? null : reader.GetString(6))));
+            }
+        }
 
-        return await command.ExecuteNonQueryAsync();
+        if (booked.Count == 0)
+            return 0;
+
+        // A pending row whose expense/income is already linked to a booked row is not reused.
+        var pending = new List<AcceptedPendingBankRow>();
+        await using (var command = new NpgsqlCommand(
+            """
+            SELECT p.id, p.bank_account_id, p.direction, p.amount, p.booking_date, p.counterparty_key, p.expense_id, p.income_id, p.description
+            FROM public.bank_transactions p
+            WHERE p.user_id = @userId AND p.source = 'enable_banking'
+              AND p.booking_status = 'pending' AND p.review_status = 'accepted'
+              AND (p.expense_id IS NOT NULL OR p.income_id IS NOT NULL)
+              AND p.booking_date BETWEEN @from AND @to
+              AND NOT EXISTS (
+                  SELECT 1 FROM public.bank_transactions l
+                  WHERE l.user_id = @userId AND l.booking_status = 'booked'
+                    AND l.review_status IN ('accepted', 'linked')
+                    AND ((p.expense_id IS NOT NULL AND l.expense_id = p.expense_id)
+                      OR (p.income_id IS NOT NULL AND l.income_id = p.income_id)))
+            """,
+            connection))
+        {
+            command.Parameters.AddWithValue("userId", userId);
+            command.Parameters.AddWithValue("from", booked.Min(b => b.Date).AddDays(-PendingBookedMatcher.CardCodeDayWindow));
+            command.Parameters.AddWithValue("to", booked.Max(b => b.Date).AddDays(PendingBookedMatcher.CardCodeDayWindow));
+
+            await using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                pending.Add(new AcceptedPendingBankRow(
+                    Id: reader.GetGuid(0),
+                    AccountId: reader.GetGuid(1),
+                    Direction: reader.GetString(2),
+                    Amount: reader.GetDecimal(3),
+                    Date: reader.GetFieldValue<DateOnly>(4),
+                    CounterpartyKey: reader.IsDBNull(5) ? null : reader.GetString(5),
+                    CardCode: PendingBookedMatcher.ExtractCardCode(reader.IsDBNull(8) ? null : reader.GetString(8)),
+                    ExpenseId: reader.IsDBNull(6) ? null : reader.GetGuid(6),
+                    IncomeId: reader.IsDBNull(7) ? null : reader.GetGuid(7)));
+            }
+        }
+
+        var linked = 0;
+        foreach (var (row, reservation) in PendingBookedMatcher.Match(booked, pending))
+        {
+            await using var update = new NpgsqlCommand(
+                """
+                UPDATE public.bank_transactions
+                SET review_status = 'linked', expense_id = @expenseId, income_id = @incomeId, reviewed_at = now()
+                WHERE id = @id AND user_id = @userId
+                """,
+                connection);
+            update.Parameters.AddWithValue("expenseId", (object?)reservation.ExpenseId ?? DBNull.Value).NpgsqlDbType = NpgsqlDbType.Uuid;
+            update.Parameters.AddWithValue("incomeId", (object?)reservation.IncomeId ?? DBNull.Value).NpgsqlDbType = NpgsqlDbType.Uuid;
+            update.Parameters.AddWithValue("id", row.Id);
+            update.Parameters.AddWithValue("userId", userId);
+            linked += await update.ExecuteNonQueryAsync();
+        }
+
+        return linked;
     }
 
     public async Task<int> FlagDuplicatesAsync(Guid userId, IReadOnlyCollection<Guid> transactionIds)
@@ -167,10 +273,10 @@ public sealed class BankTransactionRepository : IBankTransactionRepository
         await using var connection = new NpgsqlConnection(_connectionString);
         await connection.OpenAsync();
 
-        var targets = new List<(Guid Id, decimal Amount, DateOnly BookingDate, string? Key)>();
+        var targets = new List<(Guid Id, decimal Amount, DateOnly BookingDate, string? Key, bool IsBooked, string? CardCode)>();
         await using (var command = new NpgsqlCommand(
             """
-            SELECT id, amount, booking_date, counterparty_key
+            SELECT id, amount, booking_date, counterparty_key, booking_status = 'booked', description
             FROM public.bank_transactions
             WHERE user_id = @userId AND id = ANY(@ids)
               AND parse_status = 'parsed' AND review_status = 'pending' AND direction = 'debit'
@@ -186,7 +292,8 @@ public sealed class BankTransactionRepository : IBankTransactionRepository
             while (await reader.ReadAsync())
             {
                 targets.Add((reader.GetGuid(0), reader.GetDecimal(1), reader.GetFieldValue<DateOnly>(2),
-                    reader.IsDBNull(3) ? null : reader.GetString(3)));
+                    reader.IsDBNull(3) ? null : reader.GetString(3), reader.GetBoolean(4),
+                    PendingBookedMatcher.ExtractCardCode(reader.IsDBNull(5) ? null : reader.GetString(5))));
             }
         }
 
@@ -196,16 +303,24 @@ public sealed class BankTransactionRepository : IBankTransactionRepository
         var from = targets.Min(t => t.BookingDate).AddDays(-DuplicateDetector.DayWindow);
         var to = targets.Max(t => t.BookingDate).AddDays(DuplicateDetector.DayWindow);
 
-        // Expenses already created from / linked to a bank row are not duplicates of another one.
+        // Expenses already created from / linked to a bank row are not duplicates of another one, except an
+        // accepted reservation that nothing has settled yet: its booked row may have escaped AutoLinkBookedAsync.
         var candidates = new List<DuplicateCandidate>();
         await using (var command = new NpgsqlCommand(
             """
-            SELECT e.id, e.item_name, e.amount, e.vendor, e.expense_date, e.is_recurring_instance
+            SELECT e.id, e.item_name, e.amount, e.vendor, e.expense_date, e.is_recurring_instance,
+                   (SELECT b.description FROM public.bank_transactions b
+                    WHERE b.user_id = @userId AND b.expense_id = e.id
+                    LIMIT 1) AS reservation_text,
+                   EXISTS (
+                       SELECT 1 FROM public.bank_transactions b
+                       WHERE b.user_id = @userId AND b.expense_id = e.id) AS from_reservation
             FROM public.expenses e
             WHERE e.user_id = @userId AND e.expense_date BETWEEN @from AND @to
               AND NOT EXISTS (
                   SELECT 1 FROM public.bank_transactions b
-                  WHERE b.user_id = @userId AND b.expense_id = e.id)
+                  WHERE b.user_id = @userId AND b.expense_id = e.id
+                    AND NOT (b.source = 'enable_banking' AND b.booking_status = 'pending'))
             """,
             connection))
         {
@@ -222,7 +337,9 @@ public sealed class BankTransactionRepository : IBankTransactionRepository
                     Amount: reader.GetDecimal(2),
                     Vendor: reader.IsDBNull(3) ? null : reader.GetString(3),
                     ExpenseDate: reader.GetFieldValue<DateOnly>(4),
-                    IsRecurringInstance: reader.GetBoolean(5)));
+                    IsRecurringInstance: reader.GetBoolean(5),
+                    IsFromReservation: reader.GetBoolean(7),
+                    ReservationCardCode: PendingBookedMatcher.ExtractCardCode(reader.IsDBNull(6) ? null : reader.GetString(6))));
             }
         }
 
@@ -250,7 +367,11 @@ public sealed class BankTransactionRepository : IBankTransactionRepository
         var flagged = 0;
         foreach (var target in targets)
         {
-            var match = DuplicateDetector.FindDuplicate(target.Amount, target.BookingDate, target.Key, candidates, claimed);
+            // Only a booked row can settle a reservation, and not one with a different card code; a second
+            // reservation of the same amount is its own payment.
+            var targetCandidates = candidates.Where(c => !c.IsFromReservation
+                || (target.IsBooked && !PendingBookedMatcher.AreDifferentPayments(target.CardCode, c.ReservationCardCode)));
+            var match = DuplicateDetector.FindDuplicate(target.Amount, target.BookingDate, target.Key, targetCandidates, claimed);
             if (match is null)
                 continue;
 
