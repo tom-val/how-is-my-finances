@@ -101,6 +101,73 @@ public sealed class BankTransactionRepository : IBankTransactionRepository
         return await command.ExecuteNonQueryAsync();
     }
 
+    public async Task<IReadOnlyList<Guid>> DeleteSettledPendingAsync(Guid userId, Guid accountId)
+    {
+        await using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        var reservations = await ReadCardPaymentsAsync(connection, userId, accountId,
+            "booking_status = 'pending' AND review_status = 'pending'", null);
+        if (reservations.Count == 0)
+            return [];
+
+        var booked = await ReadCardPaymentsAsync(connection, userId, accountId, "booking_status = 'booked'",
+            (reservations.Min(r => r.Date).AddDays(-PendingBookedMatcher.CardCodeDayWindow),
+             reservations.Max(r => r.Date).AddDays(PendingBookedMatcher.CardCodeDayWindow)));
+
+        var settled = PendingBookedMatcher.FindSettledReservations(reservations, booked);
+        if (settled.Count == 0)
+            return settled;
+
+        await using var delete = new NpgsqlCommand(
+            """
+            DELETE FROM public.bank_transactions
+            WHERE user_id = @userId AND bank_account_id = @accountId AND source = 'enable_banking'
+              AND booking_status = 'pending' AND review_status = 'pending'
+              AND id = ANY(@ids)
+            """,
+            connection);
+        delete.Parameters.AddWithValue("userId", userId);
+        delete.Parameters.AddWithValue("accountId", accountId);
+        delete.Parameters.AddWithValue("ids", settled.ToArray());
+        await delete.ExecuteNonQueryAsync();
+
+        return settled;
+    }
+
+    /// <summary>The account's parsed rows matching <paramref name="filter"/> (a constant SQL condition) that have a card code.</summary>
+    private static async Task<List<CardPaymentRow>> ReadCardPaymentsAsync(
+        NpgsqlConnection connection, Guid userId, Guid accountId, string filter, (DateOnly From, DateOnly To)? dates)
+    {
+        await using var command = new NpgsqlCommand(
+            $"""
+            SELECT id, direction, amount, booking_date, description
+            FROM public.bank_transactions
+            WHERE user_id = @userId AND bank_account_id = @accountId AND source = 'enable_banking'
+              AND parse_status = 'parsed' AND {filter}
+              {(dates is null ? "" : "AND booking_date BETWEEN @from AND @to")}
+            """,
+            connection);
+        command.Parameters.AddWithValue("userId", userId);
+        command.Parameters.AddWithValue("accountId", accountId);
+        if (dates is { } range)
+        {
+            command.Parameters.AddWithValue("from", range.From);
+            command.Parameters.AddWithValue("to", range.To);
+        }
+
+        var rows = new List<CardPaymentRow>();
+        await using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            var code = PendingBookedMatcher.ExtractCardCode(reader.IsDBNull(4) ? null : reader.GetString(4));
+            if (code is not null)
+                rows.Add(new CardPaymentRow(reader.GetGuid(0), reader.GetString(1), reader.GetDecimal(2), reader.GetFieldValue<DateOnly>(3), code));
+        }
+
+        return rows;
+    }
+
     public async Task<int> AutoLinkBookedAsync(Guid userId, IReadOnlyCollection<Guid> transactionIds)
     {
         if (transactionIds.Count == 0)

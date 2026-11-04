@@ -48,6 +48,41 @@ public class PendingBookedMatcherTests
         Assert.Equal(pending.Id, match.Pending.Id);
     }
 
+    private static CardPaymentRow Card(string code, decimal amount = 5m, DateOnly? date = null, string direction = BankDirection.Debit) =>
+        new(Guid.NewGuid(), direction, amount, date ?? Date, code);
+
+    [Fact]
+    public void FindSettledReservations_SameCodeAndAmount_ReturnsTheReservation()
+    {
+        // Arrange
+        var settled = Card("111111");
+        var open = Card("222222");
+
+        // Act
+        var ids = PendingBookedMatcher.FindSettledReservations([settled, open], [Card("111111", date: Date.AddDays(2))]);
+
+        // Assert
+        Assert.Equal([settled.Id], ids);
+    }
+
+    [Fact]
+    public void FindSettledReservations_DifferentAmountDirectionOrLongAfter_KeepsTheReservation()
+    {
+        // Arrange
+        var reservation = Card("111111");
+
+        // Act
+        var ids = PendingBookedMatcher.FindSettledReservations([reservation],
+        [
+            Card("111111", amount: 6m),
+            Card("111111", direction: BankDirection.Credit),
+            Card("111111", date: Date.AddDays(31))
+        ]);
+
+        // Assert
+        Assert.Empty(ids);
+    }
+
     [Fact]
     public void Match_SameCardCodeDifferentMerchantAndLateBooking_Links()
     {

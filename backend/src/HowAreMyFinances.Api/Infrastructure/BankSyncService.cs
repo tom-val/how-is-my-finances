@@ -237,11 +237,19 @@ public sealed class BankSyncService : IBankSyncService
                 _logger.LogInformation("[BankSync] Removed {Count} stale pending rows for account {AccountId}", removed, account.Id);
         }
 
+        // The bank can list a payment as pending and booked at once (under different ids); the booked row wins.
+        var settled = await _transactionRepository.DeleteSettledPendingAsync(userId, account.Id);
+        if (settled.Count > 0)
+        {
+            _logger.LogInformation("[BankSync] Removed {Count} settled pending rows for account {AccountId}", settled.Count, account.Id);
+            skipped += newPending.RemoveAll(settled.Contains);
+        }
+
         // Only advance when every page of booked transactions was read.
         if (booked.Complete && booked.Error is null)
             await _connectionRepository.UpdateAccountSyncedUntilAsync(userId, account.Id, today);
 
-        return new AccountOutcome(newRows.Count, skipped, newBooked, newPending, booked.Error);
+        return new AccountOutcome(newBooked.Count + newPending.Count, skipped, newBooked, newPending, booked.Error);
     }
 
     /// <summary>

@@ -11,6 +11,9 @@ public sealed record AcceptedPendingBankRow(
     Guid Id, Guid AccountId, string Direction, decimal Amount, DateOnly Date, string? CounterpartyKey, string? CardCode,
     Guid? ExpenseId, Guid? IncomeId);
 
+/// <summary>A card payment row of one account, for comparing reservations with booked payments by card code.</summary>
+public sealed record CardPaymentRow(Guid Id, string Direction, decimal Amount, DateOnly Date, string CardCode);
+
 /// <summary>
 /// Pairs booked rows with the accepted reservation they settle, so a payment isn't suggested twice. The bank
 /// gives reservations no id and words the merchant differently once booked, but a card payment's text carries
@@ -45,6 +48,18 @@ public static partial class PendingBookedMatcher
     /// <summary>Different card codes mean two separate purchases, whatever else matches.</summary>
     public static bool AreDifferentPayments(string? cardCode, string? otherCardCode) =>
         cardCode is not null && otherCardCode is not null && cardCode != otherCardCode;
+
+    /// <summary>
+    /// Un-reviewed reservations that a booked payment has settled: same card code, direction and amount, within
+    /// <see cref="CardCodeDayWindow"/>. The bank can list both at once, and both would show in the inbox.
+    /// </summary>
+    public static IReadOnlyList<Guid> FindSettledReservations(
+        IReadOnlyCollection<CardPaymentRow> reservations, IReadOnlyCollection<CardPaymentRow> booked) =>
+        reservations
+            .Where(r => booked.Any(b => b.CardCode == r.CardCode && b.Direction == r.Direction && b.Amount == r.Amount
+                                        && Math.Abs(b.Date.DayNumber - r.Date.DayNumber) <= CardCodeDayWindow))
+            .Select(r => r.Id)
+            .ToList();
 
     /// <summary>One-to-one pairs: a shared card code first, then identical merchants, then the closest dates.</summary>
     public static IReadOnlyList<(BookedBankRow Booked, AcceptedPendingBankRow Pending)> Match(
